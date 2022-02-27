@@ -112,6 +112,78 @@ void initGrammar(Grammar* grammar){
     initRuleArray(grammar, OTHER_FUNCTIONS, 2);
     addRule(grammar, OTHER_FUNCTIONS, otherFunctions0, 2, 0);
     addRule(grammar, OTHER_FUNCTIONS, otherFunctions1, 1, 1);
+    
+    Symbol function[] = {{1,TK_FUNID}, {0,INPUT_PAR}, {0,OUTPUT_PAR}, {1,TK_SEM}, {0,STMTS}, {1,TK_END}};
+    initRuleArray(grammar, FUNCTION,1);
+    addRule(grammar, FUNCTION, function, 6, 0);
+    
+    Symbol input_par[] = {{1,TK_INPUT}, {1,TK_PARAMETER}, {1,TK_LIST}, {1,TK_SQL}, {0,PARAMETER_LIST}, {1,TK_SQR}};
+    initRuleArray(grammar, INPUT_PAR,1);
+    addRule(grammar, INPUT_PAR, input_par, 6, 0);
+    
+    Symbol output_par0[] = {{1,TK_OUTPUT}, {1,TK_PARAMETER}, {1,TK_LIST}, {1,TK_SQL}, {0,PARAMETER_LIST}, {1,TK_SQR}};
+    Symbol output_par1[] = {{1, EPSILON}};
+    initRuleArray(grammar, OUTPUT_PAR,2);
+    addRule(grammar, OUTPUT_PAR, output_par0, 6, 0);
+    addRule(grammar, OUTPUT_PAR, output_par1, 1, 1);
+    
+    Symbol parameter_list[] = {{0,DATATYPE}, {1,TK_ID}, {0,REMAINING_LIST}};
+    initRuleArray(grammar, PARAMETER_LIST,1);
+    addRule(grammar, PARAMETER_LIST, parameter_list , 3, 0);
+    
+    Symbol datatype0[] = {{0, PRIMITIVE_DATATYPE}};
+    Symbol datatype1[] = {{0, CONSTRUCTED_DATATYPE}};
+    initRuleArray(grammar, DATATYPE,2);
+    addRule(grammar, DATATYPE, datatype0, 1, 0);
+    addRule(grammar, DATATYPE, datatype1, 1, 1);
+    
+    Symbol primitiveDatatype0[] = {{1, TK_INT}};
+    Symbol primitiveDatatype1[] = {{1, TK_REAL}};
+    initRuleArray(grammar, PRIMITIVE_DATATYPE,2);
+    addRule(grammar, PRIMITIVE_DATATYPE, primitiveDatatype0, 1, 0);
+    addRule(grammar, PRIMITIVE_DATATYPE, primitiveDatatype1, 1, 1);
+    
+    
+    Symbol constructedDatatype0[] = {{1, TK_RECORD}, {1,TK_RUID}};
+    Symbol constructedDatatype1[] = {{1, TK_UNION}, {1,TK_RUID}};
+    Symbol constructedDatatype2[] = {{1,TK_RUID}};
+    initRuleArray(grammar, PRIMITIVE_DATATYPE,3);
+    addRule(grammar, CONSTRUCTED_DATATYPE, constructedDatatype0, 2, 0);
+    addRule(grammar, CONSTRUCTED_DATATYPE, constructedDatatype1, 2, 1);
+    addRule(grammar, CONSTRUCTED_DATATYPE, constructedDatatype2, 1, 2);
+    
+    Symbol remaining_list0[] = {{1, TK_COMMA}, {0,PARAMETER_LIST}};
+    Symbol remaining_list1[] = {{1, EPSILON}};
+    initRuleArray(grammar, REMAINING_LIST,2);
+    addRule(grammar, REMAINING_LIST, remaining_list0, 2, 0);
+    addRule(grammar, REMAINING_LIST, remaining_list1, 1, 1);
+    
+    
+    Symbol stmts[] = {{0,TYPE_DEFINITIONS}, {0,DECLARATIONS}, {0,OTHER_STMTS}, {0,RETURN_STMT}};
+    initRuleArray(grammar, STMTS,1);
+    addRule(grammar, STMTS, stmts , 4, 0);
+    
+    Symbol typeDefinitions0[] = {{0, ACTUAL_OR_REDEFINED}, {0,TYPE_DEFINITIONS}};
+    Symbol typeDefinitions1[] = {{1, EPSILON}};
+    initRuleArray(grammar, TYPE_DEFINITIONS,2);
+    addRule(grammar, REMAINING_LIST, remaining_list0, 2, 0);
+    addRule(grammar, REMAINING_LIST, remaining_list1, 1, 1);
+    
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
      
 
     // initialize nset at the end
