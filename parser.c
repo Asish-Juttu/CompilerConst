@@ -178,13 +178,7 @@ void initGrammar(Grammar* grammar){
     
     
     
-    
-    
-    
-    
-    
-    
-     
+
 
     // initialize nset at the end
     initLocations(grammar);
