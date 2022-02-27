@@ -28,11 +28,11 @@ typedef struct{
 typedef struct{
     int size;
     Rule* rule;
-} RuleSet;
+} RuleArray;
 
 typedef struct {
     int size;
-    RuleSet* ruleSet;
+    RuleArray* ruleArray;
 } Grammar;
 
 typedef struct  {
@@ -48,5 +48,13 @@ typedef struct {
 typedef struct {
 
 } ParseTree;
+
+typedef struct{
+    unsigned int bitMask : NON_TERMINAL_SIZE;
+} NonTermSet;
+
+NonTermSet nullNonTermSet();
+NonTermSet singletonNonTermSet(NonTerm nt);
+NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2);
 
 #endif
