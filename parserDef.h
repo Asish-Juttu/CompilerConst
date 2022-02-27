@@ -3,7 +3,7 @@
 
 #define NON_TERMINAL_SIZE 41
 
-enum NonTerminal {
+typedef enum {
     PROGRAM, MAIN_FUNCTION, OTHER_FUNCTIONS, FUNCTION, INPUT_PAR, OUTPUT_PAR, 
     PARAMETER_LIST, DATATYPE, PRIMITIVE_DATATYPE, CONSTRUCTED_DATATYPE, 
     REMAINING_LIST, STMTS, TYPE_DEFINITIONS, TYPE_DEFINITION, FIELD_DEFINITIONS, 
@@ -12,7 +12,7 @@ enum NonTerminal {
     INPUT_PARAMETERS, ITERATIVE_STMT, CONDITIONAL_STMT,  IO_STMT, ARITHMETICEXPRESSION, 
     ARITHMETIC_EXPRESSION, OPERATOR,  BOOLEAN_EXPRESSION, VAR, LOGICAL_OP, RELATIONAL_OP, 
     RETURN_STMT, OPTIONAL_RETURN, ID_LIST, MORE_IDS
-};
+} NonTerminal;
 
 
 typedef struct{
@@ -22,7 +22,7 @@ typedef struct{
 
 typedef struct{
     int size;
-    Symbol* symbols;
+    Symbol* symbol;
 } Rule;
 
 typedef struct{
@@ -50,11 +50,11 @@ typedef struct {
 } ParseTree;
 
 typedef struct{
-    unsigned int bitMask : NON_TERMINAL_SIZE;
+    unsigned long long bitMask : NON_TERMINAL_SIZE;
 } NonTermSet;
 
 NonTermSet nullNonTermSet();
-NonTermSet singletonNonTermSet(NonTerm nt);
+NonTermSet singletonNonTermSet(NonTerminal nt);
 NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2);
-
+int equalsNonTermSet(NonTermSet s1, NonTermSet s2);
 #endif

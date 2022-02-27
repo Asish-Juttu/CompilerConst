@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define BUFFER_SIZE 5
+#define BUFFER_SIZE 256
 extern const char EOF_CHAR;
 typedef struct{
     int bufNo;

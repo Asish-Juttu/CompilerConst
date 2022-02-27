@@ -1,6 +1,5 @@
 #include "twinBuffer.h"
-#include "token.h"
-
+#include "lexer.h"
 int isDigit(char ch){
     return ch >= '0' && ch <= '9';
 }
@@ -36,11 +35,7 @@ int num_2(char ch){
 int line=1;
 
 TokenInfo getNextToken(TwinBuffer* tbuf){
-    TwinBuffer tb;
-    TwinBuffer* tbuf = &tb;
 
-    //initTwinBuffer(tbuf, "abc.txt");
-    
     char ch;
     nextChar(tbuf, &ch);
     while(1){
@@ -57,7 +52,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
     int st = 0;
     int num = 0;
     while(ch != EOF_CHAR){
-        printf("(%c)", ch);
+        //LOG("(%c)", ch);
         switch(st){
             case 0: 
                 if(ch=='<'){
@@ -65,6 +60,10 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 }
                 else if(ch=='%'){
                     resetBegin(tbuf,0);
+                    while(ch != '\n'){
+                        nextChar(tbuf, &ch);
+                        resetBegin(tbuf, 0);
+                    }
                     return (TokenInfo) {TK_COMMENT,NULL,line};
                 }
                 else if(isFieldID_1(ch)){
@@ -73,7 +72,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 else if(isID(ch)){
                     st = 10;
                 }
-                else if(num2(ch)){
+                else if(num_2(ch)){
                     st = 15;
                 }
                 else if(ch=='>'){
@@ -192,7 +191,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 }
                 else{
                     resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line}; // Lexeme and look-up table
+                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
                 }
             break;
 
@@ -205,7 +204,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 }
                 else{
                     resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line}; // Lexeme and look-up table
+                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
                 }
             break;
 
@@ -217,7 +216,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 }
                 else {
                     resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line}; // Lexeme and look-up table
+                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
                 }
             break;
 
@@ -226,12 +225,12 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 }
                 else {
                     resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line}; // Lexeme and look-up table
+                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
                 }
             break;
 
             case 15:
-                if(num2(ch)){
+                if(num_2(ch)){
                 }
                 else if(ch == '.'){
                     st = 17;
@@ -243,7 +242,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             break;
 
             case 17:
-                if(num2(ch)){
+                if(num_2(ch)){
                     st = 18;
                 }
                 else{
@@ -253,7 +252,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             break;
 
             case 18:
-                if(num2(ch)){
+                if(num_2(ch)){
                     st = 19;
                 }
                 else{
@@ -273,7 +272,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             break;
 
             case 23:
-                if(num2(ch)){
+                if(num_2(ch)){
                     st = 25;
                 }
                 else if(ch=='+' || ch=='-'){
@@ -285,7 +284,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             break;
 
             case 24:
-                if(num2(ch)){
+                if(num_2(ch)){
                     st = 25;
                 }
                 else{
@@ -294,7 +293,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             break;
 
             case 25:
-                if(num2(ch)){
+                if(num_2(ch)){
                     resetBegin(tbuf,0);
                     return (TokenInfo) {TK_RNUM,NULL,line}; // Lexeme 
                 }
@@ -326,7 +325,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             case 31:
                 if(isFunID(ch)){
                 }
-                else if(num2(ch)){
+                else if(num_2(ch)){
                     st = 32;
                 }
                 else{
@@ -336,7 +335,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
             break;
 
             case 32:
-                if(num2(ch)){
+                if(num_2(ch)){
                 }
                 else{
                     resetBegin(tbuf,1);
@@ -424,5 +423,5 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
     }
 
     
-    return 0;
+    return (TokenInfo){EPSILON,NULL,line};
 }

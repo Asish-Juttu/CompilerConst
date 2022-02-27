@@ -1,6 +1,7 @@
 #include "twinBuffer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "log.h"
 
 const char EOF_CHAR = '\0';
 
@@ -14,7 +15,7 @@ void printBufState(TwinBuffer* tbuf){
     int lin = tbuf->lexemeBegin.index;
     int fin = tbuf->forward.index;
 
-    printf("LexemeBegin = {%s, %d}\t Forward = {%s, %d}\n", lstr, lin, fstr, fin);
+    LOG("LexemeBegin = {%s, %d}\t Forward = {%s, %d}\n", lstr, lin, fstr, fin);
 }
 
 void swap(int* a, int *b){
@@ -49,9 +50,9 @@ int isEndOfSecondbuffer(TwinBuffer* tbuf){
 }
 
 int nextChar(TwinBuffer* tbuf, char* ch){
-    printf("[Last read char pos = %d]\n", tbuf->forward.index);
+    LOG("[Last read char pos = %d]\n", tbuf->forward.index);
     if(isEndOfFirstBuffer(tbuf)){
-        printf("First buffer full; Filling second buffer\n");
+        LOG("First buffer full; Filling second buffer\n");
         if(!tbuf->secondBufFilled)
             fillBuffer(tbuf, tbuf->second);
         tbuf->forward = (BufferHead) {tbuf->second, -1};
@@ -92,7 +93,7 @@ int resetBegin(TwinBuffer* tbuf, int rewindCount){
     tbuf->lexemeBegin = (BufferHead) {tbuf->first, fIndex};
     tbuf->forward = (BufferHead) {tbuf->first, fIndex - 1};
     
-    printf("[Registerd lexeme end.]\n");
+    LOG("[Registerd lexeme end.]\n");
     printBufState(tbuf);
     return 0;
 }
