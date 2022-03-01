@@ -4,7 +4,7 @@
 #define NON_TERMINAL_SIZE 41
 #define TERMINAL_SIZE 56
 
-enum NonTerminal {
+typedef enum {
     PROGRAM, MAIN_FUNCTION, OTHER_FUNCTIONS, FUNCTION, INPUT_PAR, OUTPUT_PAR, 
     PARAMETER_LIST, DATATYPE, PRIMITIVE_DATATYPE, CONSTRUCTED_DATATYPE, 
     REMAINING_LIST, STMTS, TYPE_DEFINITIONS, TYPE_DEFINITION, FIELD_DEFINITIONS, 
@@ -12,8 +12,8 @@ enum NonTerminal {
     OTHER_STMTS, STMT, ASSIGNMENT_STMT, SINGLE_OR_REC_ID, FUN_CALL_STMT, OUTPUT_PARAMETERS, 
     INPUT_PARAMETERS, ITERATIVE_STMT, CONDITIONAL_STMT,  IO_STMT, ARITHMETICEXPRESSION, 
     ARITHMETIC_EXPRESSION, OPERATOR,  BOOLEAN_EXPRESSION, VAR, LOGICAL_OP, RELATIONAL_OP, 
-    RETURN_STMT, OPTIONAL_RETURN, ID_LIST, MORE_IDS
-};
+    RETURN_STMT, OPTIONAL_RETURN, ID_LIST, MORE_IDS, ACTUAL_OR_REDEFINED
+} NonTerminal;
 
 
 typedef struct{
@@ -23,7 +23,7 @@ typedef struct{
 
 typedef struct{
     int size;
-    Symbol* symbols;
+    Symbol* symbol;
 } Rule;
 
 typedef struct{
@@ -40,9 +40,20 @@ typedef struct  {
      Rule table[NON_TERMINAL_SIZE][TERMINAL_SIZE];
 } ParseTable;
 
+typedef struct{
+    Token t;
+    int ruleNo;
+} FirstFollowElement;
+
+typedef struct{
+    FirstFollowElement* firstElements;
+    int size;
+} FirstFollowArray;
+
 typedef struct {
-    Rule first[NON_TERMINAL_SIZE];
-    Rule follow[NON_TERMINAL_SIZE];
+    int size;
+    FirstFollowArray* first;
+    FirstFollowArray* follow;
 } FirstAndFollow;
 
 typedef struct {
@@ -50,11 +61,11 @@ typedef struct {
 } ParseTree;
 
 typedef struct{
-    unsigned int bitMask : NON_TERMINAL_SIZE;
+    unsigned long long bitMask : NON_TERMINAL_SIZE;
 } NonTermSet;
 
 NonTermSet nullNonTermSet();
-NonTermSet singletonNonTermSet(NonTerm nt);
+NonTermSet singletonNonTermSet(NonTerminal nt);
 NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2);
-
+int equalsNonTermSet(NonTermSet s1, NonTermSet s2);
 #endif

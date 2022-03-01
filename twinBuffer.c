@@ -1,6 +1,8 @@
 #include "twinBuffer.h"
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include "log.h"
 
 const char EOF_CHAR = '\0';
 
@@ -14,7 +16,7 @@ void printBufState(TwinBuffer* tbuf){
     int lin = tbuf->lexemeBegin.index;
     int fin = tbuf->forward.index;
 
-    printf("LexemeBegin = {%s, %d}\t Forward = {%s, %d}\n", lstr, lin, fstr, fin);
+    LOG("LexemeBegin = {%s, %d}\t Forward = {%s, %d}\n", lstr, lin, fstr, fin);
 }
 
 void swap(int* a, int *b){
@@ -37,6 +39,9 @@ int initTwinBuffer(TwinBuffer* tbuf, char* pathToSrc){
     }
     
     fillBuffer(tbuf, tbuf->first);
+
+    tbuf->lexeme[0] = '\0';
+    tbuf->lexSize = 0;
     return 0;
 }
 
@@ -49,9 +54,9 @@ int isEndOfSecondbuffer(TwinBuffer* tbuf){
 }
 
 int nextChar(TwinBuffer* tbuf, char* ch){
-    printf("[Last read char pos = %d]\n", tbuf->forward.index);
+    LOG("[Last read char pos = %d]\n", tbuf->forward.index);
     if(isEndOfFirstBuffer(tbuf)){
-        printf("First buffer full; Filling second buffer\n");
+        LOG("First buffer full; Filling second buffer\n");
         if(!tbuf->secondBufFilled)
             fillBuffer(tbuf, tbuf->second);
         tbuf->forward = (BufferHead) {tbuf->second, -1};
@@ -62,10 +67,14 @@ int nextChar(TwinBuffer* tbuf, char* ch){
     }
     tbuf->forward.index++;
     *ch = tbuf->buf[tbuf->forward.bufNo][tbuf->forward.index];
+    tbuf->lexeme[tbuf->lexSize++] = *ch;
+    
     return 0;
 }
 
-int resetBegin(TwinBuffer* tbuf, int rewindCount){
+int resetBegin(TwinBuffer* tbuf, int rewindCount, char** lexeme){
+    tbuf->lexSize -= rewindCount;
+
     if(rewindCount > BUFFER_SIZE){
         printf("ERROR!! Cannot rewind buffer greater than BUFFER_SIZE(%d)\n", BUFFER_SIZE);
         return -1;
@@ -73,8 +82,8 @@ int resetBegin(TwinBuffer* tbuf, int rewindCount){
 
     int fIndex = tbuf->forward.index;
     int fBufNo = tbuf->forward.bufNo;
-
     fIndex = fIndex - rewindCount + 1;
+    
     if(fIndex < 0 && fBufNo == tbuf->first){
         printf("ERROR!! Cannot rewind buffer to before beginning of first buffer\n");
         return -1;
@@ -89,10 +98,14 @@ int resetBegin(TwinBuffer* tbuf, int rewindCount){
         swap(&(tbuf->first), &(tbuf->second));
     }
     tbuf->secondBufFilled = 0;
-    tbuf->lexemeBegin = (BufferHead) {tbuf->first, fIndex};
     tbuf->forward = (BufferHead) {tbuf->first, fIndex - 1};
+    tbuf->lexemeBegin = (BufferHead) {tbuf->first, fIndex};
     
-    printf("[Registerd lexeme end.]\n");
+    if(lexeme != NULL){
+        *lexeme = getLexeme(tbuf);
+    }
+    tbuf->lexSize = 0;
+    LOG("[Registerd lexeme end.]\n");
     printBufState(tbuf);
     return 0;
 }
@@ -112,4 +125,12 @@ int fillBuffer(TwinBuffer* tbuf, int index){
 
 int closeBuffer(TwinBuffer* tbuf){
     return fclose(tbuf->fptr);
+}
+
+char* getLexeme(TwinBuffer* tbuf){
+    char* lexeme = (char*)malloc((tbuf->lexSize + 1) * sizeof(char));
+    lexeme = memcpy(lexeme, tbuf->lexeme, tbuf->lexSize * sizeof(char));
+    lexeme[tbuf->lexSize] = '\0';
+    LOG("[Read lexeme %s]\n", lexeme);
+    return lexeme;
 }

@@ -1,9 +1,9 @@
 #include "token.h"
 TokenSet singletonTokenSet(Token t){
-    TokenSet t;
-    t.bitMask = (1 << t);
+    TokenSet tset;
+    tset.bitMask = (1 << t);
 
-    return t;
+    return tset;
 }
 
 TokenSet nullTokenSet(){
@@ -18,3 +18,8 @@ TokenSet tokenSetUnion(TokenSet t1, TokenSet t2){
 
     return t3;
 }
+
+int equalsTokenSet(TokenSet t1, TokenSet t2){
+    return t1.bitMask == t2.bitMask;
+}
+
