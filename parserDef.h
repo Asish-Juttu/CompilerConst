@@ -39,10 +39,20 @@ typedef struct  {
 
 } ParseTable;
 
+typedef struct{
+    Token t;
+    int ruleNo;
+} FirstFollowElement;
+
+typedef struct{
+    FirstFollowElement* firstElements;
+    int size;
+} FirstFollowArray;
+
 typedef struct {
     int size;
-    Token** first;
-    Token** follow;
+    FirstFollowArray* first;
+    FirstFollowArray* follow;
 } FirstAndFollow;
 
 typedef struct {
