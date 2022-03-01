@@ -2,6 +2,7 @@
 #define _PARSER_DEF_
 
 #define NON_TERMINAL_SIZE 41
+#define TERMINAL_SIZE 56
 
 enum NonTerminal {
     PROGRAM, MAIN_FUNCTION, OTHER_FUNCTIONS, FUNCTION, INPUT_PAR, OUTPUT_PAR, 
@@ -36,13 +37,12 @@ typedef struct {
 } Grammar;
 
 typedef struct  {
-
+     Rule table[NON_TERMINAL_SIZE][TERMINAL_SIZE];
 } ParseTable;
 
 typedef struct {
-    int size;
-    Token** first;
-    Token** follow;
+    Rule first[NON_TERMINAL_SIZE];
+    Rule follow[NON_TERMINAL_SIZE];
 } FirstAndFollow;
 
 typedef struct {
