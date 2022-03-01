@@ -1,5 +1,8 @@
 #include "twinBuffer.h"
 #include "lexer.h"
+#include "symbolTable.h"
+#include <stdlib.h>
+
 int isDigit(char ch){
     return ch >= '0' && ch <= '9';
 }
@@ -34,16 +37,62 @@ int num_2(char ch){
 
 int line=1;
 
+TokenInfo keyWordOrFieldId(char* lexeme, int lineNum){
+    SymbolVal* symInfo = find(&symbolTable, lexeme);
+
+    Token token;
+
+    if(symInfo == NULL){
+        insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FIELDID, NONE}});
+        token = TK_FIELDID;
+    }
+
+    else if(!(symInfo->token == TK_FIELDID)){
+        token = symInfo->token;
+    }
+    return (TokenInfo) {token, lexeme, line}; // Lexeme and look-up table
+}
+
+TokenInfo keyWordOrFunId(char* lexeme, int lineNum){
+    
+    SymbolVal* symInfo = find(&symbolTable, lexeme);
+
+    Token token;
+
+    if(symInfo == NULL){
+        insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FUNID, NONE}});
+        token = TK_FUNID;
+    }
+
+    else if(!(symInfo->token == TK_FUNID)){
+        token = symInfo->token;
+    }
+    return (TokenInfo) {token, lexeme, line}; // Lexeme and look-up table
+}
+
+TokenInfo getId(char* lexeme, int lineNum){
+    insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FUNID, NONE}});
+    return (TokenInfo) {TK_ID, lexeme, lineNum};
+}
+
+void lexicalError(TwinBuffer* tbuf){
+    char* lexeme;
+    resetBegin(tbuf, 0, &lexeme);
+    printf("Unknown pattern %s", lexeme);
+    free(lexeme);
+}
 TokenInfo getNextToken(TwinBuffer* tbuf){
 
     char ch;
     nextChar(tbuf, &ch);
     while(1){
         if(ch==' '){
+            resetBegin(tbuf, 0, NULL);
             nextChar(tbuf, &ch);
         }
         else if(ch=='\n'){
             line++;
+            resetBegin(tbuf, 0, NULL);
             nextChar(tbuf, &ch);
         }
         else break;
@@ -59,12 +108,15 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 1;
                 }
                 else if(ch=='%'){
-                    resetBegin(tbuf,0);
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
                     while(ch != '\n'){
                         nextChar(tbuf, &ch);
-                        resetBegin(tbuf, 0);
+                        char* lexeme;
+                        resetBegin(tbuf,0,NULL);
                     }
-                    return (TokenInfo) {TK_COMMENT,NULL,line};
+                    
+                    return (TokenInfo) {TK_COMMENT,lexeme,line++};
                 }
                 else if(isFieldID_1(ch)){
                     st = 8;
@@ -88,52 +140,64 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 36;
                 }
                 else if(ch == '['){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_SQL,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_SQL,lexeme,line};
                 }
                 else if(ch == ']'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_SQR,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_SQR,lexeme,line};
                 }
                 else if(ch==','){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_COMMA,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_COMMA,lexeme,line};
                 }
                 else if(ch==';'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_SEM,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_SEM,lexeme,line};
                 }
                 else if(ch==':'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_COLON,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_COLON,lexeme,line};
                 }
                 else if(ch=='.'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_DOT,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_DOT,lexeme,line};
                 }
                 else if(ch==')'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_CL,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_CL,lexeme,line};
                 }
                 else if(ch=='('){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_OP,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_OP,lexeme,line};
                 }
                 else if(ch=='+'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_PLUS,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_PLUS,lexeme,line};
                 }
                 else if(ch=='-'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_MINUS,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_MINUS,lexeme,line};
                 }
                 else if(ch=='*'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_MUL,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_MUL,lexeme,line};
                 }
                 else if(ch=='/'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_DIV,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_DIV,lexeme,line};
                 }
                 else if(ch=='&'){
                     st = 51;
@@ -142,14 +206,17 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 54;
                 }
                 else if(ch=='~'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_NOT,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_NOT,lexeme,line};
                 }
                 else if(ch=='!'){
                     st = 58;
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -158,12 +225,14 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 2;
                 }
                 else if(ch == '='){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_LE,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_LE,lexeme,line};
                 }
                 else {
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_LT,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {TK_LT,lexeme,line};
                 }
             break;
 
@@ -172,17 +241,22 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 3;
                 }
                 else{
-                    // ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
             case 3:
                 if(ch == '-'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_ASSIGNOP,lexeme,line};
                 }
                 else{
-                    // ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -190,8 +264,10 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 if(isFieldID_2(ch)){
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    TokenInfo tinf = keyWordOrFieldId(lexeme, line);
+                    return tinf;
                 }
             break;
 
@@ -203,8 +279,10 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 11;
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    TokenInfo tinf = keyWordOrFieldId(lexeme, line);
+                    return tinf;
                 }
             break;
 
@@ -215,8 +293,11 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 12;
                 }
                 else {
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    TokenInfo tinf = getId(lexeme, line);
+                    
+                    return tinf;
                 }
             break;
 
@@ -224,8 +305,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 if(num_1(ch)){
                 }
                 else {
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_FIELDID,NULL,line}; // Lexeme and look-up table
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return getId(lexeme, line);
                 }
             break;
 
@@ -236,8 +318,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 17;
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_NUM,NULL,line}; // Lexeme 
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {TK_NUM, lexeme, line}; // Lexeme 
                 }
             break;
 
@@ -246,8 +329,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 18;
                 }
                 else{
-                    resetBegin(tbuf,2);
-                    return (TokenInfo) {TK_NUM,NULL,line}; // Lexeme 
+                    char* lexeme;
+                    resetBegin(tbuf,2,&lexeme);
+                    return (TokenInfo) {TK_NUM, lexeme, line}; // Lexeme 
                 }
             break;
 
@@ -256,8 +340,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 19;
                 }
                 else{
-                    resetBegin(tbuf,3);
-                    return (TokenInfo) {TK_NUM,NULL,line}; // Lexeme 
+                    char* lexeme;
+                    resetBegin(tbuf,3,&lexeme);
+                    return (TokenInfo) {TK_NUM, lexeme, line}; // Lexeme 
                 }
             break;
 
@@ -266,8 +351,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 23;
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_RNUM,NULL,line}; // Lexeme 
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {TK_RNUM, lexeme, line}; // Lexeme 
                 }
             break;
 
@@ -279,7 +365,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 24;
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -288,28 +376,35 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 25;
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
             case 25:
                 if(num_2(ch)){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_RNUM,NULL,line}; // Lexeme 
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_RNUM, lexeme, line}; // Lexeme 
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
             case 27:
                 if(ch=='='){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_GE,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_GE,lexeme,line};
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_GT,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {TK_GT,lexeme,line};
                 }
             break;
 
@@ -318,7 +413,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 31;
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -329,8 +426,10 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 32;
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line}; // Lexeme and look-up table
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    TokenInfo tinf = keyWordOrFunId(lexeme, line);
+                    return tinf;// Lexeme and look-up table
                 }
             break;
 
@@ -338,18 +437,24 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 if(num_2(ch)){
                 }
                 else{
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_ASSIGNOP,NULL,line}; // Lexeme and look-up table
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    TokenInfo tinf = keyWordOrFunId(lexeme, line);
+
+                    return tinf;// Lexeme and look-up table
                 }
             break;
 
             case 34:
                 if(ch=='='){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_EQ,NULL,line};
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_EQ,lexeme,line};
                 }
                 else {
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -358,7 +463,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 37;
                 }
                 else {
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -366,8 +473,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 if(isFieldID_2(ch)){
                 }
                 else {
-                    resetBegin(tbuf,1);
-                    return (TokenInfo) {TK_RUID,NULL,line}; // Lexeme
+                    char* lexeme ;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {TK_RUID, lexeme, line}; // Lexeme
                 }
             break;
 
@@ -376,17 +484,22 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 52;
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
             case 52:
                 if(ch=='&'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_AND,NULL,line}; 
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_AND,lexeme,line}; 
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
@@ -395,27 +508,35 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     st = 55;
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
             case 55:
                 if(ch=='@'){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_OR,NULL,line}; 
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_OR,lexeme,line}; 
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
 
             case 58:
                 if(ch=='='){
-                    resetBegin(tbuf,0);
-                    return (TokenInfo) {TK_NE,NULL,line}; 
+                    char* lexeme;
+                    resetBegin(tbuf,0,&lexeme);
+                    return (TokenInfo) {TK_NE,lexeme,line}; 
                 }
                 else{
-                    //ERROR
+                    char* lexeme;
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN,lexeme,line};
                 }
             break;
         }

@@ -72,7 +72,6 @@ void initNumOccur(){
 }
 
 
-
 void initLocations(Grammar* grammar){
 
     int pos[NON_TERMINAL_SIZE];

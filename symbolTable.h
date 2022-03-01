@@ -1,28 +1,32 @@
 #ifndef _SYMBOL_TABLE_
 #define _SYMBOL_TABLE_
 #include "token.h"
-#define SIZE 500
+#define HASHTABLE_SIZE 500
+
 
 typedef enum{
 	INT_TYPE, REAL_TYPE, REC_TYPE, 
-	UNION_TYPE, GLOBAL_TYPE
+	UNION_TYPE, GLOBAL_TYPE, NONE
 } Type;
 
 typedef struct{
-char* name;
-Token tk;
-Type type;
+    char* name;
+    Token token;
+    Type type;
 } SymbolVal;
 
 typedef struct{
-char* name;
-SymbolVal val;
+    char* name;
+    SymbolVal val;
 } KeyVal;
 
-typedef struct{
-KeyVal kv;
-LL* next;
-} LL;
+
+struct ll{
+    KeyVal kv;
+    struct ll* next;
+};
+
+typedef struct ll LL;
 
 typedef struct{
     int sz;
@@ -31,10 +35,12 @@ typedef struct{
 } TableEntry;
 
 typedef struct{
-    TableEntry tb[SIZE]
+    TableEntry tb[HASHTABLE_SIZE];
 } SymbolTable;
+extern SymbolTable symbolTable;
 
+void initSymbolTable(SymbolTable* symbolTable);
 int hash(char* name);
-void insert(KeyVal kv);
-SymbolVal find(char* str);
+void insert(SymbolTable* symTable, KeyVal kv);
+SymbolVal* find(SymbolTable* symTable, char* str);
 #endif
