@@ -23,3 +23,6 @@ int equalsTokenSet(TokenSet t1, TokenSet t2){
     return t1.bitMask == t2.bitMask;
 }
 
+int tokenSetContains(TokenSet tSet, Token token){
+    return ( tSet.bitMask >> token ) & 1;
+}

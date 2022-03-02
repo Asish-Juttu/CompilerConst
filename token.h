@@ -23,6 +23,7 @@ typedef struct{
 TokenSet singletonTokenSet(Token t);
 TokenSet nullTokenSet();
 TokenSet tokenSetUnion(TokenSet t1, TokenSet t2);
+int tokenSetContains(TokenSet tSet, Token token);
 int equalsTokenSet(TokenSet t1, TokenSet t2);
 char* tokToStr(Token t);
 #endif

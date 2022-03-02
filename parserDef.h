@@ -4,6 +4,8 @@
 #define NON_TERMINAL_SIZE 41
 #define TERMINAL_SIZE 56
 
+#include "token.h"
+
 typedef enum {
     PROGRAM, MAIN_FUNCTION, OTHER_FUNCTIONS, FUNCTION, INPUT_PAR, OUTPUT_PAR, 
     PARAMETER_LIST, DATATYPE, PRIMITIVE_DATATYPE, CONSTRUCTED_DATATYPE, 
@@ -12,9 +14,13 @@ typedef enum {
     OTHER_STMTS, STMT, ASSIGNMENT_STMT, SINGLE_OR_REC_ID, FUN_CALL_STMT, OUTPUT_PARAMETERS, 
     INPUT_PARAMETERS, ITERATIVE_STMT, CONDITIONAL_STMT,  IO_STMT, ARITHMETICEXPRESSION, 
     ARITHMETIC_EXPRESSION, OPERATOR,  BOOLEAN_EXPRESSION, VAR, LOGICAL_OP, RELATIONAL_OP, 
-    RETURN_STMT, OPTIONAL_RETURN, ID_LIST, MORE_IDS, ACTUAL_OR_REDEFINED
+    RETURN_STMT, OPTIONAL_RETURN, ID_LIST, MORE_IDS, ACTUAL_OR_REDEFINED,
+    DEFINE_TYPE_STATEMENT, FIELD_TYPE,OPTION_SINGLE_CONSTRUCTED, ONE_EXPANSION, MORE_EXPANSIONS
 } NonTerminal;
 
+typedef struct{
+    unsigned long long bitMask : NON_TERMINAL_SIZE;
+} NonTermSet;
 
 typedef struct{
     unsigned int isTerminal : 1;
@@ -34,6 +40,7 @@ typedef struct{
 typedef struct {
     int size;
     RuleArray* ruleArray;
+    NonTermSet nullableSet;
 } Grammar;
 
 typedef struct  {
@@ -46,7 +53,7 @@ typedef struct{
 } FirstFollowElement;
 
 typedef struct{
-    FirstFollowElement* firstElements;
+    FirstFollowElement* elements;
     int size;
 } FirstFollowArray;
 
@@ -60,12 +67,13 @@ typedef struct {
 
 } ParseTree;
 
-typedef struct{
-    unsigned long long bitMask : NON_TERMINAL_SIZE;
-} NonTermSet;
+
 
 NonTermSet nullNonTermSet();
 NonTermSet singletonNonTermSet(NonTerminal nt);
 NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2);
 int equalsNonTermSet(NonTermSet s1, NonTermSet s2);
+
+int isNullable(Grammar* grammar, NonTerminal nt);
+char* nonTermToStr(NonTerminal nt);
 #endif

@@ -20,8 +20,8 @@ typedef struct {
 } LocationArray;
 
 TokenSet firstSetDp[NON_TERMINAL_SIZE];
+int tokRuleNum[NON_TERMINAL_SIZE][TOKEN_SIZE];
 LocationArray ntLocation[NON_TERMINAL_SIZE];
-NonTermSet nset;
 
 NonTermSet nullNonTermSet(){
     return (NonTermSet){0};
@@ -39,12 +39,12 @@ int equalsNonTermSet(NonTermSet s1, NonTermSet s2){
     return s1.bitMask == s2.bitMask;
 }
 
-int isNullable(NonTerminal nt){
-    return (nset.bitMask >> nt) & 1 == 1;
+int isNullable(Grammar* grammar, NonTerminal nt){
+    return (grammar->nset.bitMask >> nt) & 1 == 1;
 }
 
-void addNullable(NonTerminal nt){
-    nset.bitMask |= (1 << nt); 
+void addNullable(NonTerminal nt, Grammar* grammar){
+    (grammar->nullableSet) = nonTermSetUnion(grammar->nullableSet, singletonNonTermSet(nt));
 }
 
 void updateNumOccur(Symbol* symbol, int n){
@@ -54,10 +54,13 @@ void updateNumOccur(Symbol* symbol, int n){
         }
     }
 }
+
 void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rNum){
     Rule r = {size, symbols};
     grammar->ruleArray[nt].rule[rNum] = r;
     updateNumOccur(symbols, size);
+    if(symbols[0].symbol == EPSILON && size == 1)
+        addNullable(nt, grammar);
 }
 
 void initRuleArray(Grammar* grammar, NonTerminal nt, int size){
@@ -89,6 +92,7 @@ void initLocations(Grammar* grammar){
         }
     }
 }
+
 void initGrammar(Grammar* grammar){
     initNumOccur();
     nset.bitMask = 0;
@@ -213,15 +217,15 @@ void initGrammar(Grammar* grammar){
 
     Symbol stmt0[] = {{0, ASSIGNMENT_STMT}};
     Symbol stmt1[] = {{0, ITERATIVE_STMT}};
-    Symbol stmt1[] = {{0, CONDITIONAL_STMT}};
-    Symbol stmt1[] = {{0, IO_STMT}};
-    Symbol stmt1[] = {{0, FUN_CALL_STMT}};
+    Symbol stmt2[] = {{0, CONDITIONAL_STMT}};
+    Symbol stmt3[] = {{0, IO_STMT}};
+    Symbol stmt4[] = {{0, FUN_CALL_STMT}};
     initRuleArray(grammar, MORE_FIELDS,5);
-    addRule(grammar, OTHER_STMTS, otherStmts0, 1, 0);
-    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 1);
-    addRule(grammar, OTHER_STMTS, otherStmts0, 1, 2);
-    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 3);
-    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 4);
+    addRule(grammar, OTHER_STMTS, stmts0, 1, 0);
+    addRule(grammar, OTHER_STMTS, stmts1, 1, 1);
+    addRule(grammar, OTHER_STMTS, stmts2, 1, 2);
+    addRule(grammar, OTHER_STMTS, stmts3, 1, 3);
+    addRule(grammar, OTHER_STMTS, stmts4, 1, 4);
 
     Symbol assignmentStmt0[] = {{0, SINGLE_OR_REC_ID}, {1,TK_ASSIGNOP}, {0,ARITHMETIC_EXPRESSION}, {1,TK_SEM}};
     initRuleArray(grammar, ASSIGNMENT_STMT,1);
@@ -265,145 +269,120 @@ void initGrammar(Grammar* grammar){
     initRuleArray(grammar, ITERATIVE_STMT,1);
     addRule(grammar, ITERATIVE_STMT, iterativeStmt0, 7, 0);
 
-    
-
-    
-
-    
-
-
-    
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-
-    
-    
-    
-    
-    
-    
-
-    
-    
-    
-
-
     // initialize nset at the end
     initLocations(grammar);
 }
 
+void recordRuleNumber(TokenSet tSet, NonTerminal nt, int ruleNum){
+    for(int i = 0; i < TOKEN_SIZE; i++){
+        if(tokenSetContains(tSet, i)){
+            tokRuleNum[nt][i] = ruleNum;
+        }
+    }
+}
+
 TokenSet first(Grammar* grammar, NonTerminal nt){
-    TokenSet tSet = nullTokenSet();
+    TokenSet ftSet = nullTokenSet();
 
     if(equalsTokenSet(firstSetDp[nt],nullTokenSet()))
         return firstSetDp[nt];
     else {
         for(int i = 0; i < grammar->ruleArray[nt].size; i++){
+            TokeSet tSet = nullTokenSet();
             for(int j = 0; j < grammar->ruleArray[nt].rule[i].size; j++){
                 Symbol s = grammar->ruleArray[nt].rule[i].symbol[j];
                 if(s.isTerminal){
-                    tokenSetUnion(tSet, singletonTokenSet(s.symbol));
-                    firstSetDp[nt] = tSet;
-                    return tSet;
+                    tSet = tokenSetUnion(tSet, singletonTokenSet(s.symbol));
+                    break;
                 }
                 else if(!s.isTerminal){
                     tSet = tokenSetUnion(tSet, first(grammar, s.symbol));
                     if(!isNullable(s.symbol))
-                        return tSet;
+                        break;
                 }
             }
+            recordRuleNumber(tSet, nt, i);
+            ftSet = tokenSetUnion(ftSet, tSet);
         }
+        
     }
-
-    return tSet;
+    firstSetDp[nt] = ftSet;
+    return ftSet;
 }
 
-FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
-    NonTermSet followDep = nullNonTermSet();
-    TokenSet firstDep = nullTokenSet();
+// FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
+//     NonTermSet followDep = nullNonTermSet();
+//     TokenSet firstDep = nullTokenSet();
 
-    for(int i = 0; i < ntLocation[nt].size; i++){
-        Location l = ntLocation[nt].location[i];
-        l.index++;
+//     for(int i = 0; i < ntLocation[nt].size; i++){
+//         Location l = ntLocation[nt].location[i];
+//         l.index++;
 
-        int n = grammar->ruleArray[l.nt].rule[l.ruleNo].size;
-        while(l.index < n){
-            Symbol s = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[l.index];
-            if(s.isTerminal){
-                firstDep = tokenSetUnion(firstDep, singletonTokenSet(s.symbol));
-                break;
-            }
-            else{
-                firstDep = tokenSetUnion(firstDep, first(grammar, s.symbol));
-                if(!isNullable(s.symbol))
-                    break;
-            }
-        }
-        Symbol lastSymbol = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[n - 1];
-        if(l.index == n && !(lastSymbol.isTerminal) && isNullable(lastSymbol.symbol)){
-            followDep = nonTermSetUnion(followDep, singletonNonTermSet(l.nt));
-        }
-    }
+//         int n = grammar->ruleArray[l.nt].rule[l.ruleNo].size;
+//         while(l.index < n){
+//             Symbol s = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[l.index];
+//             if(s.isTerminal){
+//                 firstDep = tokenSetUnion(firstDep, singletonTokenSet(s.symbol));
+//                 break;
+//             }
+//             else{
+//                 firstDep = tokenSetUnion(firstDep, first(grammar, s.symbol));
+//                 if(!isNullable(s.symbol))
+//                     break;
+//             }
+//         }
+//         Symbol lastSymbol = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[n - 1];
+//         if(l.index == n && !(lastSymbol.isTerminal) && isNullable(lastSymbol.symbol)){
+//             followDep = nonTermSetUnion(followDep, singletonNonTermSet(l.nt));
+//         }
+//     }
 
-    return (FollowHelperSet){followDep, firstDep};
-}
+//     return (FollowHelperSet){followDep, firstDep};
+// }
 
-
-ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
-      
-      struct ParseTable parsetable;
-      for(int i=0;i<grammar->size;i++){
-          for(int j=0;j<grammar->ruleArray->size;j++){
-              int isepsilon = 1;
-              for(int k=0;(k<grammar->ruleArray[i]->rule[j]->size) && isepsilon;k++){
-                  if(k == 0){
-                      ispsilon = 0;
-                  }
-                  int sym = grammar->ruleArray[i]->rule[j]->symbols[k]->symbol;
-                  int type = grammar->ruleArray[i]->rule[j]->symbols[k]->isTerminal;
-                  if(type == 0){
-                   for(int l=0;l<f.first[sym].size;l++){
-                      if(f.first[sym]->symbols[l] == 55){
-                          isepsilon = 1;
-                      }
-                      parsetable.table[i][f.first[sym]->symbols[l]] = grammar->ruleArray[i]->rule[j];
-                  }
-                  }else{
-                      parsetable.table[i][sym] = grammar->ruleArray[i]->rule[j];
-                  }
+// ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
+//       struct ParseTable parsetable;
+//       for(int i=0;i<grammar->size;i++){
+//           for(int j=0;j<grammar->ruleArray->size;j++){
+//               int isepsilon = 1;
+//               for(int k=0;(k<grammar->ruleArray[i]->rule[j]->size) && isepsilon;k++){
+//                   if(k == 0){
+//                       ispsilon = 0;
+//                   }
+//                   int sym = grammar->ruleArray[i]->rule[j]->symbols[k]->symbol;
+//                   int type = grammar->ruleArray[i]->rule[j]->symbols[k]->isTerminal;
+//                   if(type == 0){
+//                    for(int l=0;l<f.first[sym].size;l++){
+//                       if(f.first[sym]->symbols[l] == 55){
+//                           isepsilon = 1;
+//                       }
+//                       parsetable.table[i][f.first[sym]->symbols[l]] = grammar->ruleArray[i]->rule[j];
+//                   }
+//                   }else{
+//                       parsetable.table[i][sym] = grammar->ruleArray[i]->rule[j];
+//                   }
                   
-              }
-          }
-      }
-      return parsetable;
+//               }
+//           }
+//       }
+//       return parsetable;
+// }
+
+FirstAndFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
+    FirstAndFollowArray array;
+    array.size = 0;
+    array.element = (FirstAndFollowElement*)malloc(TOKEN_SIZE * sizeof(FirstAndFollowElement));
+
+    for(int i = 0; i < TOKEN_SIZE; i++){
+        if(tokenSetContains(tSet, i)){
+            array.element[i] = (FirstAndFollowElement){i, tokRuleNum[nt][i]};
+        }
+    }
 }
 
+void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
+    firstNFollow->first = (FirstAndFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstAndFollowArray));
+    for(int i = 0; i < NON_TERMINAL_SIZE; i++){
+        firstNFollow->first[i] = tokenSetToArray(i, first(i));
+    }
+}

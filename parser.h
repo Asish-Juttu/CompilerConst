@@ -8,4 +8,5 @@ TokenSet first(Grammar* grammar, NonTerminal nt);
 TokenSet follow(Grammar* grammar, NonTerminal nt);
 Token* toArray(TokenSet tSet);
 ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f);
+void initFirstAndFollow(FirstAndFollow* firstNFolllow, Grammar grammar);
 #endif
