@@ -321,7 +321,7 @@ void initGrammar(Grammar* grammar){
     
     Symbol arithmeticExpression[] = {{0,TERM}, {0,EXP_PRIME}};
     initRuleArray(grammar, ARITHMETIC_EXPRESSION,1);
-    addRule(grammar, ARITHMETIC_EXPRESSION, arithmeticExpression , 2, 0);
+    addRule(grammar, ARITHMETIC_EXPRESSION, arithmeticExpression, 2, 0);
 
     Symbol expPrime0[] = {{0,LOW_PRECEDENCE_OPERATORS}, {0,TERM},{0,EXP_PRIME}};
     Symbol expPrime1[] = {{1,EPSILON}};
