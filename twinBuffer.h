@@ -12,6 +12,7 @@ typedef struct{
 
 typedef struct{
     char buf[2][BUFFER_SIZE];
+    char lexeme[BUFFER_SIZE]; int lexSize;
     int first;
     int second;
 
@@ -41,7 +42,7 @@ int nextChar(TwinBuffer* tbuf, char* ch);
     rewinding the forward pointer by rewindCount times. Returns -1
     if rewind occurs beyond the beginning of first buffer
 */
-int resetBegin(TwinBuffer* tbuf, int rewindCount);
+int resetBegin(TwinBuffer* tbuf, int rewindCount, char** lexeme);
 
 /*
     Fills buffer by reading BUFFER_SIZE bytes from 
@@ -53,6 +54,8 @@ int fillBuffer(TwinBuffer* tbuf, int index);
     Closes fptr
 */
 int closeBuffer(TwinBuffer* tbuf);
+
+char* getLexeme(TwinBuffer* tbuf);
 
 #endif
 

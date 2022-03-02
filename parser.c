@@ -1,8 +1,7 @@
 #include "parser.h"
 #include "parserDef.h"
 #include "token.h"
-#include <malloc.h>
-
+#include <stdlib.h>
 
 typedef struct {
     NonTermSet ntSet;
@@ -70,7 +69,6 @@ void initNumOccur(){
     for(int i = 0; i < NON_TERMINAL_SIZE; i++)
         ntLocation[i].size = 0;
 }
-
 
 
 void initLocations(Grammar* grammar){
@@ -377,5 +375,35 @@ FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
     }
 
     return (FollowHelperSet){followDep, firstDep};
+}
+
+
+ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
+      
+      struct ParseTable parsetable;
+      for(int i=0;i<grammar->size;i++){
+          for(int j=0;j<grammar->ruleArray->size;j++){
+              int isepsilon = 1;
+              for(int k=0;(k<grammar->ruleArray[i]->rule[j]->size) && isepsilon;k++){
+                  if(k == 0){
+                      ispsilon = 0;
+                  }
+                  int sym = grammar->ruleArray[i]->rule[j]->symbols[k]->symbol;
+                  int type = grammar->ruleArray[i]->rule[j]->symbols[k]->isTerminal;
+                  if(type == 0){
+                   for(int l=0;l<f.first[sym].size;l++){
+                      if(f.first[sym]->symbols[l] == 55){
+                          isepsilon = 1;
+                      }
+                      parsetable.table[i][f.first[sym]->symbols[l]] = grammar->ruleArray[i]->rule[j];
+                  }
+                  }else{
+                      parsetable.table[i][sym] = grammar->ruleArray[i]->rule[j];
+                  }
+                  
+              }
+          }
+      }
+      return parsetable;
 }
 

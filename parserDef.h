@@ -2,6 +2,7 @@
 #define _PARSER_DEF_
 
 #define NON_TERMINAL_SIZE 41
+#define TERMINAL_SIZE 56
 
 typedef enum {
     PROGRAM, MAIN_FUNCTION, OTHER_FUNCTIONS, FUNCTION, INPUT_PAR, OUTPUT_PAR, 
@@ -36,13 +37,23 @@ typedef struct {
 } Grammar;
 
 typedef struct  {
-
+     Rule table[NON_TERMINAL_SIZE][TERMINAL_SIZE];
 } ParseTable;
+
+typedef struct{
+    Token t;
+    int ruleNo;
+} FirstFollowElement;
+
+typedef struct{
+    FirstFollowElement* firstElements;
+    int size;
+} FirstFollowArray;
 
 typedef struct {
     int size;
-    Token** first;
-    Token** follow;
+    FirstFollowArray* first;
+    FirstFollowArray* follow;
 } FirstAndFollow;
 
 typedef struct {
