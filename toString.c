@@ -113,6 +113,14 @@ char* nonTermToStr(NonTerminal nt){
         case OPTION_SINGLE_CONSTRUCTED : return "<OPTION_SINGLE_CONSTRUCTED>";
         case ONE_EXPANSION : return "<ONE_EXPANSION>";
         case MORE_EXPANSIONS : return "<MORE_EXPANSIONS>";
+        case A : return "<A>";
+        case ELSE_PART : return "<ELSE_PART>";
+        case TERM : return "<TERM>";
+        case EXP_PRIME : return "<EXP_PRIME>";
+        case LOW_PRECEDENCE_OPERATORS : return "<LOW_PRECEDENCE_OPERATORS>";
+        case FACTOR : return "<FACTOR>";
+        case TERM_PRIME : return "<TERM_PRIME>";
+        case HIGH_PRECEDENCE_OPERATORS : return "<HIGH_PRECEDENCE_OPERATORS>";
     }
 
     return "<UNKNOWN>";
