@@ -298,77 +298,10 @@ void initGrammar(Grammar* grammar){
     Symbol definetypestmt0[] = {{1,TK_DEFINETYPE}, {0,A}, {1,TK_RUID}, {1,TK_AS}, {1,TK_RUID}};
     initRuleArray(grammar, DEFINE_TYPE_STATEMENT,1);
     addRule(grammar, DEFINE_TYPE_STATEMENT, definetypestmt0, 5, 0);
-<<<<<<< Updated upstream
  
     Symbol A0[] = {{1,TK_RECORD},{1,TK_UNION}};
     initRuleArray(grammar, A,1);
     addRule(grammar, A, A0, 2, 0);
-=======
-
-    Symbol A0[] = {{1,TK_RECORD},{1,TK_UNION}};
-    initRuleArray(grammar, A,1);
-    addRule(grammar, A, A0, 2, 0);
-
-
-
-    
-
-
-
-
-
-    
-
-    
-
-    
-
-
-    
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-
-    
-    
-    
-    
-    
-    
-
-    
-    
-    
-
->>>>>>> Stashed changes
 
     // initialize nset at the end
     // initLocations(grammar);
