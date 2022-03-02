@@ -71,18 +71,19 @@ void printSymbols(Symbol* syms, int size){
 }
 void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rNum){
     Symbol* sym = malloc(size * sizeof(Symbol));
-    memcpy(sym, symbols, size * sizeof(Symbol));
+    memmove(sym, symbols, size * sizeof(Symbol));
     Rule r = {size, sym};
     if(rNum >= grammar->ruleArray[nt].size || rNum < 0){
         LOG("Error !! rNum greater than size for %s \n", nonTermToStr(nt));
         return;
     }
     
-    LOG("[Adding Rule {");
-    printSymbols(sym, size);
-    LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
+    
 
     grammar->ruleArray[nt].rule[rNum] = r;
+    LOG("[Adding Rule {");
+    printSymbols(grammar->ruleArray[nt].rule[rNum].symbol, size);
+    LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
     updateNumOccur(symbols, size);
     if(symbols[0].symbol == EPSILON && size == 1)
         addNullable(nt, grammar);
@@ -274,7 +275,7 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, OPTION_SINGLE_CONSTRUCTED, option_single_constructed0, 2, 0);
     addRule(grammar, OPTION_SINGLE_CONSTRUCTED, option_single_constructed1, 1, 1);
 
-    Symbol oneExpansion0[] = {{1,TK_ID},{1, TK_FIELDID}};
+    Symbol oneExpansion0[] = {{1,TK_DOT},{1, TK_FIELDID}};
     initRuleArray(grammar, ONE_EXPANSION,1);
     addRule(grammar, ONE_EXPANSION, oneExpansion0, 2, 0);
 
@@ -424,21 +425,33 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, A, A0, 2, 0);
 
     // initialize nset at the end
-    // initLocations(grammar);
+    initLocations(grammar);
+}
+
+void printTSet(TokenSet tSet){
+    for(int i = 0; i < TOKEN_SIZE; i++){
+        if(tokenSetContains(tSet, i)){
+            printf("%s ", tokToStr(i));
+        }
+    }
+    printf("\n");
 }
 
 void recordRuleNumber(TokenSet tSet, NonTerminal nt, int ruleNum){
+    printf("%s Rule %d => ", nonTermToStr(nt), ruleNum);
     for(int i = 0; i < TOKEN_SIZE; i++){
         if(tokenSetContains(tSet, i)){
             tokRuleNum[nt][i] = ruleNum;
+            printf("%s ", tokToStr(i));
         }
     }
+
 }
 
 TokenSet first(Grammar* grammar, NonTerminal nt){
     TokenSet ftSet = nullTokenSet();
 
-    if(equalsTokenSet(firstSetDp[nt],nullTokenSet()))
+    if(!equalsTokenSet(firstSetDp[nt],nullTokenSet()))
         return firstSetDp[nt];
     else {
         for(int i = 0; i < grammar->ruleArray[nt].size; i++){
@@ -457,6 +470,7 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
             }
             recordRuleNumber(tSet, nt, i);
             ftSet = tokenSetUnion(ftSet, tSet);
+            //LOG("%lld\n", ftSet.bitMask);
         }
         
     }
@@ -529,14 +543,27 @@ FirstFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
 
     for(int i = 0; i < TOKEN_SIZE; i++){
         if(tokenSetContains(tSet, i)){
-            array.elements[i] = (FirstFollowElement){i, tokRuleNum[nt][i]};
+            array.elements[array.size++] = (FirstFollowElement){i, tokRuleNum[nt][i]};
         }
     }
+
+    return array;
 }
 
+void printFirstArray(FirstFollowArray array){
+    for(int i = 0; i < array.size; i++){
+        printf("%s ", array.elements[i]);
+    }
+    
+}
 void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
     firstNFollow->first = (FirstFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstFollowArray));
     for(int i = 0; i < NON_TERMINAL_SIZE; i++){
-        firstNFollow->first[i] = tokenSetToArray(i, first(grammar, i));
+        TokenSet tset = first(grammar, i);
+        firstNFollow->first[i] = tokenSetToArray(i, tset);
+        printf("(");
+        // printTSet(tset);
+        printFirstArray(firstNFollow->first[i]);
+        printf(")\n");
     }
 }
