@@ -302,6 +302,119 @@ void initGrammar(Grammar* grammar){
     initRuleArray(grammar, ITERATIVE_STMT,1);
     addRule(grammar, ITERATIVE_STMT, iterativeStmt0, 7, 0);
 
+    Symbol conditionalStmt[] = {{1,TK_IF}, {1,TK_OP}, {0,BOOLEAN_EXPRESSION}, {1,TK_CL}, {1,TK_THEN}, {0,STMT}, {0,OTHER_STMTS}, {0,ELSE_PART}};
+    initRuleArray(grammar, CONDITIONAL_STMT,1);
+    addRule(grammar, CONDITIONAL_STMT, conditionalStmt , 8, 0);
+
+    Symbol elsePart0[] = {{1,TK_ELSE}, {0,STMT}, {0,OTHER_STMTS}, {1,TK_ENDIF}};
+    Symbol elsePart1[] = {{1,TK_ENDIF}};
+    initRuleArray(grammar, ELSE_PART,2);
+    addRule(grammar, ELSE_PART, elsePart0 , 4, 0);
+    addRule(grammar, ELSE_PART, elsePart1 , 1, 1);
+
+    Symbol ioStmt0[] = {{1,TK_READ}, {1,TK_OP}, {0,VAR},{1,TK_CL},{1,TK_SEM}};
+    Symbol ioStmt1[] = {{1,TK_WRITE}, {1,TK_OP}, {0,VAR},{1,TK_CL},{1,TK_SEM}};
+    initRuleArray(grammar, IO_STMT,2);
+    addRule(grammar, IO_STMT, ioStmt0 , 5, 0);
+    addRule(grammar, IO_STMT, ioStmt1 , 5, 1);
+
+    
+    Symbol arithmeticExpression[] = {{0,TERM}, {0,EXP_PRIME}};
+    initRuleArray(grammar, ARITHMETIC_EXPRESSION,1);
+    addRule(grammar, ARITHMETIC_EXPRESSION, arithmeticExpression , 2, 0);
+
+    Symbol expPrime0[] = {{0,LOW_PRECEDENCE_OPERATORS}, {0,TERM},{0,EXP_PRIME}};
+    Symbol expPrime1[] = {{1,EPSILON}};
+    initRuleArray(grammar, EXP_PRIME,2);
+    addRule(grammar, EXP_PRIME, expPrime0 , 3, 0);
+    addRule(grammar, EXP_PRIME, expPrime1 , 1, 1);
+
+    Symbol term[] = {{0,FACTOR}, {0,TERM_PRIME}};
+    initRuleArray(grammar, TERM,1);
+    addRule(grammar, TERM, term , 2, 0);
+
+    Symbol termPrime0[] = {{0,HIGH_PRECEDENCE_OPERATORS}, {0,FACTOR},{0,TERM_PRIME}};
+    Symbol termPrime1[] = {{1,EPSILON}};
+    initRuleArray(grammar, TERM_PRIME,2);
+    addRule(grammar, TERM_PRIME, termPrime0 , 3, 0);
+    addRule(grammar, TERM_PRIME, termPrime1 , 1, 1);
+
+    Symbol factor0[] = {{1,TK_OP}, {0,ARITHMETIC_EXPRESSION},{1,TK_CL}};
+    Symbol factor1[] = {{0,VAR}};
+    initRuleArray(grammar, FACTOR,2);
+    addRule(grammar, FACTOR, factor0 , 3, 0);
+    addRule(grammar, FACTOR, factor1 , 1, 1);
+
+    
+    Symbol highPrecedenceOperators0[] = {{1,TK_MUL}};
+    Symbol highPrecedenceOperators1[] = {{1,TK_DIV}};
+    initRuleArray(grammar, HIGH_PRECEDENCE_OPERATORS,2);
+    addRule(grammar, HIGH_PRECEDENCE_OPERATORS, highPrecedenceOperators0 , 1, 0);
+    addRule(grammar, HIGH_PRECEDENCE_OPERATORS, highPrecedenceOperators1 , 1, 1);
+
+    Symbol lowPrecedenceOperators0[] = {{1,TK_PLUS}};
+    Symbol lowPrecedenceOperators1[] = {{1,TK_MINUS}};
+    initRuleArray(grammar, LOW_PRECEDENCE_OPERATORS,2);
+    addRule(grammar, LOW_PRECEDENCE_OPERATORS, lowPrecedenceOperators0 , 1, 0);
+    addRule(grammar, LOW_PRECEDENCE_OPERATORS, lowPrecedenceOperators1 , 1, 1);
+
+    
+    Symbol booleanExpression0[] = {{1,TK_OP}, {0,BOOLEAN_EXPRESSION},{1,TK_CL},{0,LOGICAL_OP},{1,TK_OP},{0,BOOLEAN_EXPRESSION},{1,TK_CL}};
+    Symbol booleanExpression1[] = {{0,VAR},{0,RELATIONAL_OP},{0,VAR}};
+    Symbol booleanExpression2[] = {{1,TK_NOT},{1,TK_OP}, {0,BOOLEAN_EXPRESSION},{1,TK_CL}};
+    initRuleArray(grammar, BOOLEAN_EXPRESSION,3);
+    addRule(grammar, BOOLEAN_EXPRESSION, booleanExpression0 , 7, 0);
+    addRule(grammar, BOOLEAN_EXPRESSION, booleanExpression1 , 3, 1);
+    addRule(grammar, BOOLEAN_EXPRESSION, booleanExpression2 , 4, 2);
+
+    Symbol var0[] = {{0,SINGLE_OR_REC_ID}};
+    Symbol var1[] = {{1,TK_NUM}};
+    Symbol var2[] = {{1,TK_RNUM}};
+    initRuleArray(grammar, VAR,3);
+    addRule(grammar, VAR, var0 , 1, 0);
+    addRule(grammar, VAR, var1 , 1, 1);
+    addRule(grammar, VAR, var2 , 1, 2);
+
+    Symbol logicalOp0[] = {{1,TK_AND}};
+    Symbol logicalOp1[] = {{1,TK_OR}};
+    initRuleArray(grammar, LOGICAL_OP,2);
+    addRule(grammar, LOGICAL_OP, logicalOp0 , 1, 0);
+    addRule(grammar, LOGICAL_OP, logicalOp1 , 1, 1);
+
+    Symbol relationalOp0[] = {{1,TK_LT}};
+    Symbol relationalOp1[] = {{1,TK_LE}};
+    Symbol relationalOp2[] = {{1,TK_EQ}};
+    Symbol relationalOp3[] = {{1,TK_GT}};
+    Symbol relationalOp4[] = {{1,TK_GE}};
+    Symbol relationalOp5[] = {{1,TK_NE}};
+    initRuleArray(grammar, RELATIONAL_OP,6);
+    addRule(grammar, RELATIONAL_OP, relationalOp0 , 1, 0);
+    addRule(grammar, RELATIONAL_OP, relationalOp1 , 1, 1);
+    addRule(grammar, RELATIONAL_OP, relationalOp2 , 1, 2);
+    addRule(grammar, RELATIONAL_OP, relationalOp3 , 1, 3);
+    addRule(grammar, RELATIONAL_OP, relationalOp4 , 1, 4);
+    addRule(grammar, RELATIONAL_OP, relationalOp5 , 1, 5);
+
+    Symbol returnStmt[] = {{1,TK_RETURN}, {0,OPTIONAL_RETURN}, {1,TK_SEM}};
+    initRuleArray(grammar, RETURN_STMT,1);
+    addRule(grammar, RETURN_STMT, returnStmt , 3, 0);
+
+    Symbol optionalReturn0[] = {{1,TK_SQL}, {0,ID_LIST}, {1,TK_SQR}};
+    Symbol optionalReturn1[] = {{1,EPSILON}};
+    initRuleArray(grammar, OPTIONAL_RETURN,2);
+    addRule(grammar, OPTIONAL_RETURN, optionalReturn0 , 3, 0);
+    addRule(grammar, OPTIONAL_RETURN, optionalReturn1 , 1, 1);
+
+    Symbol idList[] = {{1,TK_ID}, {0,MORE_IDS}};
+    initRuleArray(grammar, ID_LIST,1);
+    addRule(grammar, ID_LIST, idList , 2, 0);
+
+    Symbol more_ids0[] = {{1,TK_COMMA}, {0,ID_LIST}};
+    Symbol more_ids1[] = {{1,EPSILON}};
+    initRuleArray(grammar, MORE_IDS,2);
+    addRule(grammar, MORE_IDS, more_ids0 , 2, 0);
+    addRule(grammar, MORE_IDS, more_ids1 , 1, 1);
+
     Symbol definetypestmt0[] = {{1,TK_DEFINETYPE}, {0,A}, {1,TK_RUID}, {1,TK_AS}, {1,TK_RUID}};
     initRuleArray(grammar, DEFINE_TYPE_STATEMENT,1);
     addRule(grammar, DEFINE_TYPE_STATEMENT, definetypestmt0, 5, 0);
