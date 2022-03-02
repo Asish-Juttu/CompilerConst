@@ -143,7 +143,6 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, PRIMITIVE_DATATYPE, primitiveDatatype0, 1, 0);
     addRule(grammar, PRIMITIVE_DATATYPE, primitiveDatatype1, 1, 1);
     
-    
     Symbol constructedDatatype0[] = {{1, TK_RECORD}, {1,TK_RUID}};
     Symbol constructedDatatype1[] = {{1, TK_UNION}, {1,TK_RUID}};
     Symbol constructedDatatype2[] = {{1,TK_RUID}};
@@ -157,17 +156,157 @@ void initGrammar(Grammar* grammar){
     initRuleArray(grammar, REMAINING_LIST,2);
     addRule(grammar, REMAINING_LIST, remaining_list0, 2, 0);
     addRule(grammar, REMAINING_LIST, remaining_list1, 1, 1);
-    
-    
+      
     Symbol stmts[] = {{0,TYPE_DEFINITIONS}, {0,DECLARATIONS}, {0,OTHER_STMTS}, {0,RETURN_STMT}};
     initRuleArray(grammar, STMTS,1);
     addRule(grammar, STMTS, stmts , 4, 0);
-    
+
     Symbol typeDefinitions0[] = {{0, ACTUAL_OR_REDEFINED}, {0,TYPE_DEFINITIONS}};
     Symbol typeDefinitions1[] = {{1, EPSILON}};
     initRuleArray(grammar, TYPE_DEFINITIONS,2);
-    addRule(grammar, REMAINING_LIST, remaining_list0, 2, 0);
-    addRule(grammar, REMAINING_LIST, remaining_list1, 1, 1);
+    addRule(grammar, TYPE_DEFINITIONS, typeDefinitions0, 2, 0);
+    addRule(grammar, TYPE_DEFINITIONS, typeDefinitions1, 1, 1);
+
+    Symbol actualOrRedefined0[] = {{0, TYPE_DEFINITION}};
+    Symbol actualOrRedefined1[] = {{0,DEFINE_TYPE_STATEMENT}};
+    initRuleArray(grammar, ACTUAL_OR_REDEFINED,2);
+    addRule(grammar, ACTUAL_OR_REDEFINED, actualOrRedefined0, 1, 0);
+    addRule(grammar, ACTUAL_OR_REDEFINED, actualOrRedefined1, 1, 1);
+
+    Symbol typeDefinition0[] = {{1, TK_RECORD}, {1, TK_RUID}, {0, FIELD_DEFINITIONS}, {1, TK_ENDRECORD}};
+    Symbol typeDefinition1[] = {{1, TK_UNION}, {1, TK_RUID}, {0, FIELD_DEFINITIONS}, {1, TK_ENDUNION}};
+    initRuleArray(grammar, TYPE_DEFINITION,2);
+    addRule(grammar, TYPE_DEFINITION, typeDefinition0, 4, 0);
+    addRule(grammar, TYPE_DEFINITION, typeDefinition1, 4, 1);
+    
+    Symbol fieldDefinitions0[] = {{0,FIELD_DEFINITION}, {0,FIELD_DEFINITION}, {0,MORE_FIELDS}};
+    initRuleArray(grammar, FIELD_DEFINITIONS,1);
+    addRule(grammar, FIELD_DEFINITIONS, fieldDefinitions0 , 3, 0);
+
+    Symbol fieldDefinition0[] = {{1,TK_TYPE}, {0,FIELD_TYPE}, {1,TK_COLON}, {1,TK_FIELDID}, {1,TK_SEM}};
+    initRuleArray(grammar, FIELD_DEFINITION,1);
+    addRule(grammar, FIELD_DEFINITION, fieldDefinition0 , 5, 0);
+
+    Symbol fieldType0[] = {{0,PRIMITIVE_DATATYPE}, {1,TK_RUID}};
+    initRuleArray(grammar, FIELD_TYPE,1);
+    addRule(grammar, FIELD_TYPE, fieldType0 , 2, 0);
+
+    Symbol moreFields0[] = {{0, FIELD_DEFINITION}, {0,MORE_FIELDS}};
+    Symbol moreFields1[] = {{1, EPSILON}};
+    initRuleArray(grammar, MORE_FIELDS,2);
+    addRule(grammar, MORE_FIELDS, moreFields0, 2, 0);
+    addRule(grammar, MORE_FIELDS, moreFields1, 1, 1);
+
+    Symbol declarations0[] = {{0, DECLARATION}, {0,DECLARATIONS}};
+    Symbol declarations1[] = {{1, EPSILON}};
+    initRuleArray(grammar, MORE_FIELDS,2);
+    addRule(grammar, DECLARATIONS, declarations0, 2, 0);
+    addRule(grammar, DECLARATIONS, declarations1, 1, 1);
+
+    Symbol declaration0[] = {{1,TK_TYPE}, {0, DATATYPE}, {1,TK_COLON}, {1,TK_ID}, {0,GLOBAL_OR_NOT}, {1,TK_SEM}};
+    initRuleArray(grammar, DECLARATION,1);
+    addRule(grammar, DECLARATION, declaration0 , 6, 0);
+
+    Symbol global_or_not0[] = {{1,TK_COLON}, {1,TK_GLOBAL}};
+    Symbol global_or_not1[] = {{1, EPSILON}};
+    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    addRule(grammar, MORE_FIELDS, global_or_not0, 2, 0);
+    addRule(grammar, MORE_FIELDS, global_or_not1, 1, 1);
+
+    Symbol stmt0[] = {{0, ASSIGNMENT_STMT}};
+    Symbol stmt1[] = {{0, ITERATIVE_STMT}};
+    Symbol stmt1[] = {{0, CONDITIONAL_STMT}};
+    Symbol stmt1[] = {{0, IO_STMT}};
+    Symbol stmt1[] = {{0, FUN_CALL_STMT}};
+    initRuleArray(grammar, MORE_FIELDS,5);
+    addRule(grammar, OTHER_STMTS, otherStmts0, 1, 0);
+    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 1);
+    addRule(grammar, OTHER_STMTS, otherStmts0, 1, 2);
+    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 3);
+    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 4);
+
+    Symbol assignmentStmt0[] = {{0, SINGLE_OR_REC_ID}, {1,TK_ASSIGNOP}, {0,ARITHMETIC_EXPRESSION}, {1,TK_SEM}};
+    initRuleArray(grammar, ASSIGNMENT_STMT,1);
+    addRule(grammar, ASSIGNMENT_STMT, assignmentStmt0 , 4, 0);
+
+    Symbol singleOrRecId0[] = {{1,TK_ID},{0, OPTION_SINGLE_CONSTRUCTED}};
+    initRuleArray(grammar, SINGLE_OR_REC_ID,1);
+    addRule(grammar, SINGLE_OR_REC_ID, singleOrRecId0, 2, 0);
+
+    Symbol option_single_constructed0[] = {{0,ONE_EXPANSION}, {0,MORE_EXPANSIONS}};
+    Symbol option_single_constructed1[] = {{1, EPSILON}};
+    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    addRule(grammar, OPTION_SINGLE_CONSTRUCTED, option_single_constructed0, 2, 0);
+    addRule(grammar, OPTION_SINGLE_CONSTRUCTED, option_single_constructed1, 1, 1);
+
+    Symbol oneExpansion0[] = {{1,TK_ID},{1, TK_FIELDID}};
+    initRuleArray(grammar, ONE_EXPANSION,1);
+    addRule(grammar, ONE_EXPANSION, oneExpansion0, 2, 0);
+
+    Symbol moreExpansions0[] = {{0,ONE_EXPANSION}, {0,MORE_EXPANSIONS}};
+    Symbol moreExpansions1[] = {{1, EPSILON}};
+    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    addRule(grammar, MORE_EXPANSIONS, moreExpansions0, 2, 0);
+    addRule(grammar, MORE_EXPANSIONS, moreExpansions1, 1, 1);
+
+    Symbol funCallStmt[] = {{1,TK_CALL},{1, TK_FUNID}, {1, TK_WITH}, {1, TK_PARAMETERS}, {0,INPUT_PARAMETERS}, {1, TK_SEM} };
+    initRuleArray(grammar, FUN_CALL_STMT,1);
+    addRule(grammar, ONE_EXPANSION, oneExpansion0, 6, 0);
+
+    Symbol outputParameters0[] = {{1,TK_SQL}{0,ID_LIST}, {1,TK_SQR}, {1,TK_ASSIGNOP}};
+    Symbol outputParameters1[] = {{1, EPSILON}};
+    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    addRule(grammar, OUTPUT_PARAMETERS, outputParameters0, 4, 0);
+    addRule(grammar, OUTPUT_PARAMETERS, outputParameters1, 1, 1);
+
+    Symbol inputParameters0[] = {{1,TK_SQL}{0,ID_LIST}, {1,TK_SQR}};
+    initRuleArray(grammar, GLOBAL_OR_NOT,1);
+    addRule(grammar, INPUT_PARAMETERS, inputParameters0, 3, 0);
+
+    Symbol iterativeStmt0[] = {{1,TK_WHILE}, {1,TK_OP},{0,BOOLEAN_EXPRESSION}, {1,TK_CL}, {0,STMT}, {0,OTHER_STMTS}, {1,TK_ENDWHILE}};
+    initRuleArray(grammar, ITERATIVE_STMT,1);
+    addRule(grammar, ITERATIVE_STMT, iterativeStmt0, 7, 0);
+
+    
+
+    
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+
+
     
     
     
