@@ -6,14 +6,14 @@
 int main(){
     Grammar grammar;
     initGrammar(&grammar);
-    
+    //printf("fknsdljan");
     for(int i = 0; i < NON_TERMINAL_SIZE; i++){
         printf("%s ===> ", nonTermToStr(i));
         for(int j = 0; j < grammar.ruleArray[i].size; j++){
             for(int k = 0; k < grammar.ruleArray[i].rule[j].size; k++){
-                Symbol sym = grammar.ruleArray[i].rule[j];
+                Symbol sym = grammar.ruleArray[i].rule[j].symbol[k];
                 if(sym.isTerminal){
-                    printf("%s ", tokToStr(sym.symbol));
+                    printf("%s(%d) ", tokToStr(sym.symbol), sym.symbol);
                 }
                 else{
                     printf("%s ", nonTermToStr(sym.symbol));
@@ -24,5 +24,6 @@ int main(){
         printf("\n");
     }
     
+    printf("FINISHED  ");
     return 0;
 }

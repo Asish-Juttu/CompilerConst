@@ -2,6 +2,9 @@
 #include "parserDef.h"
 #include "token.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include "log.h"
+#include "string.h"
 
 typedef struct {
     NonTermSet ntSet;
@@ -40,7 +43,7 @@ int equalsNonTermSet(NonTermSet s1, NonTermSet s2){
 }
 
 int isNullable(Grammar* grammar, NonTerminal nt){
-    return (grammar->nset.bitMask >> nt) & 1 == 1;
+    return (grammar->nullableSet.bitMask >> nt) & 1 == 1;
 }
 
 void addNullable(NonTerminal nt, Grammar* grammar){
@@ -55,8 +58,30 @@ void updateNumOccur(Symbol* symbol, int n){
     }
 }
 
+void printSymbols(Symbol* syms, int size){
+    for(int i = 0; i < size; i++){
+        Symbol s  = syms[i];
+        if(s.isTerminal){
+            LOG("%s ", tokToStr(s.symbol));
+        }
+        else{
+            LOG("%s ", nonTermToStr(s.symbol));
+        }
+    }
+}
 void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rNum){
-    Rule r = {size, symbols};
+    Symbol* sym = malloc(size * sizeof(Symbol));
+    memcpy(sym, symbols, size * sizeof(Symbol));
+    Rule r = {size, sym};
+    if(rNum >= grammar->ruleArray[nt].size || rNum < 0){
+        LOG("Error !! rNum greater than size for %s \n", nonTermToStr(nt));
+        return;
+    }
+    
+    LOG("[Adding Rule {");
+    printSymbols(sym, size);
+    LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
+
     grammar->ruleArray[nt].rule[rNum] = r;
     updateNumOccur(symbols, size);
     if(symbols[0].symbol == EPSILON && size == 1)
@@ -64,6 +89,7 @@ void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rN
 }
 
 void initRuleArray(Grammar* grammar, NonTerminal nt, int size){
+    LOG("[Initializing rule array for %s]\n", nonTermToStr(nt));
     grammar->ruleArray[nt].size = size;
     grammar->ruleArray[nt].rule = (Rule*)malloc(size * sizeof(Rule));
 }
@@ -95,7 +121,7 @@ void initLocations(Grammar* grammar){
 
 void initGrammar(Grammar* grammar){
     initNumOccur();
-    nset.bitMask = 0;
+    grammar->nullableSet = nullNonTermSet();
     int size = NON_TERMINAL_SIZE;
 
     grammar->size = size;
@@ -148,7 +174,7 @@ void initGrammar(Grammar* grammar){
     Symbol constructedDatatype0[] = {{1, TK_RECORD}, {1,TK_RUID}};
     Symbol constructedDatatype1[] = {{1, TK_UNION}, {1,TK_RUID}};
     Symbol constructedDatatype2[] = {{1,TK_RUID}};
-    initRuleArray(grammar, PRIMITIVE_DATATYPE,3);
+    initRuleArray(grammar, CONSTRUCTED_DATATYPE,3);
     addRule(grammar, CONSTRUCTED_DATATYPE, constructedDatatype0, 2, 0);
     addRule(grammar, CONSTRUCTED_DATATYPE, constructedDatatype1, 2, 1);
     addRule(grammar, CONSTRUCTED_DATATYPE, constructedDatatype2, 1, 2);
@@ -195,13 +221,13 @@ void initGrammar(Grammar* grammar){
 
     Symbol moreFields0[] = {{0, FIELD_DEFINITION}, {0,MORE_FIELDS}};
     Symbol moreFields1[] = {{1, EPSILON}};
-    initRuleArray(grammar, MORE_FIELDS,2);
+    initRuleArray(grammar, MORE_FIELDS, 2);
     addRule(grammar, MORE_FIELDS, moreFields0, 2, 0);
     addRule(grammar, MORE_FIELDS, moreFields1, 1, 1);
 
     Symbol declarations0[] = {{0, DECLARATION}, {0,DECLARATIONS}};
     Symbol declarations1[] = {{1, EPSILON}};
-    initRuleArray(grammar, MORE_FIELDS,2);
+    initRuleArray(grammar, DECLARATIONS, 2);
     addRule(grammar, DECLARATIONS, declarations0, 2, 0);
     addRule(grammar, DECLARATIONS, declarations1, 1, 1);
 
@@ -212,20 +238,20 @@ void initGrammar(Grammar* grammar){
     Symbol global_or_not0[] = {{1,TK_COLON}, {1,TK_GLOBAL}};
     Symbol global_or_not1[] = {{1, EPSILON}};
     initRuleArray(grammar, GLOBAL_OR_NOT,2);
-    addRule(grammar, MORE_FIELDS, global_or_not0, 2, 0);
-    addRule(grammar, MORE_FIELDS, global_or_not1, 1, 1);
+    addRule(grammar, GLOBAL_OR_NOT, global_or_not0, 2, 0);
+    addRule(grammar, GLOBAL_OR_NOT, global_or_not1, 1, 1);
 
     Symbol stmt0[] = {{0, ASSIGNMENT_STMT}};
     Symbol stmt1[] = {{0, ITERATIVE_STMT}};
     Symbol stmt2[] = {{0, CONDITIONAL_STMT}};
     Symbol stmt3[] = {{0, IO_STMT}};
     Symbol stmt4[] = {{0, FUN_CALL_STMT}};
-    initRuleArray(grammar, MORE_FIELDS,5);
-    addRule(grammar, OTHER_STMTS, stmts0, 1, 0);
-    addRule(grammar, OTHER_STMTS, stmts1, 1, 1);
-    addRule(grammar, OTHER_STMTS, stmts2, 1, 2);
-    addRule(grammar, OTHER_STMTS, stmts3, 1, 3);
-    addRule(grammar, OTHER_STMTS, stmts4, 1, 4);
+    initRuleArray(grammar, OTHER_STMTS, 5);
+    addRule(grammar, OTHER_STMTS, stmt0, 1, 0);
+    addRule(grammar, OTHER_STMTS, stmt1, 1, 1);
+    addRule(grammar, OTHER_STMTS, stmt2, 1, 2);
+    addRule(grammar, OTHER_STMTS, stmt3, 1, 3);
+    addRule(grammar, OTHER_STMTS, stmt4, 1, 4);
 
     Symbol assignmentStmt0[] = {{0, SINGLE_OR_REC_ID}, {1,TK_ASSIGNOP}, {0,ARITHMETIC_EXPRESSION}, {1,TK_SEM}};
     initRuleArray(grammar, ASSIGNMENT_STMT,1);
@@ -237,7 +263,7 @@ void initGrammar(Grammar* grammar){
 
     Symbol option_single_constructed0[] = {{0,ONE_EXPANSION}, {0,MORE_EXPANSIONS}};
     Symbol option_single_constructed1[] = {{1, EPSILON}};
-    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    initRuleArray(grammar, OPTION_SINGLE_CONSTRUCTED,2);
     addRule(grammar, OPTION_SINGLE_CONSTRUCTED, option_single_constructed0, 2, 0);
     addRule(grammar, OPTION_SINGLE_CONSTRUCTED, option_single_constructed1, 1, 1);
 
@@ -247,22 +273,22 @@ void initGrammar(Grammar* grammar){
 
     Symbol moreExpansions0[] = {{0,ONE_EXPANSION}, {0,MORE_EXPANSIONS}};
     Symbol moreExpansions1[] = {{1, EPSILON}};
-    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    initRuleArray(grammar, MORE_EXPANSIONS,2);
     addRule(grammar, MORE_EXPANSIONS, moreExpansions0, 2, 0);
     addRule(grammar, MORE_EXPANSIONS, moreExpansions1, 1, 1);
 
     Symbol funCallStmt[] = {{1,TK_CALL},{1, TK_FUNID}, {1, TK_WITH}, {1, TK_PARAMETERS}, {0,INPUT_PARAMETERS}, {1, TK_SEM} };
     initRuleArray(grammar, FUN_CALL_STMT,1);
-    addRule(grammar, ONE_EXPANSION, oneExpansion0, 6, 0);
+    addRule(grammar, FUN_CALL_STMT, funCallStmt, 6, 0);
 
-    Symbol outputParameters0[] = {{1,TK_SQL}{0,ID_LIST}, {1,TK_SQR}, {1,TK_ASSIGNOP}};
+    Symbol outputParameters0[] = {{1,TK_SQL}, {0,ID_LIST}, {1,TK_SQR}, {1,TK_ASSIGNOP}};
     Symbol outputParameters1[] = {{1, EPSILON}};
-    initRuleArray(grammar, GLOBAL_OR_NOT,2);
+    initRuleArray(grammar, OUTPUT_PARAMETERS,2);
     addRule(grammar, OUTPUT_PARAMETERS, outputParameters0, 4, 0);
     addRule(grammar, OUTPUT_PARAMETERS, outputParameters1, 1, 1);
 
-    Symbol inputParameters0[] = {{1,TK_SQL}{0,ID_LIST}, {1,TK_SQR}};
-    initRuleArray(grammar, GLOBAL_OR_NOT,1);
+    Symbol inputParameters0[] = {{1,TK_SQL}, {0,ID_LIST}, {1,TK_SQR}};
+    initRuleArray(grammar, INPUT_PARAMETERS,1);
     addRule(grammar, INPUT_PARAMETERS, inputParameters0, 3, 0);
 
     Symbol iterativeStmt0[] = {{1,TK_WHILE}, {1,TK_OP},{0,BOOLEAN_EXPRESSION}, {1,TK_CL}, {0,STMT}, {0,OTHER_STMTS}, {1,TK_ENDWHILE}};
@@ -270,7 +296,7 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, ITERATIVE_STMT, iterativeStmt0, 7, 0);
 
     // initialize nset at the end
-    initLocations(grammar);
+    // initLocations(grammar);
 }
 
 void recordRuleNumber(TokenSet tSet, NonTerminal nt, int ruleNum){
@@ -288,7 +314,7 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
         return firstSetDp[nt];
     else {
         for(int i = 0; i < grammar->ruleArray[nt].size; i++){
-            TokeSet tSet = nullTokenSet();
+            TokenSet tSet = nullTokenSet();
             for(int j = 0; j < grammar->ruleArray[nt].rule[i].size; j++){
                 Symbol s = grammar->ruleArray[nt].rule[i].symbol[j];
                 if(s.isTerminal){
@@ -297,7 +323,7 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
                 }
                 else if(!s.isTerminal){
                     tSet = tokenSetUnion(tSet, first(grammar, s.symbol));
-                    if(!isNullable(s.symbol))
+                    if(!isNullable(grammar, s.symbol))
                         break;
                 }
             }
@@ -368,21 +394,21 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
 //       return parsetable;
 // }
 
-FirstAndFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
-    FirstAndFollowArray array;
+FirstFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
+    FirstFollowArray array;
     array.size = 0;
-    array.element = (FirstAndFollowElement*)malloc(TOKEN_SIZE * sizeof(FirstAndFollowElement));
+    array.elements = (FirstFollowElement*)malloc(TOKEN_SIZE * sizeof(FirstFollowElement));
 
     for(int i = 0; i < TOKEN_SIZE; i++){
         if(tokenSetContains(tSet, i)){
-            array.element[i] = (FirstAndFollowElement){i, tokRuleNum[nt][i]};
+            array.elements[i] = (FirstFollowElement){i, tokRuleNum[nt][i]};
         }
     }
 }
 
 void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
-    firstNFollow->first = (FirstAndFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstAndFollowArray));
+    firstNFollow->first = (FirstFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstFollowArray));
     for(int i = 0; i < NON_TERMINAL_SIZE; i++){
-        firstNFollow->first[i] = tokenSetToArray(i, first(i));
+        firstNFollow->first[i] = tokenSetToArray(i, first(grammar, i));
     }
 }

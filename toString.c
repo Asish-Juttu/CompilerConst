@@ -110,6 +110,11 @@ char* nonTermToStr(NonTerminal nt){
         case ID_LIST : return "<ID_LIST>";
         case MORE_IDS : return "<MORE_IDS>";
         case ACTUAL_OR_REDEFINED : return "<ACTUAL_OR_REDEFINED>";
+        case DEFINE_TYPE_STATEMENT: return "<DEFINE_TYPE_STATEMENT>";
+        case FIELD_TYPE: return "<FIELD_TYPE>";
+        case OPTION_SINGLE_CONSTRUCTED : return "<OPTION_SINGLE_CONSTRUCTED>";
+        case ONE_EXPANSION : return "<ONE_EXPANSION>";
+        case MORE_EXPANSIONS : return "<MORE_EXPANSIONS>";
     }
 
     return "<UNKNOWN>";
