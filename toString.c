@@ -99,7 +99,6 @@ char* nonTermToStr(NonTerminal nt){
         case CONDITIONAL_STMT : return "<CONDITIONAL_STMT>";
         case IO_STMT : return "<IO_STMT>";
         case ARITHMETIC_EXPRESSION : return "<ARITHMETIC_EXPRESSION>";
-        case OPERATOR : return "<OPERATOR>";
         case BOOLEAN_EXPRESSION : return "<BOOLEAN_EXPRESSION>";
         case VAR : return "<VAR>";
         case LOGICAL_OP : return "<LOGICAL_OP>";
