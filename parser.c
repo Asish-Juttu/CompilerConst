@@ -241,17 +241,24 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, GLOBAL_OR_NOT, global_or_not0, 2, 0);
     addRule(grammar, GLOBAL_OR_NOT, global_or_not1, 1, 1);
 
+    Symbol otherStmts0[] = {{0,STMT}, {0,OTHER_STMTS}};
+    Symbol otherStmts1[] = {{1, EPSILON}};
+    initRuleArray(grammar, OPTION_SINGLE_CONSTRUCTED,2);
+    addRule(grammar, OTHER_STMTS, otherStmts0, 2, 0);
+    addRule(grammar, OTHER_STMTS, otherStmts1, 1, 1);
+
     Symbol stmt0[] = {{0, ASSIGNMENT_STMT}};
     Symbol stmt1[] = {{0, ITERATIVE_STMT}};
     Symbol stmt2[] = {{0, CONDITIONAL_STMT}};
     Symbol stmt3[] = {{0, IO_STMT}};
     Symbol stmt4[] = {{0, FUN_CALL_STMT}};
     initRuleArray(grammar, OTHER_STMTS, 5);
-    addRule(grammar, OTHER_STMTS, stmt0, 1, 0);
-    addRule(grammar, OTHER_STMTS, stmt1, 1, 1);
-    addRule(grammar, OTHER_STMTS, stmt2, 1, 2);
-    addRule(grammar, OTHER_STMTS, stmt3, 1, 3);
-    addRule(grammar, OTHER_STMTS, stmt4, 1, 4);
+    addRule(grammar, STMT, stmt0, 1, 0);
+    addRule(grammar, STMT, stmt1, 1, 1);
+    addRule(grammar, STMT, stmt2, 1, 2);
+    addRule(grammar, STMT, stmt3, 1, 3);
+    addRule(grammar, STMT, stmt4, 1, 4);
+     
 
     Symbol assignmentStmt0[] = {{0, SINGLE_OR_REC_ID}, {1,TK_ASSIGNOP}, {0,ARITHMETIC_EXPRESSION}, {1,TK_SEM}};
     initRuleArray(grammar, ASSIGNMENT_STMT,1);
@@ -298,77 +305,10 @@ void initGrammar(Grammar* grammar){
     Symbol definetypestmt0[] = {{1,TK_DEFINETYPE}, {0,A}, {1,TK_RUID}, {1,TK_AS}, {1,TK_RUID}};
     initRuleArray(grammar, DEFINE_TYPE_STATEMENT,1);
     addRule(grammar, DEFINE_TYPE_STATEMENT, definetypestmt0, 5, 0);
-<<<<<<< Updated upstream
  
     Symbol A0[] = {{1,TK_RECORD},{1,TK_UNION}};
     initRuleArray(grammar, A,1);
     addRule(grammar, A, A0, 2, 0);
-=======
-
-    Symbol A0[] = {{1,TK_RECORD},{1,TK_UNION}};
-    initRuleArray(grammar, A,1);
-    addRule(grammar, A, A0, 2, 0);
-
-
-
-    
-
-
-
-
-
-    
-
-    
-
-    
-
-
-    
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-
-    
-    
-    
-    
-    
-    
-
-    
-    
-    
-
->>>>>>> Stashed changes
 
     // initialize nset at the end
     // initLocations(grammar);
