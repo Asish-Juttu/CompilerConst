@@ -243,7 +243,7 @@ void initGrammar(Grammar* grammar){
 
     Symbol otherStmts0[] = {{0,STMT}, {0,OTHER_STMTS}};
     Symbol otherStmts1[] = {{1, EPSILON}};
-    initRuleArray(grammar, OPTION_SINGLE_CONSTRUCTED,2);
+    initRuleArray(grammar, OTHER_STMTS,2);
     addRule(grammar, OTHER_STMTS, otherStmts0, 2, 0);
     addRule(grammar, OTHER_STMTS, otherStmts1, 1, 1);
 
