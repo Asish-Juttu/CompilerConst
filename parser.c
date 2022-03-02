@@ -252,7 +252,7 @@ void initGrammar(Grammar* grammar){
     Symbol stmt2[] = {{0, CONDITIONAL_STMT}};
     Symbol stmt3[] = {{0, IO_STMT}};
     Symbol stmt4[] = {{0, FUN_CALL_STMT}};
-    initRuleArray(grammar, OTHER_STMTS, 5);
+    initRuleArray(grammar, STMT, 5);
     addRule(grammar, STMT, stmt0, 1, 0);
     addRule(grammar, STMT, stmt1, 1, 1);
     addRule(grammar, STMT, stmt2, 1, 2);
