@@ -187,7 +187,7 @@ void initGrammar(Grammar* grammar){
       
     Symbol stmts[] = {{0,TYPE_DEFINITIONS}, {0,DECLARATIONS}, {0,OTHER_STMTS}, {0,RETURN_STMT}};
     initRuleArray(grammar, STMTS,1);
-    addRule(grammar, STMTS, stmts , 4, 0);
+    addRule(grammar, STMTS, stmts, 4, 0);
 
     Symbol typeDefinitions0[] = {{0, ACTUAL_OR_REDEFINED}, {0,TYPE_DEFINITIONS}};
     Symbol typeDefinitions1[] = {{1, EPSILON}};
@@ -196,7 +196,7 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, TYPE_DEFINITIONS, typeDefinitions1, 1, 1);
 
     Symbol actualOrRedefined0[] = {{0, TYPE_DEFINITION}};
-    Symbol actualOrRedefined1[] = {{0,DEFINE_TYPE_STATEMENT}};
+    Symbol actualOrRedefined1[] = {{0, DEFINE_TYPE_STATEMENT}};
     initRuleArray(grammar, ACTUAL_OR_REDEFINED,2);
     addRule(grammar, ACTUAL_OR_REDEFINED, actualOrRedefined0, 1, 0);
     addRule(grammar, ACTUAL_OR_REDEFINED, actualOrRedefined1, 1, 1);
@@ -298,10 +298,77 @@ void initGrammar(Grammar* grammar){
     Symbol definetypestmt0[] = {{1,TK_DEFINETYPE}, {0,A}, {1,TK_RUID}, {1,TK_AS}, {1,TK_RUID}};
     initRuleArray(grammar, DEFINE_TYPE_STATEMENT,1);
     addRule(grammar, DEFINE_TYPE_STATEMENT, definetypestmt0, 5, 0);
+<<<<<<< Updated upstream
  
     Symbol A0[] = {{1,TK_RECORD},{1,TK_UNION}};
     initRuleArray(grammar, A,1);
     addRule(grammar, A, A0, 2, 0);
+=======
+
+    Symbol A0[] = {{1,TK_RECORD},{1,TK_UNION}};
+    initRuleArray(grammar, A,1);
+    addRule(grammar, A, A0, 2, 0);
+
+
+
+    
+
+
+
+
+
+    
+
+    
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+
+
+    
+    
+    
+    
+    
+    
+
+    
+    
+    
+
+>>>>>>> Stashed changes
 
     // initialize nset at the end
     // initLocations(grammar);
