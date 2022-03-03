@@ -13,6 +13,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
 Stack* stackPush(Stack* head,ParseTreeElement* e);
 Stack* stackPop(Stack* head);
 ParseTreeElement* stackTop(Stack* head);
+void Inorder(ParseTreeElement* head);
 int isEmpty(Stack* head);
 void initFirstAndFollow(FirstAndFollow* firstNFolllow, Grammar* grammar);
 #endif

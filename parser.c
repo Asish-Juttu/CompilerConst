@@ -628,6 +628,21 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
         return parseTree;
 }
 
+void Inorder(ParseTreeElement* head){
+    if(head == NULL){
+        return;
+    }
+    if(head->s.isTerminal){
+        printf("%s\n",tokToStr(head->s.symbol));
+    }else{
+        printf("%s\n",nonTermToStr(head->s.symbol));
+        for(int i=0;i<head->noOfChildren;i++){
+            Inorder(&(head->children[i]));
+        }
+    }
+    return;
+}
+
 void printFirstArray(FirstFollowArray array){
     for(int i = 0; i < array.size; i++){
         printf("%s ", tokToStr(array.elements[i].t));
