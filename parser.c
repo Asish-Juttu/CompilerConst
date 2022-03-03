@@ -507,7 +507,7 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
 FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
     NonTermSet followDep = nullNonTermSet();
     TokenSet firstDep = nullTokenSet();
-    
+
     for(int i = 0; i < ntLocation[nt].size; i++){
         Location l = ntLocation[nt].location[i];
         l.index++;
@@ -517,7 +517,6 @@ FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
             Symbol s = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[l.index];
             if(s.isTerminal){
                 firstDep = tokenSetUnion(firstDep, singletonTokenSet(s.symbol));
-                //printf("%s\n", tokToStr(s.symbol));
                 break;
             }
             else{
@@ -538,33 +537,85 @@ FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
     return (FollowHelperSet){followDep, firstDep};
 }
 
-// ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
-//       struct ParseTable parsetable;
-//       for(int i=0;i<grammar->size;i++){
-//           for(int j=0;j<grammar->ruleArray->size;j++){
-//               int isepsilon = 1;
-//               for(int k=0;(k<grammar->ruleArray[i]->rule[j]->size) && isepsilon;k++){
-//                   if(k == 0){
-//                       ispsilon = 0;
-//                   }
-//                   int sym = grammar->ruleArray[i]->rule[j]->symbols[k]->symbol;
-//                   int type = grammar->ruleArray[i]->rule[j]->symbols[k]->isTerminal;
-//                   if(type == 0){
-//                    for(int l=0;l<f.first[sym].size;l++){
-//                       if(f.first[sym]->symbols[l] == 55){
-//                           isepsilon = 1;
-//                       }
-//                       parsetable.table[i][f.first[sym]->symbols[l]] = grammar->ruleArray[i]->rule[j];
-//                   }
-//                   }else{
-//                       parsetable.table[i][sym] = grammar->ruleArray[i]->rule[j];
-//                   }
-                  
-//               }
-//           }
-//       }
-//       return parsetable;
-// }
+ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
+      int grammarSize = grammar->size;
+      ParseTable parsetable;
+      for(int i=0;i<grammarSize;i++){
+          int firstSize = f->first[i].size;
+          for(int j=0;j<firstSize;j++){
+              parsetable[i][f->first[i].elements[j].t] = grammar->ruleArray[i].rule[f->first[i].elements[j].ruleNo];
+          }
+          if(isNullable(grammar,i)){
+              int followSize = f->follow[i].size;
+              for(int j=0;j<followSize;j++){
+                  parsetable[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
+              }
+          }
+      }
+      return parsetable;
+}
+
+Stack* stackPush(Stack* head,ParseTreeElement* e){
+    Stack* temp = (Stack)malloc(sizeof(Stack));
+    temp->current = e;
+    temp->next = head;
+    return temp;
+}
+
+Stack* stackPop(Stack* head){
+    
+    Stack* res = head->next;
+    return res; 
+}
+
+ParseTreeElement* stackTop(Stack* head){
+    return head->current;
+}
+
+int isEmpty(Stack* head){
+    if(head == NULL){
+        return 1;
+    }
+    return 0;
+}
+
+ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,int inputSize){
+          ParseTree parseTree;
+          Stack* store = NULL;
+          //lets store the start symbol.
+          Symbol start;
+          start.isTerminal = 0;
+          start.symbol = PROGRAM;
+          ParseTreeElement* p = (ParseTreeElement*)malloac(sizeof(ParseTreeElement));
+          p->s = start;
+          p->noOfChildren = 0;
+          parseTree.head = p;
+          store = stackPush(store,p);
+          for(int i=0;i<inputSize;i++){
+              ParseTreeElement* m = stackTop(store);
+              store = stackPop(store);
+              if(!m->s.isTerminal){
+                  int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
+                  if(ruleSize == 0){
+                      printf("Syntax Error\n");
+                      break;
+                  }
+                  m->noOfChildren = ruleSize;
+                  m->children = (ParseTreeElement)malloc(ruleSize*sizeof(ParseTreeElement));
+                  for(int j=ruleSize-1;j>=0;j++){
+                      m[i].noOfChildren = 0;
+                      m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j].symbol;
+                      store = stackPush(store,&m[i]);
+                  }
+              }else{
+                  if(code[i].token != m->s.symbol){
+                       printf("Syntax Error\n");
+                       break;  
+                  }
+              }
+          }
+          return parseTree;
+}
 
 void printFirstArray(FirstFollowArray array){
     for(int i = 0; i < array.size; i++){

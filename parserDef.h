@@ -64,8 +64,20 @@ typedef struct {
     FirstFollowArray* follow;
 } FirstAndFollow;
 
-typedef struct {
+typedef struct{
+    Symbol s;
+    int noOfChildren;
+    ParseTreeElement* children;
+    //Basically from left to right I am storing. 
+} ParseTreeElement;
 
+typedef struct{
+     ParseTreeElement* current;
+     Stack* next;
+} Stack;
+
+typedef struct {
+    ParseTreeElement* head;
 } ParseTree;
 
 typedef struct {
