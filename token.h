@@ -17,7 +17,7 @@ typedef struct {
 } TokenInfo;
 
 typedef struct{
-    unsigned long long bitMask : TOKEN_SIZE;
+    unsigned long long bitMask;
 } TokenSet;
 
 TokenSet singletonTokenSet(Token t);

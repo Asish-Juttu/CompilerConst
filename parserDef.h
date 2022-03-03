@@ -20,7 +20,7 @@ typedef enum {
 } NonTerminal;
 
 typedef struct{
-    unsigned long long bitMask : NON_TERMINAL_SIZE;
+    unsigned long long bitMask;
 } NonTermSet;
 
 typedef struct{
@@ -68,13 +68,34 @@ typedef struct {
 
 } ParseTree;
 
+typedef struct {
+    NonTermSet ntSet;
+    TokenSet tSet;
+} FollowHelperSet;
 
+typedef struct {
+    NonTerminal nt;
+    int ruleNo;
+    int index;
+} Location;
+
+typedef struct {
+    int size;
+    Location* location;
+} LocationArray;
 
 NonTermSet nullNonTermSet();
 NonTermSet singletonNonTermSet(NonTerminal nt);
 NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2);
+int nonTermSetContains(NonTermSet ntSet, NonTerminal nt);
+FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt);
+
 int equalsNonTermSet(NonTermSet s1, NonTermSet s2);
+void printTSet(TokenSet tSet);
+void printNTSet(NonTermSet ntSet);
 
 int isNullable(Grammar* grammar, NonTerminal nt);
 char* nonTermToStr(NonTerminal nt);
+
+LocationArray* getLocationArray();
 #endif

@@ -1,7 +1,7 @@
 #include "token.h"
 TokenSet singletonTokenSet(Token t){
     TokenSet tset;
-    tset.bitMask = (1 << t);
+    tset.bitMask = (1ULL << t);
 
     return tset;
 }
@@ -24,5 +24,5 @@ int equalsTokenSet(TokenSet t1, TokenSet t2){
 }
 
 int tokenSetContains(TokenSet tSet, Token token){
-    return ( tSet.bitMask >> token ) & 1;
+    return ( tSet.bitMask >> token ) & 1ULL;
 }

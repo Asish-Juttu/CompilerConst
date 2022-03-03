@@ -6,36 +6,30 @@
 #include "log.h"
 #include "string.h"
 
-typedef struct {
-    NonTermSet ntSet;
-    TokenSet tSet;
-} FollowHelperSet;
 
-typedef struct {
-    NonTerminal nt;
-    int ruleNo;
-    int index;
-} Location;
 
-typedef struct {
-    int size;
-    Location* location;
-} LocationArray;
 
 TokenSet firstSetDp[NON_TERMINAL_SIZE];
 int tokRuleNum[NON_TERMINAL_SIZE][TOKEN_SIZE];
 LocationArray ntLocation[NON_TERMINAL_SIZE];
 
+void initFNF(){
+    memset(firstSetDp, 0, NON_TERMINAL_SIZE * sizeof(TokenSet));
+}
 NonTermSet nullNonTermSet(){
     return (NonTermSet){0};
 }
 
 NonTermSet singletonNonTermSet(NonTerminal nt){
-    return (NonTermSet){1 << nt};
+    return (NonTermSet){1ULL << nt};
 }
 
 NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2){
     return (NonTermSet){s1.bitMask | s2.bitMask};
+}
+
+TokenSet removeEpsilon(TokenSet s1){
+    return (TokenSet){s1.bitMask & ~(1ULL << EPSILON)};
 }
 
 int equalsNonTermSet(NonTermSet s1, NonTermSet s2){
@@ -43,7 +37,11 @@ int equalsNonTermSet(NonTermSet s1, NonTermSet s2){
 }
 
 int isNullable(Grammar* grammar, NonTerminal nt){
-    return (grammar->nullableSet.bitMask >> nt) & 1 == 1;
+    return (grammar->nullableSet.bitMask >> nt) & 1ULL == 1ULL;
+}
+
+int nonTermSetContains(NonTermSet ntSet, NonTerminal nt){
+    return (ntSet.bitMask >> nt) & 1ULL;
 }
 
 void addNullable(NonTerminal nt, Grammar* grammar){
@@ -57,6 +55,7 @@ void updateNumOccur(Symbol* symbol, int n){
         }
     }
 }
+
 
 void printSymbols(Symbol* syms, int size){
     for(int i = 0; i < size; i++){
@@ -85,8 +84,14 @@ void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rN
     printSymbols(grammar->ruleArray[nt].rule[rNum].symbol, size);
     LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
     updateNumOccur(symbols, size);
-    if(symbols[0].symbol == EPSILON && size == 1)
+    if(symbols[0].symbol == EPSILON){
+        // printf("Adding Nullables %s \n", nonTermToStr(nt));
         addNullable(nt, grammar);
+
+        // printf("NonTerminal Set now is ");
+        // printNTSet(grammar->nullableSet);
+        // printf("\n");
+    }
 }
 
 void initRuleArray(Grammar* grammar, NonTerminal nt, int size){
@@ -122,7 +127,11 @@ void initLocations(Grammar* grammar){
 
 void initGrammar(Grammar* grammar){
     initNumOccur();
+    initFNF();
     grammar->nullableSet = nullNonTermSet();
+    printf("Nullable set will print now");
+    printNTSet(grammar->nullableSet);
+    printf("Printed");
     int size = NON_TERMINAL_SIZE;
 
     grammar->size = size;
@@ -285,9 +294,9 @@ void initGrammar(Grammar* grammar){
     addRule(grammar, MORE_EXPANSIONS, moreExpansions0, 2, 0);
     addRule(grammar, MORE_EXPANSIONS, moreExpansions1, 1, 1);
 
-    Symbol funCallStmt[] = {{1,TK_CALL},{1, TK_FUNID}, {1, TK_WITH}, {1, TK_PARAMETERS}, {0,INPUT_PARAMETERS}, {1, TK_SEM} };
+    Symbol funCallStmt[] = {{0,OUTPUT_PARAMETERS},{1,TK_CALL},{1, TK_FUNID}, {1, TK_WITH}, {1, TK_PARAMETERS}, {0,INPUT_PARAMETERS}, {1, TK_SEM} };
     initRuleArray(grammar, FUN_CALL_STMT,1);
-    addRule(grammar, FUN_CALL_STMT, funCallStmt, 6, 0);
+    addRule(grammar, FUN_CALL_STMT, funCallStmt, 7, 0);
 
     Symbol outputParameters0[] = {{1,TK_SQL}, {0,ID_LIST}, {1,TK_SQR}, {1,TK_ASSIGNOP}};
     Symbol outputParameters1[] = {{1, EPSILON}};
@@ -428,6 +437,14 @@ void initGrammar(Grammar* grammar){
     initLocations(grammar);
 }
 
+void printNTSet(NonTermSet ntSet){
+    for(int i = 0; i < NON_TERMINAL_SIZE; i++){
+        if(nonTermSetContains(ntSet, i)){
+            printf("%s ", nonTermToStr(i));
+        }
+    }
+    printf("\n");
+}
 void printTSet(TokenSet tSet){
     for(int i = 0; i < TOKEN_SIZE; i++){
         if(tokenSetContains(tSet, i)){
@@ -438,11 +455,11 @@ void printTSet(TokenSet tSet){
 }
 
 void recordRuleNumber(TokenSet tSet, NonTerminal nt, int ruleNum){
-    printf("%s Rule %d => ", nonTermToStr(nt), ruleNum);
+    // printf("%s Rule %d => ", nonTermToStr(nt), ruleNum);
     for(int i = 0; i < TOKEN_SIZE; i++){
         if(tokenSetContains(tSet, i)){
             tokRuleNum[nt][i] = ruleNum;
-            printf("%s ", tokToStr(i));
+            //printf("%s ", tokToStr(i));
         }
     }
 
@@ -450,7 +467,8 @@ void recordRuleNumber(TokenSet tSet, NonTerminal nt, int ruleNum){
 
 TokenSet first(Grammar* grammar, NonTerminal nt){
     TokenSet ftSet = nullTokenSet();
-
+    // LOG("%s \n", nonTermToStr(nt));
+    // LOG("--------------------------\n");
     if(!equalsTokenSet(firstSetDp[nt],nullTokenSet()))
         return firstSetDp[nt];
     else {
@@ -460,12 +478,18 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
                 Symbol s = grammar->ruleArray[nt].rule[i].symbol[j];
                 if(s.isTerminal){
                     tSet = tokenSetUnion(tSet, singletonTokenSet(s.symbol));
+                    printf("%s\n", tokToStr(s.symbol));
                     break;
                 }
-                else if(!s.isTerminal){
+                else{
                     tSet = tokenSetUnion(tSet, first(grammar, s.symbol));
+                    // LOG("%s is ", nonTermToStr(s.symbol));
+                    // printTSet(tSet);
+                    // LOG("\n");
+
                     if(!isNullable(grammar, s.symbol))
                         break;
+                    tSet = removeEpsilon(tSet);
                 }
             }
             recordRuleNumber(tSet, nt, i);
@@ -474,39 +498,45 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
         }
         
     }
+    if(equalsTokenSet(ftSet, nullTokenSet()))
+        ftSet = tokenSetUnion(ftSet, singletonTokenSet(EPSILON));
     firstSetDp[nt] = ftSet;
     return ftSet;
 }
 
-// FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
-//     NonTermSet followDep = nullNonTermSet();
-//     TokenSet firstDep = nullTokenSet();
+FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
+    NonTermSet followDep = nullNonTermSet();
+    TokenSet firstDep = nullTokenSet();
+    
+    for(int i = 0; i < ntLocation[nt].size; i++){
+        Location l = ntLocation[nt].location[i];
+        l.index++;
 
-//     for(int i = 0; i < ntLocation[nt].size; i++){
-//         Location l = ntLocation[nt].location[i];
-//         l.index++;
+        int n = grammar->ruleArray[l.nt].rule[l.ruleNo].size;
+        while(l.index < n){
+            Symbol s = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[l.index];
+            if(s.isTerminal){
+                firstDep = tokenSetUnion(firstDep, singletonTokenSet(s.symbol));
+                //printf("%s\n", tokToStr(s.symbol));
+                break;
+            }
+            else{
+                firstDep = tokenSetUnion(firstDep, first(grammar, s.symbol));
+                firstDep = removeEpsilon(firstDep);
+                //printf("%s ", nonTermToStr(s.symbol));
+                if(!isNullable(grammar, s.symbol))
+                    break;
+            }
+            l.index++;
+        }
+        //Symbol lastSymbol = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[n - 1];
+        if(l.index == n ){
+            followDep = nonTermSetUnion(followDep, singletonNonTermSet(l.nt));
+        }
+    }
 
-//         int n = grammar->ruleArray[l.nt].rule[l.ruleNo].size;
-//         while(l.index < n){
-//             Symbol s = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[l.index];
-//             if(s.isTerminal){
-//                 firstDep = tokenSetUnion(firstDep, singletonTokenSet(s.symbol));
-//                 break;
-//             }
-//             else{
-//                 firstDep = tokenSetUnion(firstDep, first(grammar, s.symbol));
-//                 if(!isNullable(s.symbol))
-//                     break;
-//             }
-//         }
-//         Symbol lastSymbol = grammar->ruleArray[l.nt].rule[l.ruleNo].symbol[n - 1];
-//         if(l.index == n && !(lastSymbol.isTerminal) && isNullable(lastSymbol.symbol)){
-//             followDep = nonTermSetUnion(followDep, singletonNonTermSet(l.nt));
-//         }
-//     }
-
-//     return (FollowHelperSet){followDep, firstDep};
-// }
+    return (FollowHelperSet){followDep, firstDep};
+}
 
 // ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
 //       struct ParseTable parsetable;
@@ -536,6 +566,13 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
 //       return parsetable;
 // }
 
+void printFirstArray(FirstFollowArray array){
+    for(int i = 0; i < array.size; i++){
+        printf("%s ", tokToStr(array.elements[i].t));
+    }
+    
+}
+
 FirstFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
     FirstFollowArray array;
     array.size = 0;
@@ -546,24 +583,22 @@ FirstFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
             array.elements[array.size++] = (FirstFollowElement){i, tokRuleNum[nt][i]};
         }
     }
-
+    
+    // printf("========");
+    // printFirstArray(array);
+    // printf("\n=========");
     return array;
 }
 
-void printFirstArray(FirstFollowArray array){
-    for(int i = 0; i < array.size; i++){
-        printf("%s ", array.elements[i]);
-    }
-    
-}
+
 void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
     firstNFollow->first = (FirstFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstFollowArray));
     for(int i = 0; i < NON_TERMINAL_SIZE; i++){
         TokenSet tset = first(grammar, i);
         firstNFollow->first[i] = tokenSetToArray(i, tset);
-        printf("(");
-        // printTSet(tset);
-        printFirstArray(firstNFollow->first[i]);
-        printf(")\n");
     }
+}
+
+LocationArray* getLocationArray(){
+    return ntLocation;
 }
