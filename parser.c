@@ -599,6 +599,17 @@ int isEmpty(Stack* head){
     return 0;
 }
 
+void printStack(Stack* head){
+    while(head != NULL){
+        if(head->current->s.isTerminal){
+            printf("%s\n",tokentostr(head->current->s.symbol));
+        }else{
+            printf("%s\n",nonTermToStr(head->current->s.symbol));
+        }
+        head = head->next;
+    }
+}
+
 ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,int inputSize){
         ParseTree parseTree;
         Stack* store = NULL;
@@ -625,9 +636,9 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                 m->noOfChildren = ruleSize;
                 m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
                 for(int j=ruleSize-1;j>=0;j++){
-                    m[i].noOfChildren = 0;
-                    m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
-                    store = stackPush(store,&m[i]);
+                    m->children[j].noOfChildren = 0;
+                    m->children[j].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
+                    store = stackPush(store,&m->children[j]);
                 }
             }else{
                 if(code[i].token != m->s.symbol){
