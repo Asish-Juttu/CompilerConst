@@ -602,7 +602,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
         p->noOfChildren = 0;
         parseTree.head = p;
         store = stackPush(store,p);
-        for(int i=0;i<inputSize;i++){
+        for(int i=0;i<inputSize;){
             ParseTreeElement* m = stackTop(store);
             store = stackPop(store);
             if(!m->s.isTerminal){
@@ -623,6 +623,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                     printf("Syntax Error\n");
                     break;  
                 }
+                i++;
             }
         }
         return parseTree;
