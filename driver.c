@@ -16,7 +16,6 @@ ID: 2019A7PS0065P
 ****/
 
 #include<stdio.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -34,6 +33,7 @@ ID: 2019A7PS0065P
 int main(int argc, char* argv[]){
 
     if(argc!=3){
+        printf("%d",argc);
 		printf("Check command: $./stage1exe  testcase.txt  parsetreeOutFile.txt\n");
 		return 0;
 	}
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]){
     /****************************************Implementation Starts*****************************************/
 
 
-int exit=0;
+int ex=0;
 
     while(1){
         printf("\nPlease enter the task you want to perform:\n\n");
@@ -59,35 +59,46 @@ int exit=0;
         printf("\n\nTask Number: ");
         int task;
 		scanf("%d",&task);
+        FILE *fp;
+        char ch;
+        TwinBuffer tb;
+        TwinBuffer* tbuf = &tb;
+        TokenInfo tinf;
+        clock_t start_time, end_time;
+        double total_CPU_time, total_CPU_time_in_seconds;
 
         switch(task){
             case 0:
-                exit = 1;
+                ex = 1;
             break;
 
             case 1:
-                FILE *fp;
-                char ch;
+                printf("%s",argv[1]);
+                //exit(0);
                 fp = fopen(argv[1],"r");
+                if(fp==NULL){
+                    printf("Error reading file\n");
+                }
                 while(1){
+                    //printf("Entered loop\n");
                     ch = fgetc(fp);
                     if(ch=='%'){
-                        while(ch != '\n' || ch != EOF_CHAR){
+                        while(ch != '\n' && ch != EOF){
+                            //printf("%c\n",ch);
                             ch = fgetc(fp);
                         }
                     }
-                    if(ch==EOF_CHAR) break;
+                    //printf("%c",ch);
+                    if(ch==EOF) break;
                     printf("%c", ch);
                 }
                 fclose(fp);
+               
             break;
 
             case 2:
-                TwinBuffer tb;
-                TwinBuffer* tbuf = &tb;
                 initTwinBuffer(tbuf, argv[1]);
                 initSymbolTable(&symbolTable);
-                TokenInfo tinf;
                 while((tinf = getNextToken(tbuf)).token != EPSILON){
                     if(tinf.token != ERROR_TOKEN){
                         if(tinf.token == TK_ID){
@@ -119,8 +130,6 @@ int exit=0;
             break;
 
             case 4:
-                clock_t start_time, end_time;
-                double total_CPU_time, total_CPU_time_in_seconds;
                 start_time = clock();
                 // invoke your lexer and parser here
                 end_time = clock();
@@ -130,7 +139,7 @@ int exit=0;
                 printf("Total CPU time in seconds is: %lf",total_CPU_time_in_seconds);
             break;
         }
-        if(exit==1) break;
+        if(ex==1) break;
     }
     return 0;
 }
