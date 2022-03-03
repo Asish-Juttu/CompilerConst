@@ -543,12 +543,12 @@ ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
       for(int i=0;i<grammarSize;i++){
           int firstSize = f->first[i].size;
           for(int j=0;j<firstSize;j++){
-              parsetable[i][f->first[i].elements[j].t] = grammar->ruleArray[i].rule[f->first[i].elements[j].ruleNo];
+              parsetable.table[i][f->first[i].elements[j].t] = grammar->ruleArray[i].rule[f->first[i].elements[j].ruleNo];
           }
           if(isNullable(grammar,i)){
               int followSize = f->follow[i].size;
               for(int j=0;j<followSize;j++){
-                  parsetable[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
+                  parsetable.table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
               }
           }
       }
@@ -556,7 +556,7 @@ ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
 }
 
 Stack* stackPush(Stack* head,ParseTreeElement* e){
-    Stack* temp = (Stack)malloc(sizeof(Stack));
+    Stack* temp = (Stack*)malloc(sizeof(Stack));
     temp->current = e;
     temp->next = head;
     return temp;
@@ -586,7 +586,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
           Symbol start;
           start.isTerminal = 0;
           start.symbol = PROGRAM;
-          ParseTreeElement* p = (ParseTreeElement*)malloac(sizeof(ParseTreeElement));
+          ParseTreeElement* p = (ParseTreeElement*)malloc(sizeof(ParseTreeElement));
           p->s = start;
           p->noOfChildren = 0;
           parseTree.head = p;
@@ -601,10 +601,10 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                       break;
                   }
                   m->noOfChildren = ruleSize;
-                  m->children = (ParseTreeElement)malloc(ruleSize*sizeof(ParseTreeElement));
+                  m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
                   for(int j=ruleSize-1;j>=0;j++){
                       m[i].noOfChildren = 0;
-                      m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j].symbol;
+                      m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
                       store = stackPush(store,&m[i]);
                   }
               }else{
