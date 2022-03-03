@@ -604,13 +604,15 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
         store = stackPush(store,p);
         for(int i=0;i<inputSize;){
             ParseTreeElement* m = stackTop(store);
-            store = stackPop(store);
+            
             if(!m->s.isTerminal){
                 int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
                 if(ruleSize == 0){
-                    printf("Syntax Error\n");
-                    break;
+                    printf("Syntax Error no entry in parse table.\n");
+                    i++;
+                    continue;
                 }
+                store = stackPop(store);
                 m->noOfChildren = ruleSize;
                 m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
                 for(int j=ruleSize-1;j>=0;j++){
@@ -620,9 +622,9 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                 }
             }else{
                 if(code[i].token != m->s.symbol){
-                    printf("Syntax Error\n");
-                    break;  
+                    printf("Syntax Error non terminals do not match.\n");  
                 }
+                store = stackPop(store);
                 i++;
             }
         }
