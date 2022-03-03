@@ -26,6 +26,7 @@ int main(){
 
     TokenInfoArray tArray = tokenize("testcases/t3.txt");
     ParseTree parse = initParseTree(&grammar, &ptable,tArray.tokenInf, tArray.size);
+    //printf("Hello");
     Inorder(parse.head);
     return 0;
 }

@@ -6,7 +6,7 @@ int main(){
     TwinBuffer tb;
     TwinBuffer* tbuf = &tb;
 
-    initTwinBuffer(tbuf, "testcases/t1.txt");
+    initTwinBuffer(tbuf, "testcases/t3.txt");
     initSymbolTable(&symbolTable);
     TokenInfo tinf;
     while((tinf = getNextToken(tbuf)).token != EPSILON){

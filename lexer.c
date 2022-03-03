@@ -118,13 +118,20 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                         resetBegin(tbuf,0,NULL);
                     }
                     
-                    return (TokenInfo) {TK_COMMENT,lexeme,line++};
+                    if(ch=='\n'){
+                        line++;
+                        resetBegin(tbuf, 0, NULL);
+                        //nextChar(tbuf, &ch);
+                    }
+                   
                 }
-                // else if(ch=='\n'){
-                //     line++;
-                //     resetBegin(tbuf,0,NULL);
-                // }
-                
+                else if(ch=='\n'){
+                    line++;
+                    resetBegin(tbuf,0,NULL);
+                }
+                else if(ch == '\t'){
+                    resetBegin(tbuf,0,NULL);
+                }
                 else if(isFieldID_1(ch)){
                     st = 8;
                 }

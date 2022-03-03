@@ -80,9 +80,9 @@ void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rN
     
 
     grammar->ruleArray[nt].rule[rNum] = r;
-    LOG("[Adding Rule {");
-    printSymbols(grammar->ruleArray[nt].rule[rNum].symbol, size);
-    LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
+    // LOG("[Adding Rule {");
+    // printSymbols(grammar->ruleArray[nt].rule[rNum].symbol, size);
+    // LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
     updateNumOccur(symbols, size);
     if(symbols[0].symbol == EPSILON){
         addNullable(nt, grammar);
@@ -218,9 +218,11 @@ void initGrammar(Grammar* grammar){
     initRuleArray(grammar, FIELD_DEFINITION,1);
     addRule(grammar, FIELD_DEFINITION, fieldDefinition0 , 5, 0);
 
-    Symbol fieldType0[] = {{0,PRIMITIVE_DATATYPE}, {1,TK_RUID}};
-    initRuleArray(grammar, FIELD_TYPE,1);
-    addRule(grammar, FIELD_TYPE, fieldType0 , 2, 0);
+    Symbol fieldType1[] = {{0,PRIMITIVE_DATATYPE}};
+    Symbol fieldType2[] = {{1,TK_RUID}};
+    initRuleArray(grammar, FIELD_TYPE,2);
+    addRule(grammar, FIELD_TYPE, fieldType1 , 1, 0);
+    addRule(grammar, FIELD_TYPE, fieldType2 , 1, 1);
 
     Symbol moreFields0[] = {{0, FIELD_DEFINITION}, {0,MORE_FIELDS}};
     Symbol moreFields1[] = {{1, EPSILON}};
@@ -585,10 +587,15 @@ Stack* stackPush(Stack* head,ParseTreeElement* e){
 Stack* stackPop(Stack* head){
     
     Stack* res = head->next;
+    // free(head);
     return res; 
 }
 
 ParseTreeElement* stackTop(Stack* head){
+    if(head == NULL){
+        printf("Eror top null");
+        return NULL;
+    }
     return head->current;
 }
 
@@ -613,26 +620,41 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
         store = stackPush(store,p);
         for(int i=0;i<inputSize;){
             ParseTreeElement* m = stackTop(store);
-            store = stackPop(store);
+            
             if(!m->s.isTerminal){
                 int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
-                if(ruleSize == 0){
+                printf("%s %d", nonTermToStr(m->s.symbol), ruleSize);
+                if(ruleSize <= 0){
                     printf("Syntax Error\n");
                     printf("No rule for %s, %s \n", nonTermToStr(m->s.symbol), tokToStr(code[i].token));
-                    break;
+                    exit(0);
+                    i++;
+                    continue;
                 }
-                m->noOfChildren = ruleSize;
-                m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
-                for(int j=ruleSize-1;j>=0;j++){
-                    m[i].noOfChildren = 0;
-                    m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
-                    store = stackPush(store,&m[i]);
+                else if(parseTable->table[m->s.symbol][code[i].token].symbol[0].symbol == EPSILON){
+                    store = stackPop(store);
+                }
+                else{
+                    store = stackPop(store);
+                    m->noOfChildren = ruleSize;
+                    m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
+                    for(int j=ruleSize-1;j>=0;j--){
+                        m->children[j].noOfChildren = 0;
+                        m->children[j].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
+                        store = stackPush(store,&m->children[j]);
+                    }
+                    printf("Matched Non Terminal %s \n", nonTermToStr(m->s.symbol));
+                    printSymbols(parseTable->table[m->s.symbol][code[i].token].symbol, parseTable->table[m->s.symbol][code[i].token].size);
+                    printf("\n");
                 }
             }else{
                 if(code[i].token != m->s.symbol){
-                    printf("Syntax Error\n");
-                    break;  
+                    printf("Syntax Error terminals do not match. expected - %s and  got - %s\n", tokToStr(code[i].token), tokToStr(m->s.symbol));  
+                    printf("Line number %d", code[i].lineNumber);
+                    exit(0);
                 }
+                store = stackPop(store);
+                printf("\n[Matched %s]\n", tokToStr(m->s.symbol));
                 i++;
             }
         }
