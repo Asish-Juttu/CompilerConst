@@ -61,6 +61,7 @@ char* tokToStr(Token t){
         case  EPSILON: return "EPSILON";
         case  TK_GE: return "TK_GE";
         case  TK_EQ: return "TK_EQ";
+        case ERROR_TOKEN: return "ERROR_TOKEN";
     }
 
     return "UNKNOWN";

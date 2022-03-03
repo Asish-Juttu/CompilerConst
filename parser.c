@@ -611,7 +611,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
         p->noOfChildren = 0;
         parseTree.head = p;
         store = stackPush(store,p);
-        for(int i=0;i<inputSize;i++){
+        for(int i=0;i<inputSize;){
             ParseTreeElement* m = stackTop(store);
             store = stackPop(store);
             if(!m->s.isTerminal){
@@ -632,9 +632,25 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                     printf("Syntax Error\n");
                     break;  
                 }
+                i++;
             }
         }
         return parseTree;
+}
+
+void Inorder(ParseTreeElement* head){
+    if(head == NULL){
+        return;
+    }
+    if(head->s.isTerminal){
+        printf("%s\n",tokToStr(head->s.symbol));
+    }else{
+        printf("%s\n",nonTermToStr(head->s.symbol));
+        for(int i=0;i<head->noOfChildren;i++){
+            Inorder(&(head->children[i]));
+        }
+    }
+    return;
 }
 
 void printFirstArray(FirstFollowArray array){
