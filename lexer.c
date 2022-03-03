@@ -2,6 +2,8 @@
 #include "lexer.h"
 #include "symbolTable.h"
 #include <stdlib.h>
+#include <string.h>
+
 
 int isDigit(char ch){
     return ch >= '0' && ch <= '9';
@@ -86,7 +88,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
     char ch;
     nextChar(tbuf, &ch);
     while(1){
-        if(ch==' '){
+        if(ch==' ' || ch == '\t'){
             resetBegin(tbuf, 0, NULL);
             nextChar(tbuf, &ch);
         }
@@ -115,18 +117,14 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                         char* lexeme;
                         resetBegin(tbuf,0,NULL);
                     }
-                    //line++;
-                    if(ch=='\n'){
-                    line++;
-                    resetBegin(tbuf, 0, NULL);
-                    //nextChar(tbuf, &ch);
-                    }
-                    //return (TokenInfo) {TK_COMMENT,lexeme,line++};
+                    
+                    return (TokenInfo) {TK_COMMENT,lexeme,line++};
                 }
-                else if(ch=='\n'){
-                    line++;
-                    resetBegin(tbuf,0,NULL);
-                }
+                // else if(ch=='\n'){
+                //     line++;
+                //     resetBegin(tbuf,0,NULL);
+                // }
+                
                 else if(isFieldID_1(ch)){
                     st = 8;
                 }
@@ -556,10 +554,10 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
     return (TokenInfo){EPSILON,NULL,line};
 }
 
-void insert(TokenInfoArray* array, TokenInfo tinf){
-    if(array.size == cap){
-        array->capacity = 1.4 * capacity + 1;
-        array->tokenInf = malloc(array->tokenInf, capacity * sizeof(TokenInfo));
+void insertTinf(TokenInfoArray* array, TokenInfo tinf){
+    if(array->size == array->capacity){
+        array->capacity = 1.4 * array->capacity + 1;
+        array->tokenInf = realloc(array->tokenInf, array->capacity * sizeof(TokenInfo));
     }
 
     array->tokenInf[array->size++] = tinf;
@@ -567,5 +565,40 @@ void insert(TokenInfoArray* array, TokenInfo tinf){
 
 TokenInfoArray tokenize(char* file){
     TokenInfoArray tArray;
-    int capacity;
+    tArray.size = 0;
+    tArray.capacity = 10;
+    tArray.tokenInf = malloc(tArray.capacity * sizeof(TokenInfo));
+
+    TwinBuffer tb;
+    TwinBuffer* tbuf = &tb;
+    initTwinBuffer(tbuf, file);
+    initSymbolTable(&symbolTable);
+    TokenInfo tinf;
+    while((tinf = getNextToken(tbuf)).token != EPSILON){
+        if(tinf.token != ERROR_TOKEN){
+            // if(tinf.token == TK_ID){
+            //     if(strlen(tinf.lexeme) <= 20)
+            //         printf("Line No.  %d \t Lexeme : %s \t Token : %s\n", tinf.lineNumber, tinf.lexeme, tokToStr(tinf.token));
+            //     else
+            //         printf("Line No: %d Error :Variable Identifier is longer than the prescribed length of 20 characters.\n",tinf.lineNumber);
+            // }
+            // else if(tinf.token == TK_FUNID){
+            //     if(strlen(tinf.lexeme) <= 30)
+            //         printf("Line No.  %d \t Lexeme : %s \t Token : %s\n", tinf.lineNumber, tinf.lexeme,tokToStr(tinf.token));
+            //     else
+            //         printf("Line No: %d Error :Function Identifier is longer than the prescribed length of 30 characters.\n",tinf.lineNumber);
+            // }
+            // else printf("Line No.  %d \t Lexeme : %s \t Token : %s\n", tinf.lineNumber, tinf.lexeme,tokToStr(tinf.token));
+            insertTinf(&tArray, tinf);
+        }
+        else{
+        //printf("Line Number : %d Error : Unknow pattern %s\n", tinf.lineNumber, tinf.lexeme);
+        if(strlen(tinf.lexeme) == 1)
+            printf("Line No. %d Error : Unknow Symbol <%s>\n", tinf.lineNumber, tinf.lexeme);
+        else 
+            printf("Line No. %d Error : Unknow Pattern <%s>\n", tinf.lineNumber, tinf.lexeme);
+        }
+    }
+    
+    return tArray;
 }

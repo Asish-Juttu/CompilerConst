@@ -11,5 +11,5 @@ typedef struct{
 
 TokenInfo getNextToken(TwinBuffer* tbuf);
 void removeComments(char* testCaseFile, char* cleanFile);
-TokenArray tokenize(char* file);
+TokenInfoArray tokenize(char* file);
 #endif

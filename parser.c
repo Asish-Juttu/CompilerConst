@@ -618,6 +618,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                 int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
                 if(ruleSize == 0){
                     printf("Syntax Error\n");
+                    printf("No rule for %s, %s \n", nonTermToStr(m->s.symbol), tokToStr(code[i].token));
                     break;
                 }
                 m->noOfChildren = ruleSize;
