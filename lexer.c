@@ -40,7 +40,7 @@ int line=1;
 TokenInfo keyWordOrFieldId(char* lexeme, int lineNum){
     SymbolVal* symInfo = find(&symbolTable, lexeme);
 
-    Token token;
+    Token token = TK_FIELDID;
 
     if(symInfo == NULL){
         insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FIELDID, NONE}});
@@ -50,14 +50,14 @@ TokenInfo keyWordOrFieldId(char* lexeme, int lineNum){
     else if(!(symInfo->token == TK_FIELDID)){
         token = symInfo->token;
     }
-    return (TokenInfo) {token, lexeme, line}; // Lexeme and look-up table
+    return (TokenInfo) {token, lexeme, lineNum}; // Lexeme and look-up table
 }
 
 TokenInfo keyWordOrFunId(char* lexeme, int lineNum){
     
     SymbolVal* symInfo = find(&symbolTable, lexeme);
 
-    Token token;
+    Token token = TK_FUNID;
 
     if(symInfo == NULL){
         insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FUNID, NONE}});
@@ -67,7 +67,7 @@ TokenInfo keyWordOrFunId(char* lexeme, int lineNum){
     else if(!(symInfo->token == TK_FUNID)){
         token = symInfo->token;
     }
-    return (TokenInfo) {token, lexeme, line}; // Lexeme and look-up table
+    return (TokenInfo) {token, lexeme, lineNum}; // Lexeme and look-up table
 }
 
 TokenInfo getId(char* lexeme, int lineNum){
@@ -115,8 +115,17 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                         char* lexeme;
                         resetBegin(tbuf,0,NULL);
                     }
-                    
-                    return (TokenInfo) {TK_COMMENT,lexeme,line++};
+                    //line++;
+                    if(ch=='\n'){
+                    line++;
+                    resetBegin(tbuf, 0, NULL);
+                    //nextChar(tbuf, &ch);
+                    }
+                    //return (TokenInfo) {TK_COMMENT,lexeme,line++};
+                }
+                else if(ch=='\n'){
+                    line++;
+                    resetBegin(tbuf,0,NULL);
                 }
                 else if(isFieldID_1(ch)){
                     st = 8;
@@ -341,8 +350,8 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                 }
                 else{
                     char* lexeme;
-                    resetBegin(tbuf,3,&lexeme);
-                    return (TokenInfo) {TK_NUM, lexeme, line}; // Lexeme 
+                    resetBegin(tbuf,1,&lexeme);
+                    return (TokenInfo) {ERROR_TOKEN, lexeme, line}; // Lexeme 
                 }
             break;
 
@@ -545,4 +554,18 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
 
     
     return (TokenInfo){EPSILON,NULL,line};
+}
+
+void insert(TokenInfoArray* array, TokenInfo tinf){
+    if(array.size == cap){
+        array->capacity = 1.4 * capacity + 1;
+        array->tokenInf = malloc(array->tokenInf, capacity * sizeof(TokenInfo));
+    }
+
+    array->tokenInf[array->size++] = tinf;
+}
+
+TokenInfoArray tokenize(char* file){
+    TokenInfoArray tArray;
+    int capacity;
 }

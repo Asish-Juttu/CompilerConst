@@ -46,7 +46,7 @@ typedef struct {
 } Grammar;
 
 typedef struct  {
-     Rule table[NON_TERMINAL_SIZE][TERMINAL_SIZE];
+     Rule** table;
 } ParseTable;
 
 typedef struct{

@@ -8,7 +8,7 @@ TokenSet first(Grammar* grammar, NonTerminal nt);
 TokenSet follow(Grammar* grammar, NonTerminal nt);
 Token* toArray(TokenSet tSet);
 
-ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f);
+void initParseTable(Grammar* grammar,FirstAndFollow* f, ParseTable* ptable);
 ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,int inputSize);
 Stack* stackPush(Stack* head,ParseTreeElement* e);
 Stack* stackPop(Stack* head);
