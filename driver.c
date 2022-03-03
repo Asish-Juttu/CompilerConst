@@ -1,4 +1,4 @@
-/****
+/****   GROUP NUMBER: 43
 Name: Rahul B
 ID: 2019A7PS0134P
 
@@ -66,7 +66,20 @@ int exit=0;
             break;
 
             case 1:
-                //CALL THE COMMENT-FREE CODE
+                FILE *fp;
+                char ch;
+                fp = fopen(argv[1],"r");
+                while(1){
+                    ch = fgetc(fp);
+                    if(ch=='%'){
+                        while(ch != '\n'){
+                            ch = fgetc(fp);
+                        }
+                    }
+                    if(ch==EOF_CHAR) break;
+                    printf("%c", ch);
+                }
+                fclose(fp);
             break;
 
             case 2:
