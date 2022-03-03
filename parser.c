@@ -573,6 +573,13 @@ void initParseTable(Grammar* grammar,FirstAndFollow* f, ParseTable* parsetable){
             for(int j=0;j<followSize;j++){
                 parsetable->table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
             }
+          }else{
+              int followSize = f->follow[i].size;
+              for(int j=0;j<followSize;j++){
+                  if(parsetable->table[i][f->follow[i].elements[j].t].size == 0){
+                      parsetable->table[i][f->follow[i].elements[j].t].size = -1;
+                  }
+              }
           }
       }
 }
@@ -635,12 +642,20 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
             if(!m->s.isTerminal){
                 int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
                 printf("%s %d", nonTermToStr(m->s.symbol), ruleSize);
-                if(ruleSize <= 0){
+                if(ruleSize == 0){
                     printf("Syntax Error\n");
                     printf("No rule for %s, %s \n", nonTermToStr(m->s.symbol), tokToStr(code[i].token));
-                    exit(0);
+                    //exit(0);
+                    while(code[i].token != 46){
+                        i++; 
+                    }
                     i++;
                     continue;
+                }
+                else if(ruleSize == -1){
+                    printf("Synatx Error\n");
+                    printf("No rule in the syntax table but the element is in the follow set\n");
+                    store = stackPop(store);
                 }
                 else if(parseTable->table[m->s.symbol][code[i].token].symbol[0].symbol == EPSILON){
                     store = stackPop(store);
@@ -658,24 +673,17 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,
                     printSymbols(parseTable->table[m->s.symbol][code[i].token].symbol, parseTable->table[m->s.symbol][code[i].token].size);
                     printf("\n");
 
-//                 store = stackPop(store);
-//                 m->noOfChildren = ruleSize;
-//                 m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
-//                 for(int j=ruleSize-1;j>=0;j++){
-//                     m->children[j].noOfChildren = 0;
-//                     m->children[j].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
-//                     store = stackPush(store,&m->children[j]);
-// >>>>>>> de048c2949303c5e315691517faf9b2b401d9f69
                 }
             }else{
                 if(code[i].token != m->s.symbol){
                     printf("Syntax Error terminals do not match. expected - %s and  got - %s\n", tokToStr(code[i].token), tokToStr(m->s.symbol));  
                     printf("Line number %d", code[i].lineNumber);
-                    exit(0);
-                }
+                    store = stackPop(store);
+                }else{
                 store = stackPop(store);
                 printf("\n[Matched %s]\n", tokToStr(m->s.symbol));
                 i++;
+                }
             }
         }
         return parseTree;
