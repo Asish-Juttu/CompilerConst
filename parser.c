@@ -1,3 +1,20 @@
+/****   GROUP NUMBER: 43
+Name: Rahul B
+ID: 2019A7PS0134P
+
+Name: Asish Juttu
+ID: 2019A7PS0039P
+
+Name: Narasimha Gupta Jangala
+ID: 2019A7PS0138P
+
+Name: Praneeth Chaitanya Jonnavithula
+ID: 2019A7PS1111P
+
+Name: Damargidda Rohan Raj Goud
+ID: 2019A7PS0065P
+****/
+
 #include "parser.h"
 #include "parserDef.h"
 #include "token.h"
@@ -571,6 +588,13 @@ void initParseTable(Grammar* grammar,FirstAndFollow* f, ParseTable* parsetable){
             for(int j=0;j<followSize;j++){
                 parsetable->table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
             }
+          }else{
+              int followSize = f->follow[i].size;
+              for(int j=0;j<followSize;j++){
+                  if(parsetable->table[i][f->follow[i].elements[j].t].size == 0){
+                      parsetable->table[i][f->follow[i].elements[j].t].size = -1;
+                  }
+              }
           }
       }
 }
@@ -663,6 +687,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
             ParseTreeElement* m = stackTop(store);
             // printf("%s, ", tokToStr(tinfo.token));
             if(!m->s.isTerminal){
+
                 int ruleSize = parseTable->table[m->s.symbol][tinfo.token].size;
                 // printf("%s %d", nonTermToStr(m->s.symbol), ruleSize);
                 if(ruleSize <= 0){
@@ -678,6 +703,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     store = stackPop(store);
                 }
                 else if(parseTable->table[m->s.symbol][tinfo.token].symbol[0].symbol == EPSILON){
+
                     store = stackPop(store);
                 }
                 else{
@@ -689,6 +715,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                         m->children[j].s = parseTable->table[m->s.symbol][tinfo.token].symbol[j];
                         store = stackPush(store,&m->children[j]);
                     }
+
                     // printf("Matched Non Terminal %s \n", nonTermToStr(m->s.symbol));
                     // printSymbols(parseTable->table[m->s.symbol][tinfo.token].symbol, 
                     //     parseTable->table[m->s.symbol][tinfo.token].size);
@@ -704,6 +731,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     tinfo = nextValidToken(tbuf);
                 }
                 store = stackPop(store);
+
             }
         }
         return parseTree;
