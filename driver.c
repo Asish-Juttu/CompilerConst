@@ -72,7 +72,7 @@ int exit=0;
                 while(1){
                     ch = fgetc(fp);
                     if(ch=='%'){
-                        while(ch != '\n'){
+                        while(ch != '\n' || ch != EOF_CHAR){
                             ch = fgetc(fp);
                         }
                     }

@@ -42,6 +42,7 @@ typedef struct {
     int size;
     RuleArray* ruleArray;
     NonTermSet nullableSet;
+    int nullableRuleNum[NON_TERMINAL_SIZE];
 } Grammar;
 
 typedef struct  {
@@ -101,6 +102,7 @@ NonTermSet singletonNonTermSet(NonTerminal nt);
 NonTermSet nonTermSetUnion(NonTermSet s1, NonTermSet s2);
 int nonTermSetContains(NonTermSet ntSet, NonTerminal nt);
 FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt);
+void printSymbols(Symbol* syms, int size);
 
 int equalsNonTermSet(NonTermSet s1, NonTermSet s2);
 void printTSet(TokenSet tSet);

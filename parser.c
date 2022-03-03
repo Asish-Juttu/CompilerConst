@@ -61,10 +61,10 @@ void printSymbols(Symbol* syms, int size){
     for(int i = 0; i < size; i++){
         Symbol s  = syms[i];
         if(s.isTerminal){
-            LOG("%s ", tokToStr(s.symbol));
+            printf("%s ", tokToStr(s.symbol));
         }
         else{
-            LOG("%s ", nonTermToStr(s.symbol));
+            printf("%s ", nonTermToStr(s.symbol));
         }
     }
 }
@@ -85,12 +85,8 @@ void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rN
     LOG("} to NonTerminal %s ]\n", nonTermToStr(nt));
     updateNumOccur(symbols, size);
     if(symbols[0].symbol == EPSILON){
-        // printf("Adding Nullables %s \n", nonTermToStr(nt));
         addNullable(nt, grammar);
-
-        // printf("NonTerminal Set now is ");
-        // printNTSet(grammar->nullableSet);
-        // printf("\n");
+        grammar->nullableRuleNum[nt] = rNum;
     }
 }
 
@@ -129,9 +125,6 @@ void initGrammar(Grammar* grammar){
     initNumOccur();
     initFNF();
     grammar->nullableSet = nullNonTermSet();
-    printf("Nullable set will print now");
-    printNTSet(grammar->nullableSet);
-    printf("Printed");
     int size = NON_TERMINAL_SIZE;
 
     grammar->size = size;
@@ -478,7 +471,7 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
                 Symbol s = grammar->ruleArray[nt].rule[i].symbol[j];
                 if(s.isTerminal){
                     tSet = tokenSetUnion(tSet, singletonTokenSet(s.symbol));
-                    printf("%s\n", tokToStr(s.symbol));
+                    //printf("%s\n", tokToStr(s.symbol));
                     break;
                 }
                 else{
@@ -502,6 +495,14 @@ TokenSet first(Grammar* grammar, NonTerminal nt){
         ftSet = tokenSetUnion(ftSet, singletonTokenSet(EPSILON));
     firstSetDp[nt] = ftSet;
     return ftSet;
+}
+
+void initRuleNumForFollow(Grammar* grammar, NonTerminal nt, TokenSet tSet){
+    for(int i = 0; i < TOKEN_SIZE; i++){
+        if(tokenSetContains(tSet, i)){
+            tokRuleNum[nt][i] = grammar->nullableRuleNum[nt];
+        }
+    }
 }
 
 FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
@@ -540,16 +541,26 @@ FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
 ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
       int grammarSize = grammar->size;
       ParseTable parsetable;
-      for(int i=0;i<grammarSize;i++){
+      memset(&parsetable, 0, sizeof(parsetable));
+      for(int i=0;i<NON_TERMINAL_SIZE;i++){
           int firstSize = f->first[i].size;
+          //printf("%s \n", nonTermToStr(i));
           for(int j=0;j<firstSize;j++){
-              parsetable.table[i][f->first[i].elements[j].t] = grammar->ruleArray[i].rule[f->first[i].elements[j].ruleNo];
+            Token tok = f->first[i].elements[j].t;
+            int rNum = f->first[i].elements[j].ruleNo;
+            if(rNum >= grammar->ruleArray[i].size || rNum < 0){
+                printf("Error in ParseTable %s, %s", nonTermToStr(i), tokToStr(j));
+            }
+            parsetable.table[i][tok] = grammar->ruleArray[i].rule[rNum];
+            printf("%s, %s => ", nonTermToStr(i), tokToStr(tok));
+            printSymbols(grammar->ruleArray[i].rule[rNum].symbol, grammar->ruleArray[i].rule[rNum].size);
+            printf("\n");
           }
           if(isNullable(grammar,i)){
-              int followSize = f->follow[i].size;
-              for(int j=0;j<followSize;j++){
-                  parsetable.table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
-              }
+            int followSize = f->follow[i].size;
+            for(int j=0;j<followSize;j++){
+                parsetable.table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
+            }
           }
       }
       return parsetable;
@@ -580,41 +591,41 @@ int isEmpty(Stack* head){
 }
 
 ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable,TokenInfo* code,int inputSize){
-          ParseTree parseTree;
-          Stack* store = NULL;
-          //lets store the start symbol.
-          Symbol start;
-          start.isTerminal = 0;
-          start.symbol = PROGRAM;
-          ParseTreeElement* p = (ParseTreeElement*)malloc(sizeof(ParseTreeElement));
-          p->s = start;
-          p->noOfChildren = 0;
-          parseTree.head = p;
-          store = stackPush(store,p);
-          for(int i=0;i<inputSize;i++){
-              ParseTreeElement* m = stackTop(store);
-              store = stackPop(store);
-              if(!m->s.isTerminal){
-                  int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
-                  if(ruleSize == 0){
-                      printf("Syntax Error\n");
-                      break;
-                  }
-                  m->noOfChildren = ruleSize;
-                  m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
-                  for(int j=ruleSize-1;j>=0;j++){
-                      m[i].noOfChildren = 0;
-                      m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
-                      store = stackPush(store,&m[i]);
-                  }
-              }else{
-                  if(code[i].token != m->s.symbol){
-                       printf("Syntax Error\n");
-                       break;  
-                  }
-              }
-          }
-          return parseTree;
+        ParseTree parseTree;
+        Stack* store = NULL;
+        //lets store the start symbol.
+        Symbol start;
+        start.isTerminal = 0;
+        start.symbol = PROGRAM;
+        ParseTreeElement* p = (ParseTreeElement*)malloc(sizeof(ParseTreeElement));
+        p->s = start;
+        p->noOfChildren = 0;
+        parseTree.head = p;
+        store = stackPush(store,p);
+        for(int i=0;i<inputSize;i++){
+            ParseTreeElement* m = stackTop(store);
+            store = stackPop(store);
+            if(!m->s.isTerminal){
+                int ruleSize = parseTable->table[m->s.symbol][code[i].token].size;
+                if(ruleSize == 0){
+                    printf("Syntax Error\n");
+                    break;
+                }
+                m->noOfChildren = ruleSize;
+                m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
+                for(int j=ruleSize-1;j>=0;j++){
+                    m[i].noOfChildren = 0;
+                    m[i].s = parseTable->table[m->s.symbol][code[i].token].symbol[j];
+                    store = stackPush(store,&m[i]);
+                }
+            }else{
+                if(code[i].token != m->s.symbol){
+                    printf("Syntax Error\n");
+                    break;  
+                }
+            }
+        }
+        return parseTree;
 }
 
 void printFirstArray(FirstFollowArray array){
@@ -624,7 +635,7 @@ void printFirstArray(FirstFollowArray array){
     
 }
 
-FirstFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
+FirstFollowArray firstSetToArray(NonTerminal nt, TokenSet tSet){
     FirstFollowArray array;
     array.size = 0;
     array.elements = (FirstFollowElement*)malloc(TOKEN_SIZE * sizeof(FirstFollowElement));
@@ -634,19 +645,60 @@ FirstFollowArray tokenSetToArray(NonTerminal nt, TokenSet tSet){
             array.elements[array.size++] = (FirstFollowElement){i, tokRuleNum[nt][i]};
         }
     }
-    
-    // printf("========");
-    // printFirstArray(array);
-    // printf("\n=========");
+
     return array;
 }
 
+FirstFollowArray followSetToArray(Grammar* grammar, NonTerminal nt, TokenSet tSet){
+    FirstFollowArray array;
+    array.size = 0;
+    array.elements = (FirstFollowElement*)malloc(TOKEN_SIZE * sizeof(FirstFollowElement));
+
+    for(int i = 0; i < TOKEN_SIZE; i++){
+        if(tokenSetContains(tSet, i)){
+            array.elements[array.size++] = (FirstFollowElement){i, grammar->nullableRuleNum[nt]};
+        }
+    }
+
+    return array;
+}
 
 void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
     firstNFollow->first = (FirstFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstFollowArray));
     for(int i = 0; i < NON_TERMINAL_SIZE; i++){
         TokenSet tset = first(grammar, i);
-        firstNFollow->first[i] = tokenSetToArray(i, tset);
+        firstNFollow->first[i] = firstSetToArray(i, tset);
+    }
+
+    firstNFollow->follow = (FirstFollowArray*) malloc(NON_TERMINAL_SIZE * sizeof(FirstFollowArray));
+    FollowHelperSet helper[NON_TERMINAL_SIZE];
+    for(int i = 0; i < NON_TERMINAL_SIZE; i++){
+        FollowHelperSet fhset = followHelper(grammar, i);
+        helper[i] = fhset;
+    }
+    
+    int k = 0;
+    while(1){
+        int changed = 0;
+        for(int i = 0; i < NON_TERMINAL_SIZE; i++){
+            for(int j = 0; j < NON_TERMINAL_SIZE; j++){
+                if(nonTermSetContains(helper[i].ntSet, j)){
+                    TokenSet old = helper[i].tSet;
+                    helper[i].tSet = tokenSetUnion(helper[i].tSet, helper[j].tSet);
+                    changed |= !equalsTokenSet(old, helper[i].tSet);
+                }
+            }
+        }
+        k++;
+        if(!changed)
+            break;
+    }
+
+    
+    for(int i = 0; i < NON_TERMINAL_SIZE; i++){
+        for(int j = 0; j < TOKEN_SIZE; j++){
+             firstNFollow->follow[i] = followSetToArray(grammar, i, helper[i].tSet); 
+        }
     }
 }
 
