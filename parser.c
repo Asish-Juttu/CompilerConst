@@ -538,10 +538,20 @@ FollowHelperSet followHelper(Grammar* grammar, NonTerminal nt){
     return (FollowHelperSet){followDep, firstDep};
 }
 
-ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
+void initParseTable(Grammar* grammar,FirstAndFollow* f, ParseTable* parsetable){
       int grammarSize = grammar->size;
-      ParseTable parsetable;
-      memset(&parsetable, 0, sizeof(parsetable));
+      parsetable->table = (Rule**)malloc(NON_TERMINAL_SIZE * sizeof(Rule*));
+      for(int i = 0; i < NON_TERMINAL_SIZE; i++){
+          parsetable->table[i] = (Rule*)malloc(TOKEN_SIZE * sizeof(Rule));
+          memset(parsetable->table[i], 0, TOKEN_SIZE * sizeof(Rule));
+        //   for(int j = 0; j < TOKEN_SIZE; j++){
+        //       if(parsetable->table[i][j].symbol == NULL){
+        //           printf("%d ", j);
+        //       }
+        //   }
+        //   printf("\n");
+      }
+      //memset(&parsetable, 0, sizeof(parsetable));
       for(int i=0;i<NON_TERMINAL_SIZE;i++){
           int firstSize = f->first[i].size;
           //printf("%s \n", nonTermToStr(i));
@@ -551,19 +561,18 @@ ParseTable initParseTable(Grammar* grammar,FirstAndFollow* f){
             if(rNum >= grammar->ruleArray[i].size || rNum < 0){
                 printf("Error in ParseTable %s, %s", nonTermToStr(i), tokToStr(j));
             }
-            parsetable.table[i][tok] = grammar->ruleArray[i].rule[rNum];
-            printf("%s, %s => ", nonTermToStr(i), tokToStr(tok));
-            printSymbols(grammar->ruleArray[i].rule[rNum].symbol, grammar->ruleArray[i].rule[rNum].size);
-            printf("\n");
+            parsetable->table[i][tok] = grammar->ruleArray[i].rule[rNum];
+            // printf("%s, %s => ", nonTermToStr(i), tokToStr(tok));
+            // printSymbols(parsetable->table[i][tok].symbol, parsetable->table[i][tok].size);
+            // printf("\n");
           }
           if(isNullable(grammar,i)){
             int followSize = f->follow[i].size;
             for(int j=0;j<followSize;j++){
-                parsetable.table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
+                parsetable->table[i][f->follow[i].elements[j].t] = grammar->ruleArray[i].rule[f->follow[i].elements[j].ruleNo];
             }
           }
       }
-      return parsetable;
 }
 
 Stack* stackPush(Stack* head,ParseTreeElement* e){

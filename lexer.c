@@ -40,7 +40,7 @@ int line=1;
 TokenInfo keyWordOrFieldId(char* lexeme, int lineNum){
     SymbolVal* symInfo = find(&symbolTable, lexeme);
 
-    Token token;
+    Token token = TK_FIELDID;
 
     if(symInfo == NULL){
         insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FIELDID, NONE}});
@@ -57,7 +57,7 @@ TokenInfo keyWordOrFunId(char* lexeme, int lineNum){
     
     SymbolVal* symInfo = find(&symbolTable, lexeme);
 
-    Token token;
+    Token token = TK_FUNID;
 
     if(symInfo == NULL){
         insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FUNID, NONE}});
@@ -545,4 +545,18 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
 
     
     return (TokenInfo){EPSILON,NULL,line};
+}
+
+void insert(TokenInfoArray* array, TokenInfo tinf){
+    if(array.size == cap){
+        array->capacity = 1.4 * capacity + 1;
+        array->tokenInf = malloc(array->tokenInf, capacity * sizeof(TokenInfo));
+    }
+
+    array->tokenInf[array->size++] = tinf;
+}
+
+TokenInfoArray tokenize(char* file){
+    TokenInfoArray tArray;
+    int capacity;
 }

@@ -3,7 +3,13 @@
 #include "token.h"
 #include "twinBuffer.h"
 
+typedef struct{
+    TokenInfo* tokenInf;
+    int size;
+    int capacity;
+} TokenInfoArray;
+
 TokenInfo getNextToken(TwinBuffer* tbuf);
 void removeComments(char* testCaseFile, char* cleanFile);
-
+TokenArray tokenize(char* file);
 #endif
