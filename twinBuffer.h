@@ -32,6 +32,7 @@ typedef struct{
     char lexeme[BUFFER_SIZE]; int lexSize;
     int first;
     int second;
+    int line;
 
     int secondBufFilled; // indicates whether second buffer is already filled
 

@@ -810,6 +810,7 @@ void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
     }
     
     int k = 0;
+    helper[PROGRAM].tSet = tokenSetUnion(helper[PROGRAM].tSet, singletonTokenSet(EOF_TOKEN));
     while(1){
         int changed = 0;
         for(int i = 0; i < NON_TERMINAL_SIZE; i++){

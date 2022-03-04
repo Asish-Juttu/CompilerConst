@@ -42,6 +42,7 @@ int main(int argc, char* argv[]){
 	printf("\t==> FIRST and FOLLOW set automated\n");
 	printf("\t==> Both lexical and syntax analysis modules implemented\n");
 	printf("\t==> Modules work with all the test cases\n");
+    printf("\t==> Test case 6 expected list of errors do not exactly match with the output");
 
     /****************************************Implementation Starts*****************************************/
 
@@ -148,7 +149,6 @@ int ex=0;
                 // invoke your lexer and parser here
                 initTwinBuffer(tbuf, argv[1]);
                 ParseTree parse1 = initParseTree(&grammar, &ptable, tbuf);
-
                 end_time = clock();
                 total_CPU_time = (double) (end_time - start_time);
                 total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;

@@ -45,6 +45,7 @@ void swap(int* a, int *b){
 int initTwinBuffer(TwinBuffer* tbuf, char* pathToSrc){
     tbuf->first = 0;
     tbuf->second = 1;
+    tbuf->line=1;
 
     tbuf->forward = (BufferHead) {tbuf->first, -1};
     tbuf->lexemeBegin = (BufferHead) {tbuf->first, 0};
