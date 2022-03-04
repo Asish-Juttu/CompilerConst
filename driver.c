@@ -64,6 +64,15 @@ int ex=0;
         TwinBuffer tb;
         TwinBuffer* tbuf = &tb;
         TokenInfo tinf;
+
+        Grammar grammar;
+        initGrammar(&grammar);
+        initSymbolTable(&symbolTable);
+        FirstAndFollow fnf;
+        initFirstAndFollow(&fnf, &grammar);
+        ParseTable ptable;
+        initParseTable(&grammar, &fnf, &ptable);
+
         clock_t start_time, end_time;
         double total_CPU_time, total_CPU_time_in_seconds;
 
@@ -98,8 +107,7 @@ int ex=0;
 
             case 2:
                 initTwinBuffer(tbuf, argv[1]);
-                initSymbolTable(&symbolTable);
-                while((tinf = getNextToken(tbuf)).token != EPSILON){
+                while((tinf = getNextToken(tbuf)).token != EOF_TOKEN){
                     if(tinf.token != ERROR_TOKEN){
                         if(tinf.token == TK_ID){
                             if(strlen(tinf.lexeme) <= 20)
@@ -127,11 +135,20 @@ int ex=0;
 
             case 3:
                 // CHECK PARSER CORRECTNESS
+                initTwinBuffer(tbuf, argv[1]);
+                ParseTree parse = initParseTree(&grammar, &ptable, tbuf);
+
+                FILE* fptr = fopen(argv[2], "w");
+                Inorder(parse.head, fptr);
+                fclose(fptr);
             break;
 
             case 4:
                 start_time = clock();
                 // invoke your lexer and parser here
+                initTwinBuffer(tbuf, argv[1]);
+                ParseTree parse1 = initParseTree(&grammar, &ptable, tbuf);
+
                 end_time = clock();
                 total_CPU_time = (double) (end_time - start_time);
                 total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;

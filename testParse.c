@@ -31,10 +31,10 @@ int main(){
     ParseTable ptable;
     initParseTable(&grammar, &fnf, &ptable);
     TwinBuffer tbuf;
-    initTwinBuffer(&tbuf, "testcases/t6.txt");
+    initTwinBuffer(&tbuf, "testcases/t2.txt");
     ParseTree parse = initParseTree(&grammar, &ptable, &tbuf);
     printf("Hello");
-    // Inorder(parse.head);
+    Inorder(parse.head);
 
     return 0;
 }

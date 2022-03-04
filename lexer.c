@@ -575,7 +575,7 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
     }
 
     
-    return (TokenInfo){EPSILON,NULL,line};
+    return (TokenInfo){EOF_TOKEN,NULL,line};
 }
 
 void insertTinf(TokenInfoArray* array, TokenInfo tinf){

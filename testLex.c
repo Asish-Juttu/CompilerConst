@@ -26,7 +26,7 @@ int main(){
     initTwinBuffer(tbuf, "testcases/t3.txt");
     initSymbolTable(&symbolTable);
     TokenInfo tinf;
-    while((tinf = getNextToken(tbuf)).token != EPSILON){
+    while((tinf = getNextToken(tbuf)).token != EOF_TOKEN){
         if(tinf.token != ERROR_TOKEN){
             if(tinf.token == TK_ID){
                 if(strlen(tinf.lexeme) <= 20)

@@ -33,7 +33,7 @@ ParseTree initParseTree(Grammar* grammar, ParseTable* parseTable, TwinBuffer* tb
 Stack* stackPush(Stack* head,ParseTreeElement* e);
 Stack* stackPop(Stack* head);
 ParseTreeElement* stackTop(Stack* head);
-void Inorder(ParseTreeElement* head);
+void Inorder(ParseTreeElement* head, FILE* fptr);
 int isEmpty(Stack* head);
 void initFirstAndFollow(FirstAndFollow* firstNFolllow, Grammar* grammar);
 #endif
