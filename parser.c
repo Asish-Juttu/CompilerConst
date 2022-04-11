@@ -31,6 +31,7 @@ LocationArray ntLocation[NON_TERMINAL_SIZE];
 void initFNF(){
     memset(firstSetDp, 0, NON_TERMINAL_SIZE * sizeof(TokenSet));
 }
+
 NonTermSet nullNonTermSet(){
     return (NonTermSet){0};
 }
@@ -86,7 +87,7 @@ void printSymbols(Symbol* syms, int size){
 void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rNum){
     Symbol* sym = malloc(size * sizeof(Symbol));
     memmove(sym, symbols, size * sizeof(Symbol));
-    Rule r = {size, sym};
+    Rule r = {size, nt, rNum, sym};
     if(rNum >= grammar->ruleArray[nt].size || rNum < 0){
         LOG("Error !! rNum greater than size for %s \n", nonTermToStr(nt));
         return;
@@ -631,10 +632,10 @@ int isEmpty(Stack* head){
 
 void printStack(Stack* head){
     while(head != NULL){
-        if(head->current->s.isTerminal){
-            printf("%s\n",tokToStr(head->current->s.symbol));
+        if(head->current->elem.isTerminal){
+            printf("%s\n",tokToStr(head->current->elem.symbol));
         }else{
-            printf("%s\n",nonTermToStr(head->current->s.symbol));
+            printf("%s\n",nonTermToStr(head->current->elem.symbol));
         }
         head = head->next;
     }
@@ -669,6 +670,15 @@ TokenInfo nextValidToken(TwinBuffer* tbuf){
 
     return tinfo;
 }
+
+void initParseTreeElement(ParseTreeElement* ptElem, Symbol sym){
+    ptElem->noOfChildren = 0;
+    ptElem->node_inh = NULL;
+    ptElem->node_syn = NULL;
+    ptElem->elem = sym;
+    ptElem->ruleNo = -1;
+}
+
 ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbuf){
         ParseTree parseTree;
         Stack* store = NULL;
@@ -677,8 +687,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
         start.isTerminal = 0;
         start.symbol = PROGRAM;
         ParseTreeElement* p = (ParseTreeElement*)malloc(sizeof(ParseTreeElement));
-        p->s = start;
-        p->noOfChildren = 0;
+        initParseTreeElement(p, start);
         parseTree.head = p;
         store = stackPush(store,p);
 
@@ -687,15 +696,15 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
         while(tinfo.token != EOF_TOKEN){
             ParseTreeElement* m = stackTop(store);
             // printf("%s, ", tokToStr(tinfo.token));
-            if(!m->s.isTerminal){
-
-                int ruleSize = parseTable->table[m->s.symbol][tinfo.token].size;
-                // printf("%s %d", nonTermToStr(m->s.symbol), ruleSize);
+            if(!m->elem.isTerminal){
+                Rule rule = parseTable->table[m->elem.symbol][tinfo.token];
+                int ruleSize = parseTable->table[m->elem.symbol][tinfo.token].size;
+                // printf("%s %d", nonTermToStr(m->elem.symbol), ruleSize);
                 if(ruleSize == 0){
                     printf("Line %d\t Error : Invalid token %s encountered with value %s. Stack top is %s\n", tinfo.lineNumber,
-                        tokToStr(tinfo.token), tinfo.lexeme, nonTermToStr(m->s.symbol));
+                        tokToStr(tinfo.token), tinfo.lexeme, nonTermToStr(m->elem.symbol));
                     //tinfo = nextValidToken(tbuf);
-                    while((tinfo.token != EOF_TOKEN) && (parseTable->table[m->s.symbol][tinfo.token].size <= 0 )){
+                    while((tinfo.token != EOF_TOKEN) && (parseTable->table[m->elem.symbol][tinfo.token].size <= 0 )){
                         tinfo = nextValidToken(tbuf);
                     }
                     //store = stackPop(store);
@@ -704,12 +713,12 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                 }
                 else if(ruleSize == -1){
                     printf("Line %d\t Error : Invalid token %s encountered with value %s. Stack top is %s\n", tinfo.lineNumber,
-                        tokToStr(tinfo.token), tinfo.lexeme, nonTermToStr(m->s.symbol));
+                        tokToStr(tinfo.token), tinfo.lexeme, nonTermToStr(m->elem.symbol));
                     store = stackPop(store);
                     
 
                 }
-                else if(parseTable->table[m->s.symbol][tinfo.token].symbol[0].symbol == EPSILON){
+                else if(parseTable->table[m->elem.symbol][tinfo.token].symbol[0].symbol == EPSILON){
 
                     store = stackPop(store);
                 }
@@ -717,22 +726,24 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     store = stackPop(store);
                     m->noOfChildren = ruleSize;
                     m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
+                    m->ruleNo = rule.ruleNum;
+
                     for(int j=ruleSize-1;j>=0;j--){
-                        m->children[j].noOfChildren = 0;
-                        m->children[j].s = parseTable->table[m->s.symbol][tinfo.token].symbol[j];
-                        store = stackPush(store,&m->children[j]);
+                        Symbol elem = parseTable->table[m->elem.symbol][tinfo.token].symbol[j];
+                        initParseTreeElement(&m->children[j], elem);
+                        store = stackPush(store, &m->children[j]);
                     }
 
-                    // printf("Matched Non Terminal %s \n", nonTermToStr(m->s.symbol));
-                    // printSymbols(parseTable->table[m->s.symbol][tinfo.token].symbol, 
-                    //     parseTable->table[m->s.symbol][tinfo.token].size);
+                    // printf("Matched Non Terminal %s \n", nonTermToStr(m->elem.symbol));
+                    // printSymbols(parseTable->table[m->elem.symbol][tinfo.token].symbol, 
+                    //     parseTable->table[m->elem.symbol][tinfo.token].size);
                     // printf("\n");
                 }
             } 
             else{
-                if(tinfo.token != m->s.symbol){
+                if(tinfo.token != m->elem.symbol){
                     printf("Line %d\t Error : The token %s for lexeme %s  does not match with the expected token %s\n", 
-                        tinfo.lineNumber, tokToStr(tinfo.token), tinfo.lexeme, tokToStr(m->s.symbol));  
+                        tinfo.lineNumber, tokToStr(tinfo.token), tinfo.lexeme, tokToStr(m->elem.symbol));  
                 }
                 else{
                     tinfo = nextValidToken(tbuf);
@@ -748,13 +759,13 @@ void Inorder(ParseTreeElement* head, FILE* fptr){
     if(head == NULL){
         return;
     }
-    if(head->s.isTerminal){
-        fprintf(fptr, "%s\n",tokToStr(head->s.symbol));
+    if(head->elem.isTerminal){
+        fprintf(fptr, "%s\n",tokToStr(head->elem.symbol));
     }else{
         for(int i=0;i<head->noOfChildren;i++){
             Inorder(&(head->children[i]), fptr);
             if(i == 0)
-                fprintf(fptr, "%s\n",nonTermToStr(head->s.symbol));
+                fprintf(fptr, "%s\n",nonTermToStr(head->elem.symbol));
         }
     }
     return;

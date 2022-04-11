@@ -15,7 +15,7 @@ Name: Damargidda Rohan Raj Goud
 ID: 2019A7PS0065P
 ****/
 
-#include<stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>

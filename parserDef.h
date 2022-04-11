@@ -22,6 +22,7 @@ ID: 2019A7PS0065P
 #define TERMINAL_SIZE 59
 
 #include "token.h"
+#include "ast_def.h"
 
 typedef enum {
     PROGRAM, MAIN_FUNCTION, OTHER_FUNCTIONS, FUNCTION, INPUT_PAR, OUTPUT_PAR, 
@@ -47,6 +48,8 @@ typedef struct{
 
 typedef struct{
     int size;
+    int ruleNum;
+    NonTerminal nt;
     Symbol* symbol;
 } Rule;
 
@@ -83,7 +86,12 @@ typedef struct {
 } FirstAndFollow;
 
 typedef struct _ParseTreeElem_{
-    Symbol s;
+    Symbol elem;
+    int ruleNo;
+
+    AstNode* node_syn;
+    AstNode* node_inh;
+
     int noOfChildren;
     struct _ParseTreeElem_* children;
     //Basically from left to right I am storing. 
