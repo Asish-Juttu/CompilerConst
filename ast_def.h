@@ -147,7 +147,7 @@ typedef struct {
 
 typedef struct {
     char* funId;
-    Ast_ParameterList* inputPar;
+    Ast_ParameterList* input_par;
     Ast_ParameterList* output_par;
     Ast_Stmts* stmts;
 } Ast_Function;
@@ -249,7 +249,7 @@ typedef struct {
 } Ast_ElsePart;
 
 typedef union { 
-    Ast_TypeDefinitions* typedefintion;
+    Ast_TypeDefinitions* typedefinitions;
     Ast_OtherStmts* otherStmts;
     Ast_Declarations* declarations;
     Ast_IdList* idList;
