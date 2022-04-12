@@ -7,7 +7,8 @@ typedef enum {
     AST_CONDITIONALSTMT, AST_NOT, AST_NUM, AST_RNUM, AST_AND, AST_OR, AST_LT, AST_LE, AST_EQ,
     AST_GT, AST_GE, AST_NE, AST_DEFINETYPESTMT, AST_MOREEXPANSION,
     AST_OPTIONSINGLECONSTRUCTED, AST_A, AST_ELSEPART, AST_FACTOR,
-    AST_PLUS, AST_MINUS, AST_MUL, AST_DIV
+    AST_PLUS, AST_MINUS, AST_MUL, AST_DIV, AST_OTHERSTMTS, AST_DATATYPE, AST_PARAMETERDECL, AST_PRIMITIVEDT, AST_CONSTRDT,
+    AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT
 } AstNodeType;
 
 typedef enum{
@@ -15,7 +16,7 @@ typedef enum{
 } ArithmeticOperator;
 
 typedef enum{
-    PRIMITIVE_DT, UNION_DT, RECORD_DT
+    PRIMITIVE_DT, UNION_DT, RECORD_DT, TAGGED_UNION_DT
 } Datatype;
 
 typedef enum {
@@ -282,6 +283,7 @@ typedef union {
     Ast_ElsePart* elsePart;
 } AstNodeUnion;
 
+AstNodeType toAstType(char* name);
 typedef struct _AstNode{
     AstNodeUnion node;
     AstNodeType type;
