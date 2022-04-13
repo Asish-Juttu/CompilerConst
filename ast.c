@@ -77,6 +77,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 otherFunc->node_syn = otherFunc1->node_syn;
             }
+
             else if (ptElement->ruleNo == 1)
             {
                 otherFunc->node_syn = ptElement->node_inh;
@@ -309,8 +310,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(boolean_expression1);
                 handleParseTreeElement(boolean_expression2);
                 handleParseTreeElement(logical_op);
-                declareAstNode()
-                
+                declareAstNode();
 
             }
             else if (ptElement->ruleNo == 1)
