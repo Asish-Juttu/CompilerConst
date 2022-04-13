@@ -88,7 +88,7 @@ void handleParseTreeElement(ParseTreeElement* ptElement){
                 nodeToAst(nodeFunction,function)->output_par = nodeToAst(output_par->node_syn,parameterList);
                 nodeToAst(nodeFunction,function)->stmts = nodeToAst(statements->node_syn,stmts);
                 
-                insertTo(nodeToAst(func->node_inh,otherFunctions),nodeFunction);
+                insertTo(nodeToAst(func->node_inh,otherFunctions)->functionList,nodeFunction);
                 func->node_syn = func->node_inh;
                 break;
             }
@@ -233,7 +233,7 @@ void handleParseTreeElement(ParseTreeElement* ptElement){
                     declareAstNode(nodeTypeDefinition,AST_TYPEDEFINITION,Ast_TypeDefinition,typeDefinition);
                     //TK_RECORD AND TK_RUID
                     nodeToAst(nodeTypeDefinition,typeDefinition)->fieldDefinitions = nodeToAst(field_def->node_syn,fieldDefinitions);
-                    insertTo(nodeToAst(type_def->node_inh,typedefinitions));
+                    insertTo(nodeToAst(type_def->node_inh,typedefinitions), nodeTypeDefinition);
                     type_def->node_syn = type_def->node_inh;
                 }
                 else if(ptElement->ruleNo == 1){
@@ -244,7 +244,7 @@ void handleParseTreeElement(ParseTreeElement* ptElement){
                     declareAstNode(nodeTypeDefinition,AST_TYPEDEFINITION,Ast_TypeDefinition,typeDefinition);
                     //TK_RECORD AND TK_UNION
                     nodeToAst(nodeTypeDefinition,typeDefinition)->fieldDefinitions = nodeToAst(field_def->node_syn,fieldDefinitions);
-                    insertTo(nodeToAst(type_def->node_inh,typedefinitions));
+                    insertTo(nodeToAst(type_def->node_inh,typedefinitions), nodeTypeDefinition);
                     type_def->node_syn = type_def->node_inh;
                 }
                 break;

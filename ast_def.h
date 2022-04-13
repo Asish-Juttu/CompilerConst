@@ -8,7 +8,7 @@ typedef enum {
     AST_GT, AST_GE, AST_NE, AST_DEFINETYPESTMT, AST_MOREEXPANSION,
     AST_OPTIONSINGLECONSTRUCTED, AST_A, AST_ELSEPART, AST_FACTOR,
     AST_PLUS, AST_MINUS, AST_MUL, AST_DIV, AST_OTHERSTMTS, AST_DATATYPE, AST_PARAMETERDECL, AST_PRIMITIVEDT, AST_CONSTRDT,
-    AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT
+    AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT, AST_BOOLEXP
 } AstNodeType;
 
 typedef enum{
@@ -213,7 +213,7 @@ typedef struct {
 typedef struct {
     Ast_BooleanExpression* left;
     Ast_BooleanExpression* right;
-    ArithmeticOperator op;
+    LogicalOperator op;
 } BoolOperation;
 
 typedef union {
@@ -274,6 +274,7 @@ typedef union {
     Ast_ConstructedDatatype* constructedDatatype;
     Ast_TypeDefinition* typeDefinition;
     Ast_ArithmeticExpression* arithmeticExporession;
+    Ast_BooleanExpression* booleanExpression;
     Ast_AssignmentStmt* assignmentStmt;
     Ast_FunCallStmt* funCallStmt;
     Ast_Var* var;
