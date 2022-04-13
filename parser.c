@@ -711,17 +711,19 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     
                     continue;
                 }
+               
                 else if(ruleSize == -1){
                     printf("Line %d\t Error : Invalid token %s encountered with value %s. Stack top is %s\n", tinfo.lineNumber,
                         tokToStr(tinfo.token), tinfo.lexeme, nonTermToStr(m->elem.symbol));
-                    store = stackPop(store);
-                    
+                    store = stackPop(store); 
 
                 }
                 else if(parseTable->table[m->elem.symbol][tinfo.token].symbol[0].symbol == EPSILON){
 
+
                     store = stackPop(store);
                 }
+                
                 else{
                     store = stackPop(store);
                     m->noOfChildren = ruleSize;
