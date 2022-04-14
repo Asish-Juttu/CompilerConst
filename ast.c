@@ -260,9 +260,205 @@ void handleParseTreeElement(ParseTreeElement* ptElement){
                 declareAstNode(nodeFieldDefinitions,AST_FIELDDEFINITIONS,Ast_FieldDefinitions,fieldDefinitions);
                 break;
             }
+
+            case FIELD_DEFINITION : {
+                ParseTreeElement* field_def = ptElement;
+                ParseTreeElement* field_type = &ptElement->children[1];
+                handleParseTreeElement(field_type);
+                declareAstNode(nodeFieldDefinition,AST_FIELDDEFINITION,Ast_FieldDefinition,fieldDefinition);
+                //TK_FIELDID
+                // DATATYPE: nodeToAst(nodeFieldDefinition,fieldDefinition)->field_type = nodeToAst(field_type->node_syn,primitive_datatype);
+                insertTo(nodeToAst(field_def->node_inh,fieldDefinitions)->fieldDefinitionList,nodeFieldDefinition);
+                field_def->node_syn = field_def->node_inh;
+
+                break;
+            }
+            case MORE_FIELDS : {
+                ParseTreeElement* more_fields = ptElement;
+                if(ptElement->ruleNo == 0){
+                    ParseTreeElement* field_def = &ptElement->children[0];
+                    ParseTreeElement* more_fields1 = &ptElement->children[1];
+
+                    field_def->node_inh = ptElement->node_inh;
+                    handleParseTreeElement(field_def);
+
+                    more_fields1->node_inh = field_def->node_syn;
+                    handleParseTreeElement(more_fields1);
+
+                    more_fields->node_syn = more_fields1->node_syn;
+                }
+                else if (ptElement->ruleNo == 1){
+                    more_fields->node_syn = ptElement->node_inh;
+                }
+                break;
+            }
+             case DECLARATIONS : {
+                ParseTreeElement* declarations = ptElement;
+                if(ptElement->ruleNo == 0){
+                    ParseTreeElement* declaration = &ptElement->children[0];
+                    ParseTreeElement* declarations1 = &ptElement->children[1];
+
+                    declaration->node_inh = ptElement->node_inh;
+                    handleParseTreeElement(declaration);
+
+                    declarations1->node_inh = declaration->node_syn;
+                    handleParseTreeElement(declarations1);
+
+                    declarations->node_syn = declarations1->node_syn;
+                }
+                else if (ptElement->ruleNo == 1){
+                    declarations->node_syn = ptElement->node_inh;
+                }
+                break;
+            }
+             case DECLARATION : {
+                ParseTreeElement* declaration = ptElement;
+                ParseTreeElement* datatype = &ptElement->children[1];
+                ParseTreeElement* global_or_not = &ptElement->children[4];
+                
+                handleParseTreeElement(datatype);
+                //TK_ID
+                handleParseTreeElement(global_or_not);
+                declareAstNode(nodeDeclaration,AST_DECLARATION,Ast_Declaration,declaration);
+                //DATATYPE: nodeToAst(nodeDeclaration,declaration)->type = nodeToAst(type->node_syn,datatype);
+                insertTo(nodeToAst(declaration->node_inh,declarations)->declarationList,nodeDeclaration);
+                declaration->node_syn = declaration->node_inh;
+                break;
+            }
+             case GLOBAL_OR_NOT :{
+                
+                ParseTreeElement* global_or_not = ptElement;
+                if(ptElement->ruleNo == 0){
+                    //MAKE LEAF
+
+                }
+                else if(ptElement->ruleNo == 1){
+                    global_or_not->node_syn=NULL;
+
+                }
+                break;
+            }
+            case OTHER_STMTS : {
+                ParseTreeElement* other_stmts = ptElement;
+                if(ptElement->ruleNo == 0){
+                    ParseTreeElement* stmt = &ptElement->children[0];
+                    ParseTreeElement* other_stmts1 = &ptElement->children[1];
+
+                    stmt->node_inh = ptElement->node_inh;
+                    handleParseTreeElement(stmt);
+
+                    other_stmts1->node_inh = stmt->node_syn;
+                    handleParseTreeElement(declarations1);
+
+                    other_stmts->node_syn = other_stmts1->node_syn;
+                }
+                else if (ptElement->ruleNo == 1){
+                    other_stmts->node_syn = ptElement->node_inh;
+                }
+                break;
+            }
+            case STMT : {
+                ParseTreeElement* stmt = ptElement;
+                if(ptElement->ruleNo == 0){
+                    ParseTreeElement* assignment_stmt = &ptElement->children[0];
+                    handleParseTreeElement(assignment_stmt);
+                    insertTo(nodeToAst(stmt->node_inh,otherStmts)->otherStmtList,assignment_stmt->node_syn);
+                    stmt->node_syn = stmt->node_inh;
+
+                    
+                    
+                }
+                else if (ptElement->ruleNo == 1){
+                    ParseTreeElement* iterative_stmt = &ptElement->children[0];
+                    handleParseTreeElement(iterative_stmt);
+                    insertTo(nodeToAst(stmt->node_inh,otherStmts)->otherStmtList,iterative_stmt->node_syn);
+                    stmt->node_syn = stmt->node_inh;
+                    
+                }
+                 else if (ptElement->ruleNo == 2){
+                    ParseTreeElement* conditional_stmt = &ptElement->children[0];
+                    handleParseTreeElement(conditional_stmt);
+                    insertTo(nodeToAst(stmt->node_inh,otherStmts)->otherStmtList,conditional_stmt->node_syn);
+                    stmt->node_syn = stmt->node_inh;
+                 }   
+              
+                else if (ptElement->ruleNo == 3){
+                    ParseTreeElement* io_stmt = &ptElement->children[0];
+                    handleParseTreeElement(io_stmt);
+                    insertTo(nodeToAst(stmt->node_inh,otherStmts)->otherStmtList,io_stmt->node_syn);
+                    stmt->node_syn = stmt->node_inh;
+                    
+                }
+                 else if (ptElement->ruleNo == 4){
+                    ParseTreeElement* fun_call_stmt = &ptElement->children[0];
+                    handleParseTreeElement(fun_call_stmt);
+                    insertTo(nodeToAst(stmt->node_inh,otherStmts)->otherStmtList,fun_call_stmt->node_syn);
+                    stmt->node_syn = stmt->node_inh;
+                    
+                }
+                break;
+            }
+            case ASSIGNMENT_STMT :{
+                ParseTreeElement* assignment_stmt = ptElement;
+                ParseTreeElement* single_or_rec_id = &ptElement->children[0];
+                ParseTreeElement* arithmetic_expression = &ptElement->children[2];
+                handleParseTreeElement(single_or_rec_id);
+                handleParseTreeElement(arithmetic_expression);
+                declareAstNode(nodeAssignmentStmt, AST_ASSIGNMENTSTMT, Ast_AssignmentStmt, assignmentStmt);
+                nodeToAst(nodeAssignmentStmt, assignmentStmt)->single_or_rec_id = nodeToAst(single_or_rec_id->node_syn, singleOrRecId);
+                nodeToAst(nodeAssignmentStmt, assignmentStmt)->arithmetic_expression = nodeToAst(arithmetic_expression->node_syn, expression);
+                assignment_stmt->node_syn = nodeAssignmentStmt;
+                break;
         }
+        case SINGLE_OR_RECORD_ID :{
+                ParseTreeElement* single_or_rec_id = ptElement;
+                ParseTreeElement* option_single_constructed = &ptElement->children[1];
+                handleParseTreeElement(option_single_constructed);
+                //TK_ID
+                declareAstNode(nodeSingleOrRecId, AST_SINGLEORRECID, Ast_SingleOrRecId, singleOrRecId);
+                nodeToAst(nodeSingleOrRecId, singleOrRecId)->fieldNameList = nodeToAst(optionSingleConstructed->node_syn, optionSingleConstructed)->fieldNameList;
+                single_or_rec_id->node_syn = nodeSingleOrRecId;
+                break;
+        }
+         case FUN_CALL_STMT :{
+                ParseTreeElement* fun_call_stmt = ptElement;
+                ParseTreeElement* output_parameters = &ptElement->children[0];
+                ParseTreeElement* input_parameters = &ptElement->children[5];
+                handleParseTreeElement(output_parameters);
+                handleParseTreeElement(input_parameters);
+
+                //TK_FUNID
+                declareAstNode(nodeFunCallStmt, AST_FUNCALLSTMT, Ast_FunCallStmt, funCallStmt);
+                nodeToAst(nodeFunCallStmt, funCallStmt)->outputIdList = nodeToAst(outputIdList->node_syn, Ast_IdList);
+                nodeToAst(nodeFunCallStmt, funCallStmt)->inputIdList = nodeToAst(inputIdList->node_syn, Ast_IdList);
+                fun_call_stmt->node_syn = nodeFunCallStmt;
+                break;
+        }
+        case OUTPUT_PARAMETERS : {
+                ParseTreeElement* output_parameters = ptElement;
+                if(ptElement->ruleNo == 0){
+                    ParseTreeElement* id_list = &ptElement->children[1];
+
+                    id_list->node_inh = remaining_list->node_inh;
+                    declareAstNode(nodeIdList, AST_IDLIST,  Ast_IdList, idList);
+                    nodeToAst(nodeIdList, idList)->idList = createAstList();
+                    handleParseTreeElement(id_list);
+                    id_list->node_inh = nodeIdList;
+                    output_parameters->node_syn = id_list->node_syn;
+                }
+                else if(ptElement->ruleNo == 1){
+                    output_parameters->node_syn = null;
+                }
+                break;
+            }
+
+
+
+
     }
     else{
 
     }
+            
+
 }
