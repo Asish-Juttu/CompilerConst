@@ -9,6 +9,8 @@
     VARNAME->node.FIELD = malloc(sizeof(STRUCT));
 
 #define nodeToAst(VAR, FIELD) VAR->node.FIELD
+#define boolOpBexp(VAR) VAR->bexp.boolOp
+#define varCompBexp(VAR) VAR->bexp.varComp
 
 typedef enum {
     AST_PROGRAM, AST_OTHERFUNCTIONS, AST_MAIN, AST_FUNCTION, AST_PARAMETERLIST, AST_CONSTRUCTEDDATATYPE, AST_STMTS, AST_TYPEDEFINITION,
@@ -18,7 +20,8 @@ typedef enum {
     AST_GT, AST_GE, AST_NE, AST_DEFINETYPESTMT, AST_MOREEXPANSION,
     AST_OPTIONSINGLECONSTRUCTED, AST_A, AST_ELSEPART, AST_FACTOR,
     AST_PLUS, AST_MINUS, AST_MUL, AST_DIV, AST_OTHERSTMTS, AST_DATATYPE, AST_PARAMETERDECL, AST_PRIMITIVEDT, AST_CONSTRDT,
-    AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT, AST_BOOLEXP
+    AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT, AST_BOOLEXP, AST_LOGICALOP, AST_ARITHMETICOP,
+    AST_RELATIONALOP
 } AstNodeType;
 
 typedef enum{
@@ -317,6 +320,18 @@ typedef struct {
 } Ast_IoStmt;
 
 typedef struct {
+    LogicalOperator op;
+} Ast_LogicalOperator;
+
+typedef struct {
+    RelationalOperator op;
+} Ast_RelationalOperator;
+
+typedef struct {
+    ArithmeticOperator op;
+} Ast_ArithmeticOperator;
+
+typedef struct {
     Ast_OtherStmts* otherStmts;
     TypeExpression typeExpr;
     int lineNo;
@@ -356,6 +371,9 @@ typedef union {
     Ast_ConditionalStmt* conditionalStmt;
     Ast_IoStmt* ioStmt;
     Ast_ElsePart* elsePart;
+    Ast_LogicalOperator* logicalOp;
+    Ast_RelationalOperator* relationalOp;
+    Ast_ArithmeticOperator* arithmeticOp;
 } AstNodeUnion;
 
 AstNodeType toAstType(char* name);
