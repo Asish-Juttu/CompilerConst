@@ -367,7 +367,7 @@ typedef union {
     Ast_PrimitiveDatatype* primitiveDatatype;
     Ast_ConstructedDatatype* constructedDatatype;
     Ast_TypeDefinition* typeDefinition;
-    Ast_ArithmeticExpression* arithmeticExporession;
+    Ast_ArithmeticExpression* arithmeticExpression;
     Ast_BooleanExpression* booleanExpression;
     Ast_AssignmentStmt* assignmentStmt;
     Ast_FunCallStmt* funCallStmt;
