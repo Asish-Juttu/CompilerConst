@@ -426,15 +426,17 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
         case OPTIONAL_RETURN:
         {
             ParseTreeElement *optionalReturn = &ptElement;
-            if(ptElement->ruleNo == 0){
+            if (ptElement->ruleNo == 0)
+            {
                 ParseTreeElement *idList = &ptElement->children[1];
-                declareAstNode(nodeidList,ID_LIST,Ast_IdList,idList);
+                declareAstNode(nodeidList, ID_LIST, Ast_IdList, idList);
                 nodeidList->node.idList->idList = NULL;
                 idList->node_inh = nodeidList;
                 handleParseTreeElement(idList);
                 optionalReturn->node_syn = idList->node_syn;
             }
-            else if(ptElement->ruleNo == 1){
+            else if (ptElement->ruleNo == 1)
+            {
                 optionalReturn->node_syn = NULL;
             }
         }
@@ -444,44 +446,48 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             ParseTreeElement *idList = &ptElement;
             ParseTreeElement *tkid = &ptElement->children[0];
             ParseTreeElement *moreIds = &ptElement->children[1];
-            //make a leaf node of tkid.
-            //then insert it to idlist inh 
-            // and then equate it to moreids.inh
+            // make a leaf node of tkid.
+            // then insert it to idlist inh
+            //  and then equate it to moreids.inh
             handleParseTreeElement(moreIds);
             idList->node_syn = moreIds->node_syn;
         }
-        
+
         case MORE_IDS:
         {
             ParseTreeElement *moreIds = &ptElement;
-            
-            if(ptElement->ruleNo == 0){
+
+            if (ptElement->ruleNo == 0)
+            {
                 ParseTreeElement *idList = &ptElement->children[1];
                 idList->node_inh = moreIds->node_inh;
                 handleParseTreeElement(idList);
                 moreIds->node_syn = idList->node_syn;
             }
 
-            else if(ptElement->ruleNo == 1){
+            else if (ptElement->ruleNo == 1)
+            {
                 moreIds->node_syn = moreIds->node_syn;
             }
         }
-        
+
         case ACTUAL_OR_REDEFINED:
         {
             ParseTreeElement *actualOrredefined = &ptElement;
 
-            if(ptElement->ruleNo == 0){
+            if (ptElement->ruleNo == 0)
+            {
                 ParseTreeElement *typeDefinition = &ptElement->children[0];
                 handleParseTreeElement(typeDefinition);
-                insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList,typeDefinition->node_syn->node.typeDefinition);
+                insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList, typeDefinition->node_syn->node.typeDefinition);
                 ptElement->node_syn = ptElement->node_inh;
             }
 
-            else if(ptElement->ruleNo == 1){
+            else if (ptElement->ruleNo == 1)
+            {
                 ParseTreeElement *defineTypeStatement = &ptElement->children[0];
                 handleParseTreeElement(defineTypeStatement);
-                insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList,defineTypeStatement->node_syn->node.typeDefinition);
+                insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList, defineTypeStatement->node_syn->node.typeDefinition);
                 ptElement->node_syn = ptElement->node_inh;
             }
         }
@@ -489,9 +495,9 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
         case DEFINE_TYPE_STATEMENT:
         {
             ParseTreeElement *defineTypeStatement = &ptElement;
-            //TK_DEFINETYPE <A> TK_RUID TK_AS TK_RUID1
-            //<A> is either <TK_RECORD> or <TK_UNION> 
-            //basically A is a data type.
+            // TK_DEFINETYPE <A> TK_RUID TK_AS TK_RUID1
+            //<A> is either <TK_RECORD> or <TK_UNION>
+            // basically A is a data type.
 
             ParseTreeElement *a = &ptElement->children[1];
             ParseTreeElement *tkRuId = &ptElement->children[2];
@@ -499,7 +505,70 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             handleParseTreeElement(a);
             handleParseTreeElement(tkRuId1);
             handleParseTreeElement(tkRuId);
-            declareAstNode(nodedefineTypeStatement,TYPE_DEFINITION,Ast_TypeDefinition,typedefinition);
+            declareAstNode(nodedefineTypeStatement, TYPE_DEFINITION, Ast_TypeDefinition, typedefinition);
+            // equate id1,id2 and type.
+            ptElement->node_syn = nodedefineTypeStatement;
+        }
+
+        case FIELD_TYPE:
+        {
+            ParseTreeElement *fieldType = &ptElement;
+            if (ptElement->ruleNo == 0)
+            {
+                ParseTreeElement *primitiveDatatype = &ptElement->children[0];
+                fieldType->node_syn = primitiveDatatype->node_syn;
+            }
+            else if(ptElement->ruleNo == 1){
+                ParseTreeElement *tkRuId = &ptElement->children[1];
+                //need to make a leaf and then insert.
+            }
+        }
+
+        case OPTION_SINGLE_CONSTRUCTED:
+        {
+            ParseTreeElement *optionSingleConstructed = &ptElement;
+
+            if(ptElement->ruleNo == 0){
+                ParseTreeElement *oneExpansion = &ptElement->children[0];
+                ParseTreeElement *moreExpansions = &ptElement->children[1];
+                declareAstNode(nodeOneExpansion,AST_OPTIONSINGLECONSTRUCTED,Ast_OptionSingleConstructed,optionSingleConstructed);
+                nodeOneExpansion->node.optionSingleConstructed->fieldNameList = NULL;
+                oneExpansion->node_inh = nodeOneExpansion;
+                handleParseTreeElement(oneExpansion);
+                handleParseTreeElement(moreExpansions);
+                declareAstNode(nodeOptionSingleConstructed,AST_OPTIONSINGLECONSTRUCTED,Ast_OptionSingleConstructed,optionSingleConstructed);
+                nodeOptionSingleConstructed->node.optionSingleConstructed->fieldNameList = moreExpansions->node_syn->node.optionSingleConstructed->fieldNameList;
+                optionSingleConstructed->node_syn = nodeOptionSingleConstructed;
+            }
+            else if(ptElement->ruleNo == 1){
+                optionSingleConstructed->node_syn = NULL;
+            }
+        }
+        
+        case ONE_EXPANSION:
+        {
+            ParseTreeElement *oneExpansion = &ptElement;
+            //create a leaf node of TK_FIELD and add it to inh 
+            ptElement->node_syn = ptElement->node_inh;
+        }
+
+        case MORE_EXPANSIONS:
+        {
+            ParseTreeElement *moreExpansions = &ptElement;
+            
+            if(moreExpansions->ruleNo == 0){
+                ParseTreeElement *oneExpansion = &ptElement->children[0];
+                ParseTreeElement *moreExpansion1 = &ptElement->children[1];
+                oneExpansion->node_inh = moreExpansions->node_inh;
+                handleParseTreeElement(oneExpansion);
+                moreExpansion1->node_inh = oneExpansion->node_syn;
+                handleParseTreeElement(moreExpansion1);
+                moreExpansions->node_syn = moreExpansion1->node_syn;
+            }
+
+            else if(moreExpansions->ruleNo == 1){
+                moreExpansions->node_syn = moreExpansions->node_inh;
+            }
         }
 
         }
