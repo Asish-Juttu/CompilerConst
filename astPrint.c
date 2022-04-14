@@ -19,6 +19,7 @@ char* typeDefinitionsToStr(Ast_TypeDefinition* t, int n){
     print(t->id2, n);
     printDataType(t->datatype, n);
     printFieldDefinitions(t->fieldDefinitions, n);
+    
 }
 
 char* otherStmtsToStr(Ast_OtherStmts* t){
