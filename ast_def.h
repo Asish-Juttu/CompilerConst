@@ -332,6 +332,11 @@ typedef struct {
 } Ast_ArithmeticOperator;
 
 typedef struct {
+    AstList* oneExpansionList;
+    TypeExpression typeExpr;
+} Ast_MoreExpansion;
+
+typedef struct {
     Ast_OtherStmts* otherStmts;
     TypeExpression typeExpr;
     int lineNo;
@@ -374,6 +379,7 @@ typedef union {
     Ast_LogicalOperator* logicalOp;
     Ast_RelationalOperator* relationalOp;
     Ast_ArithmeticOperator* arithmeticOp;
+    Ast_MoreExpansion* moreExp;
 } AstNodeUnion;
 
 AstNodeType toAstType(char* name);

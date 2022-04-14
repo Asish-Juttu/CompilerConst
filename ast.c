@@ -897,8 +897,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             
             case ONE_EXPANSION:
             {
-                ParseTreeElement *oneExpansion = &ptElement;
+                ParseTreeElement *oneExpansion = ptElement;
                 //ONE_EXPANSION INSERTO
+                TokenInfo tkFieldId = &ptElement->children[1].tinfo;
+                insertTo(nodeToAst(oneExpansion->node_inh, moreExp)->oneExpansionList,
+                    tkFieldId.lexeme);
                 oneExpansion->node_syn = oneExpansion->node_inh;
                 break;
             }
