@@ -1,0 +1,24 @@
+1. Type Check
+    a.   Arithmetic operations expect same type operands.
+
+2. Record Type Definitions accesible to all
+
+3. Scope Checking of variables
+    a.  Non global - local Scope (Function where declared)
+    b.  Global - Everywhere
+
+4. Type Redifinition Checking
+
+5. Type sizes
+    a.  Integer - 2 Bytes
+    b.  Real - 4 bytes
+
+6. Record 
+    a.  Consider records of type <int, union> or <union, int> 
+        as tagged union
+    
+    b.  Code to check tagged union access must be inserted at runtime.
+    c.  Records of the same name are treated as same type.
+
+7. Functions
+    a. Does not support recursive function call.
