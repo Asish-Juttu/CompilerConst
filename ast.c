@@ -590,6 +590,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(stmt);
                 other_stmts->node_inh = stmt->node_syn;
                 handleParseTreeElement(other_stmts);
+
                 declareAstNode(nodeIterativeStmt, AST_ITERATIVESTMT, Ast_IterativeStmt, iterativeStmt);
 
                 nodeToAst(nodeIterativeStmt, iterativeStmt)->condition = 
@@ -701,6 +702,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     var->node_syn = singleorrecId->node_syn;
                 }
                 else if (ptElement->ruleNo == 1)
+
                 {
                     TokenInfo tkNum = ptElement->children[0].tinfo;
                     declareAstNode(nodeNum, AST_NUM, Ast_Num, num);
