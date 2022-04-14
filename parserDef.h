@@ -89,6 +89,8 @@ typedef struct _ParseTreeElem_{
     Symbol elem;
     int ruleNo;
 
+    int lineNo;
+    TokenInfo tinfo;
     AstNode* node_syn;
     AstNode* node_inh;
 
