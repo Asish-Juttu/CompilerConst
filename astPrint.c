@@ -9,8 +9,16 @@ void print(char* str, int n){
     printf("%s", str);
 }
 
-char* typeDefinitionsToStr(Ast_TypeDefinition* t){
-    
+void printDataType(Datatype dt, int n){
+
+}
+char* typeDefinitionsToStr(Ast_TypeDefinition* t, int n){
+    print("Ast_TypeDefinition", n);
+    n = n + 1;
+    print(t->id1, n);
+    print(t->id2, n);
+    printDataType(t->datatype, n);
+    printFieldDefinitions(t->fieldDefinitions, n);
 }
 
 char* otherStmtsToStr(Ast_OtherStmts* t){
