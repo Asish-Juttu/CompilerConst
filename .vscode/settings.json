@@ -1,7 +1,8 @@
 {
-    "C_Cpp.errorSquiggles": "Disabled",
+    "C_Cpp.errorSquiggles": "Enabled",
     "files.associations": {
         "stdlib.h": "c",
-        "type.h": "c"
+        "type.h": "c",
+        "token.h": "c"
     }
 }
