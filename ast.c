@@ -137,11 +137,12 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             {
                 ParseTreeElement *parameter_list = ptElement;
                 ParseTreeElement *datatype = &ptElement->children[0];
+                TokenInfo tkId = &ptElement->children[1].tinfo;
                 ParseTreeElement *remaining_list = &ptElement->children[2];
-
-                TokenInfo tkId = parameter_list->children[1].tinfo;
                 handleParseTreeElement(datatype);
-                // TK_ID
+                // ADDTYPE TK_ID
+                insertTo(nodeToAst(parameter_list->node_inh,parameterList),tkId.lexeme);
+                remaining_list->node_inh = parameter_list->node_inh;
                 handleParseTreeElement(remaining_list);
                 parameter_list->node_syn = remaining_list->node_syn;
                 break;
@@ -168,19 +169,19 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             case PRIMITIVE_DATATYPE:
             {
                 ParseTreeElement *primitive_datatype = ptElement;
+                TokenInfo tkNum = &ptElement->children[0].tinfo;
                 if (ptElement->ruleNo == 0)
                 {
                     declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
                     nodeToAst(nodeDatatype, datatype)->typeExpr = numTypeExpression();
-                    nodeToAst(nodeDatatype, datatype)->name = NULL;
+                    nodeToAst(nodeDatatype, datatype)->name = tkNum.lexeme;
                     primitive_datatype->node_syn = nodeDatatype;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
-                    // MAKE LEAF FOR TK_REAL
                     declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
                     nodeToAst(nodeDatatype, datatype)->typeExpr = rnumTypeExpression();
-                    nodeToAst(nodeDatatype, datatype)->name = NULL;
+                    nodeToAst(nodeDatatype, datatype)->name = tkNum.lexeme;
                     primitive_datatype->node_syn = nodeDatatype;
                 }
                 break;
@@ -188,25 +189,27 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case CONSTRUCTED_DATATYPE:
             {
-                // MAKE LEAF FOR ALL 3 RULES
                 ParseTreeElement *constructed_datatype = ptElement;
                 TokenInfo tkRuid;
-
+                declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
                 if (ptElement->ruleNo == 0)
                 {
                     tkRuid = ptElement->children[1].tinfo;
+                    nodeToAst(nodeDatatype, datatype)->typeExpr = recordTypeExpression();
                 }
                 else if (ptElement->ruleNo == 1)
                 {
                     tkRuid = ptElement->children[1].tinfo;
+                    nodeToAst(nodeDatatype, datatype)->typeExpr = unionTypeExpression();
                 }
                 else if (ptElement->ruleNo == 2)
                 {
                     tkRuid = ptElement->children[0].tinfo;
                 }
 
+                
                 nodeToAst(nodeDatatype, datatype)->name = tkRuid.lexeme;
-
+                constructed_datatype->node_syn = nodeDatatype;
                 break;
             }
 
@@ -398,6 +401,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     ptElement->node_syn = nodeBooleanExpression;
                 }
+                break;
             }
             case VAR:
             {
@@ -409,15 +413,22 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     var->node_syn = singleorrecId->node_syn;
                 }
                 else if (ptElement->ruleNo == 1)
-                {
-                    ParseTreeElement *tknum = &ptElement->children[0];
-                    // leaf ast node creation.
+                { 
+                    TokenInfo tkNum = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeNum,AST_NUM,Ast_Num,num);
+                    nodeToAst(nodeNum,num)->typeExpr = numTypeExpression();
+                    nodeToAst(nodeNum,num)->name = tkNum.lexeme;
+                    var->node_syn = nodeNum;
                 }
                 else if (ptElement->ruleNo == 2)
                 {
-                    ParseTreeElement *tkrunm = &ptElement->children[0];
-                    // leaf ast node creation.
+                    TokenInfo tkRnum = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeRnum,AST_RNUM,Ast_Rnum,rnum);
+                    nodeToAst(nodeRnum,rnum)->typeExpr = rnumTypeExpression();
+                    nodeToAst(nodeRnum,rnum)->name = tkRnum.lexeme;
+                    var->node_syn = nodeRnum;
                 }
+                break;
             }
 
             case LOGICAL_OP:
@@ -441,41 +452,55 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     localOp->node_syn = nodeLogOp;
                 }
+                break;
             }
 
             case RELATIONAL_OP:
             {
-                ParseTreeElement *relationalOp = &ptElement;
+                ParseTreeElement *relationalOP = &ptElement;
                 if (ptElement->ruleNo == 0)
                 {
-                    ParseTreeElement *tklt = &ptElement->children[0];
-                    // leaf ast node should be created
+                    TokenInfo tkLt = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeROp,AST_RELATIONALOP,Ast_RelationalOperator,relationalOp);
+                    nodeToAst(nodeROp,relationalOp)->op = ROP_Lt;
+                    relationalOP->node_syn = nodeROp; 
                 }
                 else if (ptElement->ruleNo == 1)
                 {
-                    ParseTreeElement *tkle = &ptElement->children[0];
-                    // leaf ast node should be created
+                    TokenInfo tkLe = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeROp,AST_RELATIONALOP,Ast_RelationalOperator,relationalOp);
+                    nodeToAst(nodeROp,relationalOp)->op = ROP_Le;
+                    relationalOP->node_syn = nodeROp; 
                 }
                 else if (ptElement->ruleNo == 2)
                 {
-                    ParseTreeElement *tkeq = &ptElement->children[0];
-                    // leaf ast node should be created
+                    TokenInfo tkEq = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeROp,AST_RELATIONALOP,Ast_RelationalOperator,relationalOp);
+                    nodeToAst(nodeROp,relationalOp)->op = ROP_Eq;
+                    relationalOP->node_syn = nodeROp; 
                 }
                 else if (ptElement->ruleNo == 3)
                 {
-                    ParseTreeElement *tkgt = &ptElement->children[0];
-                    // leaf ast node should be created
+                    TokenInfo tkGt = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeROp,AST_RELATIONALOP,Ast_RelationalOperator,relationalOp);
+                    nodeToAst(nodeROp,relationalOp)->op = ROP_Gt;
+                    relationalOP->node_syn = nodeROp; 
                 }
                 else if (ptElement->ruleNo == 4)
                 {
-                    ParseTreeElement *tkge = &ptElement->children[0];
-                    // leaf ast node should be created
+                    TokenInfo tkGe = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeROp,AST_RELATIONALOP,Ast_RelationalOperator,relationalOp);
+                    nodeToAst(nodeROp,relationalOp)->op = ROP_Ge;
+                    relationalOP->node_syn = nodeROp; 
                 }
                 else if (ptElement->ruleNo == 5)
                 {
-                    ParseTreeElement *tkne = &ptElement->children[0];
-                    // leaf ast node should be created
+                    TokenInfo tkNe = &ptElement->children[0].tinfo;
+                    declareAstNode(nodeROp,AST_RELATIONALOP,Ast_RelationalOperator,relationalOp);
+                    nodeToAst(nodeROp,relationalOp)->op = ROP_Ne;
+                    relationalOP->node_syn = nodeROp; 
                 }
+                break;
             }
 
             case RETURN_STMT:
@@ -484,6 +509,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *optioanlReturn = &ptElement->children[1];
                 handleParseTreeElement(optioanlReturn);
                 returnStmt->node_syn = optioanlReturn->node_syn;
+                break;
             }
 
             case OPTIONAL_RETURN:
@@ -502,18 +528,19 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     optionalReturn->node_syn = NULL;
                 }
+                break;
             }
 
             case ID_LIST:
             {
                 ParseTreeElement *idList = &ptElement;
-                ParseTreeElement *tkid = &ptElement->children[0];
+                TokenInfo tkId = &ptElement->children[0].tinfo;
                 ParseTreeElement *moreIds = &ptElement->children[1];
-                // make a leaf node of tkid.
-                // then insert it to idlist inh
-                //  and then equate it to moreids.inh
+                insertTo(nodeToAst(idList->node_inh,idList),tkId.lexeme);
+                moreIds->node_inh = idList->node_inh;
                 handleParseTreeElement(moreIds);
                 idList->node_syn = moreIds->node_syn;
+                break;
             }
 
             case MORE_IDS:
@@ -532,6 +559,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     moreIds->node_syn = moreIds->node_syn;
                 }
+                break;
             }
 
             case ACTUAL_OR_REDEFINED:
@@ -553,24 +581,22 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList, defineTypeStatement->node_syn->node.typeDefinition);
                     ptElement->node_syn = ptElement->node_inh;
                 }
+                break;
             }
 
             case DEFINE_TYPE_STATEMENT:
             {
                 ParseTreeElement *defineTypeStatement = &ptElement;
-                // TK_DEFINETYPE <A> TK_RUID TK_AS TK_RUID1
-                //<A> is either <TK_RECORD> or <TK_UNION>
-                // basically A is a data type.
-
-                ParseTreeElement *a = &ptElement->children[1];
-                ParseTreeElement *tkRuId = &ptElement->children[2];
-                ParseTreeElement *tkRuId1 = &ptElement->children[4];
+                ParseTreeElement *a_1 = &ptElement->children[1];
+                TokenInfo tkRuId = &ptElement->children[2].tinfo;
+                TokenInfo tkRuId1 = &ptElement->children[4].tinfo;
                 handleParseTreeElement(a);
-                handleParseTreeElement(tkRuId1);
-                handleParseTreeElement(tkRuId);
-                declareAstNode(nodedefineTypeStatement, TYPE_DEFINITION, Ast_TypeDefinition, typedefinition);
-                // equate id1,id2 and type.
-                ptElement->node_syn = nodedefineTypeStatement;
+                declareAstNode(nodedefineTypeStatement, AST_DEFINETYPESTMT, Ast_DefineTypeStmt, defineTypeStmt);
+                nodeToAst(nodedefineTypeStatement,defineTypeStmt)->datatype = nodeToAst(a_1->node_syn,a);
+                nodeToAst(nodedefineTypeStatement,defineTypeStmt)->idOld = tkRuId.lexeme;
+                nodeToAst(nodedefineTypeStatement,defineTypeStmt)->idNew = tkRuId1.lexeme;
+                defineTypeStatement->node_syn = nodedefineTypeStatement;
+                break;
             }
 
             case FIELD_TYPE:
@@ -582,9 +608,12 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     fieldType->node_syn = primitiveDatatype->node_syn;
                 }
                 else if(ptElement->ruleNo == 1){
-                    ParseTreeElement *tkRuId = &ptElement->children[1];
-                    //need to make a leaf and then insert.
+                    TokenInfo tkRuId = &ptElement->children[1].tinfo;
+                    declareAstNode(nodeRuid,AST_DATATYPE,Ast_Datatype,datatype);
+                    nodeToAst(nodeRuid,datatype)->name = tkRuId.lexeme;
+                    fieldType->node_syn = nodeRuid; 
                 }
+                break;
             }
 
             case OPTION_SINGLE_CONSTRUCTED:
@@ -606,13 +635,15 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 else if(ptElement->ruleNo == 1){
                     optionSingleConstructed->node_syn = NULL;
                 }
+                break;
             }
             
             case ONE_EXPANSION:
             {
                 ParseTreeElement *oneExpansion = &ptElement;
-                //create a leaf node of TK_FIELD and add it to inh 
-                ptElement->node_syn = ptElement->node_inh;
+                //ONE_EXPANSION INSERTO
+                oneExpansion->node_syn = oneExpansion->node_inh;
+                break;
             }
 
             case MORE_EXPANSIONS:
@@ -632,6 +663,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 else if(moreExpansions->ruleNo == 1){
                     moreExpansions->node_syn = moreExpansions->node_inh;
                 }
+                break;
             }
 
         }
