@@ -257,10 +257,10 @@ typedef union {
     BoolOperation* boolOp;
 } Bexp;
 
-struct{
+struct _astBexp{
     Bexp bexp;
     BoolExpType bexpType;
-} _astBexp;
+};
 
 ///////////////////////////////////////////////////////
 
