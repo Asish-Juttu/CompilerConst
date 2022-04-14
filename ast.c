@@ -306,11 +306,12 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(boolean_expression2);
                 handleParseTreeElement(logical_op);
                 declareAstNode(nodeBooleanExpression, AST_BOOLEXP, Ast_BooleanExpression, booleanExpression);
-                nodeBooleanExpression->node.booleanExpression->bexpType = BEXP_BOOL_OP;
-                nodeBooleanExpression->node.booleanExpression->bexp.boolOp = (BoolOperation *)malloc(sizeof(BoolOperation));
+                
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexpType = BEXP_BOOL_OP;
+               nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.boolOp = (BoolOperation *)malloc(sizeof(BoolOperation));
                 // nodeBooleanExpression->node.booleanExpression->bexp.boolOp->op = How do you check over here??
-                nodeBooleanExpression->node.booleanExpression->bexp.boolOp->left = boolean_expression1->node_syn;
-                nodeBooleanExpression->node.booleanExpression->bexp.boolOp->right = boolean_expression2->node_syn;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.boolOp->left = boolean_expression1->node_syn;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.boolOp->right = boolean_expression2->node_syn;
                 ptElement->node_syn = nodeBooleanExpression;
             }
             else if (ptElement->ruleNo == 1)
@@ -322,11 +323,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(var2);
                 handleParseTreeElement(relop);
                 declareAstNode(nodeBooleanExpression, AST_BOOLEXP, Ast_BooleanExpression, booleanExpression);
-                nodeBooleanExpression->node.booleanExpression->bexpType = BEXP_VAR_COMP;
-                nodeBooleanExpression->node.booleanExpression->bexp.varComp = (VarComparison *)malloc(sizeof(VarComparison));
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexpType = BEXP_VAR_COMP;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.varComp = (VarComparison *)malloc(sizeof(VarComparison));
                 // nodeBooleanExpression->node.booleanExpression->bexp.varComp->op =
-                nodeBooleanExpression->node.booleanExpression->bexp.varComp->left = var1->node_syn;
-                nodeBooleanExpression->node.booleanExpression->bexp.varComp->right = var2->node_syn;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.varComp->left = var1->node_syn;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.varComp->right = var2->node_syn;
                 ptElement->node_syn = nodeBooleanExpression;
             }
             else if (ptElement->ruleNo == 2)
@@ -336,11 +337,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(boolean);
                 handleParseTreeElement(tk_not);
                 declareAstNode(nodeBooleanExpression, AST_BOOLEXP, Ast_BooleanExpression, booleanExpression);
-                nodeBooleanExpression->node.booleanExpression->bexpType = BEXP_BOOL_OP;
-                nodeBooleanExpression->node.booleanExpression->bexp.boolOp = (BoolOperation *)malloc(sizeof(BoolOperation));
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexpType = BEXP_BOOL_OP;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.boolOp = (BoolOperation *)malloc(sizeof(BoolOperation));
                 // nodeBooleanExpression->node.booleanExpression->bexp.boolOp->op = How do you check over here??
-                nodeBooleanExpression->node.booleanExpression->bexp.boolOp->left = boolean->node_syn;
-                nodeBooleanExpression->node.booleanExpression->bexp.boolOp->right = NULL;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.boolOp->left = boolean->node_syn;
+                nodeToAst(nodeBooleanExpression,booleanExpression)->bexp.boolOp->right = NULL;
                 ptElement->node_syn = nodeBooleanExpression;
             }
         }
@@ -430,7 +431,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             {
                 ParseTreeElement *idList = &ptElement->children[1];
                 declareAstNode(nodeidList, ID_LIST, Ast_IdList, idList);
-                nodeidList->node.idList->idList = NULL;
+                
+                nodeToAst(nodeidList,idList)->idList = NULL;
                 idList->node_inh = nodeidList;
                 handleParseTreeElement(idList);
                 optionalReturn->node_syn = idList->node_syn;
@@ -532,12 +534,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *oneExpansion = &ptElement->children[0];
                 ParseTreeElement *moreExpansions = &ptElement->children[1];
                 declareAstNode(nodeOneExpansion,AST_OPTIONSINGLECONSTRUCTED,Ast_OptionSingleConstructed,optionSingleConstructed);
-                nodeOneExpansion->node.optionSingleConstructed->fieldNameList = NULL;
+                
+                nodeToAst(nodeOneExpansion,optionSingleConstructed)->fieldNameList = NULL;
                 oneExpansion->node_inh = nodeOneExpansion;
                 handleParseTreeElement(oneExpansion);
                 handleParseTreeElement(moreExpansions);
                 declareAstNode(nodeOptionSingleConstructed,AST_OPTIONSINGLECONSTRUCTED,Ast_OptionSingleConstructed,optionSingleConstructed);
-                nodeOptionSingleConstructed->node.optionSingleConstructed->fieldNameList = moreExpansions->node_syn->node.optionSingleConstructed->fieldNameList;
+                
+                nodeToAst(nodeOptionSingleConstructed,optionSingleConstructed)->fieldNameList = moreExpansions->node_syn->node.optionSingleConstructed->fieldNameList;
                 optionSingleConstructed->node_syn = nodeOptionSingleConstructed;
             }
             else if(ptElement->ruleNo == 1){
