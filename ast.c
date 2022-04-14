@@ -632,8 +632,32 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 else if(moreExpansions->ruleNo == 1){
                     moreExpansions->node_syn = moreExpansions->node_inh;
                 }
+                break;
             }
 
+            case EXP_PRIM : 
+            {
+                ParseTreeElement* expPrime = ptElement;
+                ParseTreeElement* lowPrOp = &expPrime->children[0];
+                ParseTreeElement* term = &expPrime->children[1];
+
+                declareAstNode(nodeArithExpr, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
+                    arithmeticExpression);
+                
+                nodeToAst(nodeArithExpr, arithmeticExpression)->left = 
+                    nodeToAst(expPrime->node_inh, arithmeticExpression);
+                
+                handleParseTreeElement(lowPrOp);
+                nodeToAst(nodeArithExpr, arithmeticExpression)->op =
+                    nodeToAst(lowPrOp->node_syn, arithmeticOp)->op;
+
+                handleParseTreeElement(term);
+                nodeToAst(nodeArithExpr, arithmeticExpression)->right =
+                    nodeToAst(term->node_syn, arithmeticExpression);
+                
+                expPrime->node_syn = nodeArithExpr;
+
+            }
         }
     }
     else
