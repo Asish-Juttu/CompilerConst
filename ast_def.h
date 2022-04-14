@@ -67,59 +67,70 @@ void insertTo(AstList* list, struct _AstNode* node);
 typedef struct {
     AstList* typeDefintionList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_TypeDefinitions;
 
 typedef struct {
     AstList* otherStmtList; 
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_OtherStmts;
 
 typedef struct {
     AstList* declarationList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Declarations;
 
 typedef struct {
     AstList* idList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_IdList;
 
 typedef struct {
     AstList* functionList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_OtherFunctions;
 
 typedef struct {
     AstList* parameterList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_ParameterList;
 
 typedef struct {
     AstList* fieldDefinitionList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_FieldDefinitions;
 
 typedef struct {
     char* id;
     AstList* fieldNameList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_SingleOrRecId;
 
 typedef struct {
     AstList* fieldNameList;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_OptionSingleConstructed;
 
 ////////////////////////////////////////////////////////////////////////
 
 typedef struct {
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Datatype;
 
 typedef struct {
     Datatype fieldType;
     char* id;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_FieldDefinition;
 
 typedef struct {
@@ -127,21 +138,25 @@ typedef struct {
     char* idOld;
     char* idNew;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_DefineTypeStmt;
 
 typedef struct {
     Datatype datatype;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_A;
 
 typedef struct {
     int val;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Num;
 
 typedef struct {
     float val;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Rnum;
 
 typedef struct {
@@ -149,6 +164,7 @@ typedef struct {
     char* id;
     int isGlobal;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Declaration;
 
 /////////////////////////////////////////////////////////////////////////
@@ -159,17 +175,20 @@ typedef struct {
     Ast_OtherStmts* otherStmts;
     Ast_IdList* returnIds;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Stmts;
 
 typedef struct {
     Ast_Stmts* stmts;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Main;
 
 typedef struct {
     Ast_OtherFunctions* otherFunctions;
     Ast_Main* mainFunction;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Program;
 
 typedef struct {
@@ -178,28 +197,33 @@ typedef struct {
     Ast_ParameterList* output_par;
     Ast_Stmts* stmts;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Function;
 
 typedef struct {
     Ast_Datatype* datatype;
     char* id;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_ParameterDeclaration;
 
 typedef struct {
     Ast_Datatype* datatype;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_PrimitiveDatatype;
 
 typedef struct {
     Ast_Datatype* datatype;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_ConstructedDatatype;
 
 typedef struct {
     char* id1; char* id2;
     Ast_FieldDefinitions* fieldDefinitions;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_TypeDefinition;
 
 typedef struct _Ast_ArithmeticExpression{
@@ -207,12 +231,14 @@ typedef struct _Ast_ArithmeticExpression{
     struct _Ast_ArithmeticExpression* right;
     ArithmeticOperator op;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_ArithmeticExpression;
 
 typedef struct {
     Ast_SingleOrRecId* singleOrRecId;
     Ast_ArithmeticExpression* expression;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_AssignmentStmt;
 
 typedef struct {
@@ -220,6 +246,7 @@ typedef struct {
     Ast_IdList* inputIdList;
     char* funId;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_FunCallStmt;
 
 ///////////////////////////////////////////////////////
@@ -237,6 +264,7 @@ typedef struct {
     Var varUnion;
     VarType varType;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_Var;
 
 typedef struct {
@@ -250,6 +278,7 @@ typedef struct {
     Ast_BooleanExpression* right;
     LogicalOperator op;
     TypeExpression typeExpr;
+    int lineNo;
 } BoolOperation;
 
 typedef union {
@@ -268,6 +297,7 @@ typedef struct {
     Ast_BooleanExpression* condition;
     Ast_OtherStmts* body;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_IterativeStmt;
 
 typedef struct {
@@ -275,17 +305,20 @@ typedef struct {
     Ast_OtherStmts* body;
     Ast_OtherStmts* elsePart;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_ConditionalStmt;
 
 typedef struct {
     IoType ioType;
     Ast_Var* var;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_IoStmt;
 
 typedef struct {
     Ast_OtherStmts* otherStmts;
     TypeExpression typeExpr;
+    int lineNo;
 } Ast_ElsePart;
 
 typedef union { 

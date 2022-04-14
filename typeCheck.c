@@ -37,7 +37,7 @@ void tcStmts (Ast_Stmts* stmts){
     int isTE = isTypeError(stmts->declarations->typeExpr) || isTypeError(stmts->otherStmts->typeExpr) || 
                         isTypeError(stmts->returnIds->typeExpr) || isTypeError(stmts->typeDefinitions->typeExpr);
 
-    return isTE ? typeError : typeVoid;
+    stmts->typeExpr = isTE ? typeError : typeVoid;
 }
 
 void tcMain (Ast_Main* main){

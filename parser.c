@@ -719,8 +719,6 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
 
                 }
                 else if(parseTable->table[m->elem.symbol][tinfo.token].symbol[0].symbol == EPSILON){
-
-
                     store = stackPop(store);
                 }
                 
@@ -749,6 +747,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                 }
                 else{
                     tinfo = nextValidToken(tbuf);
+                    m->lineNo = tinfo.lineNumber;
                 }
                 store = stackPop(store);
 
@@ -846,6 +845,13 @@ void initFirstAndFollow(FirstAndFollow* firstNFollow, Grammar* grammar){
              firstNFollow->follow[i] = followSetToArray(grammar, i, helper[i].tSet); 
         }
     }
+}
+
+void computeLineNumbers(ParseTreeElement* ptElement){
+    if(ptElement->elem.isTerminal) return;
+    
+    computeLineNumbers(&(ptElement->children[0]));
+    ptElement->lineNo = ptElement->children[0].lineNo;
 }
 
 LocationArray* getLocationArray(){
