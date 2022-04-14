@@ -1,7 +1,7 @@
 #include "ast.h"
 
 
-char* typeDefinitionsToStr(Ast_TypeDefinition* t);
+char* typeDefinitionsToStr(Ast_TypeDefinition* t, int n);
 char* otherStmtsToStr(Ast_OtherStmts* t);
 char* declarationsToStr(Ast_Declarations* t);
 char* idListToStr(Ast_IdList* t);

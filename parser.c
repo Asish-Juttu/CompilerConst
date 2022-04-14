@@ -23,6 +23,7 @@ ID: 2019A7PS0065P
 #include "log.h"
 #include "string.h"
 #include "lexer.h"
+#include "symbolTable.h"
 
 TokenSet firstSetDp[NON_TERMINAL_SIZE];
 int tokRuleNum[NON_TERMINAL_SIZE][TOKEN_SIZE];
@@ -856,4 +857,19 @@ void computeLineNumbers(ParseTreeElement* ptElement){
 
 LocationArray* getLocationArray(){
     return ntLocation;
+}
+
+ParseTree parse(char* c){
+    Grammar grammar;
+    initGrammar(&grammar);
+    initSymbolTable(&symbolTable);
+    FirstAndFollow fnf;
+    initFirstAndFollow(&fnf, &grammar);
+    ParseTable ptable;
+    initParseTable(&grammar, &fnf, &ptable);
+    TwinBuffer tbuf;
+    initTwinBuffer(&tbuf, c);
+    ParseTree parse = initParseTree(&grammar, &ptable, &tbuf);
+
+    return parse;
 }

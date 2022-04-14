@@ -21,7 +21,7 @@ typedef enum {
     AST_OPTIONSINGLECONSTRUCTED, AST_A, AST_ELSEPART, AST_FACTOR,
     AST_PLUS, AST_MINUS, AST_MUL, AST_DIV, AST_OTHERSTMTS, AST_DATATYPE, AST_PARAMETERDECL, AST_PRIMITIVEDT, AST_CONSTRDT,
     AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT, AST_BOOLEXP, AST_LOGICALOP, AST_ARITHMETICOP,
-    AST_RELATIONALOP
+    AST_RELATIONALOP, AST_ID
 } AstNodeType;
 
 typedef enum{
@@ -125,6 +125,7 @@ typedef struct {
 
 typedef struct {
     char* name;
+    Datatype datatype;
     TypeExpression typeExpr;
     int lineNo;
 } Ast_Datatype;
@@ -342,7 +343,12 @@ typedef struct {
     int lineNo;
 } Ast_ElsePart;
 
+typedef struct {
+    char* id;
+} Ast_Id;
+
 typedef union { 
+    Ast_Id* id;
     Ast_TypeDefinitions* typedefinitions;
     Ast_OtherStmts* otherStmts;
     Ast_Declarations* declarations;
