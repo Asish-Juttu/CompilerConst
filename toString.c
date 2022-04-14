@@ -17,6 +17,7 @@ ID: 2019A7PS0065P
 
 #include "token.h"
 #include "parserDef.h"
+#include "type.h"
 
 char* tokToStr(Token t){
     switch(t){
@@ -142,4 +143,19 @@ char* nonTermToStr(NonTerminal nt){
     }
 
     return "<UNKNOWN>";
+}
+
+char* basicTypeToString(BasicType bt){
+    switch(bt){
+        case BTYPE_RNUM : return "RNUM";
+        case BTYPE_NUM : return "NUM";
+        case BTYPE_UNION : return "UNION";
+        case BTYPE_RECORD : return "RECORD";
+        case BTYPE_PARAM_LIST : return "PARAMETER LIST";
+        case BTYPE_FIELD : return "FIELD";
+        case BTYPE_FUNCTION : return "FUNCTION";
+        case BTYPE_ERROR : return "TYPE ERROR";
+    }
+
+    return "INVALID TYPE";
 }
