@@ -634,7 +634,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 condStmt->node_syn = nodeConditionalStmt;
             }
-
+            
             case BOOLEAN_EXPRESSION:
             {
                 ParseTreeElement *boolean_expression = ptElement;
