@@ -151,7 +151,15 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *remaining_list = &ptElement->children[2];
                 handleParseTreeElement(datatype);
                 // ADDTYPE TK_ID
-                insertTo(nodeToAst(parameter_list->node_inh, parameterList), tkId.lexeme);
+
+                declareAstNode(nodeParameterDecl, AST_PARAMETERDECL, Ast_ParameterDeclaration, parameterDeclaration);
+
+                nodeToAst(nodeParameterDecl, parameterDeclaration)->datatype = 
+                    nodeToAst(datatype->node_syn, datatype)->datatype;
+                nodeToAst(nodeParameterDecl, parameterDeclaration)->id = 
+                    tkId.lexeme;
+
+                insertTo(nodeToAst(parameter_list->node_inh, parameterList)->parameterList, nodeParameterDecl);
                 remaining_list->node_inh = parameter_list->node_inh;
                 handleParseTreeElement(remaining_list);
                 parameter_list->node_syn = remaining_list->node_syn;
@@ -826,7 +834,10 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *idList = &ptElement;
                 TokenInfo tkId = ptElement->children[0].tinfo;
                 ParseTreeElement *moreIds = &ptElement->children[1];
-                insertTo(nodeToAst(idList->node_inh, idList), tkId.lexeme);
+
+                declareAstNode(nodeId, AST_ID, Ast_Id, id);
+                nodeToAst(nodeId, id)->id = tkId.lexeme;
+                insertTo(nodeToAst(idList->node_inh, idList)->idList, nodeId);
                 moreIds->node_inh = idList->node_inh;
                 handleParseTreeElement(moreIds);
                 idList->node_syn = moreIds->node_syn;

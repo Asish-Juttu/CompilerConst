@@ -33,8 +33,8 @@ int main(){
     TwinBuffer tbuf;
     initTwinBuffer(&tbuf, "testcases/t2.txt");
     ParseTree parse = initParseTree(&grammar, &ptable, &tbuf);
-    printf("Hello");
-    Inorder(parse.head);
+    // printf("Hello");
+   // Inorder(parse.head);
 
     return 0;
 }

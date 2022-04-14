@@ -3,6 +3,7 @@
     "files.associations": {
         "stdlib.h": "c",
         "type.h": "c",
-        "token.h": "c"
+        "token.h": "c",
+        "symboltable.h": "c"
     }
 }

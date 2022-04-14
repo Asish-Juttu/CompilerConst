@@ -36,4 +36,5 @@ ParseTreeElement* stackTop(Stack* head);
 void Inorder(ParseTreeElement* head, FILE* fptr);
 int isEmpty(Stack* head);
 void initFirstAndFollow(FirstAndFollow* firstNFolllow, Grammar* grammar);
+ParseTree parse(char* file);
 #endif
