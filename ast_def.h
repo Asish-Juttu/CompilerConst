@@ -11,6 +11,9 @@
 #define nodeToAst(VAR, FIELD) VAR->node.FIELD
 #define boolOpBexp(VAR) VAR->bexp.boolOp
 #define varCompBexp(VAR) VAR->bexp.varComp
+#define numVar(VAR) VAR->varUnion.num
+#define rnumVar(VAR) VAR->varUnion.rnum
+#define varVar(VAR) VAR->varUnion.singleOrRecId
 
 typedef enum {
     AST_PROGRAM, AST_OTHERFUNCTIONS, AST_MAIN, AST_FUNCTION, AST_PARAMETERLIST, AST_CONSTRUCTEDDATATYPE, AST_STMTS, AST_TYPEDEFINITION,
@@ -262,7 +265,7 @@ typedef struct _astBexp Ast_BooleanExpression;
 typedef union {
     Ast_Num* num;
     Ast_Rnum* rnum;
-    Ast_SingleOrRecId* vid;
+    Ast_SingleOrRecId* singleOrRecId;
 } Var;
 
 typedef struct {
