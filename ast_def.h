@@ -26,7 +26,7 @@ typedef enum{
 } ArithmeticOperator;
 
 typedef enum{
-    PRIMITIVE_DT, UNION_DT, RECORD_DT, TAGGED_UNION_DT
+    DT_PRIMITIVE, DT_UNION, DT_RECORD
 } Datatype;
 
 typedef enum {
@@ -48,7 +48,6 @@ typedef enum{
 typedef enum {
     VAR_ID, VAR_NUM, VAR_RNUM
 } VarType;
-
 
 //////////////////////////////////////////////////////////////////
 struct _AstNode;
@@ -122,6 +121,7 @@ typedef struct {
 ////////////////////////////////////////////////////////////////////////
 
 typedef struct {
+    char* name;
     TypeExpression typeExpr;
     int lineNo;
 } Ast_Datatype;
@@ -221,6 +221,7 @@ typedef struct {
 
 typedef struct {
     char* id1; char* id2;
+    Datatype datatype;
     Ast_FieldDefinitions* fieldDefinitions;
     TypeExpression typeExpr;
     int lineNo;

@@ -3,4 +3,3 @@
 
 void computeAst(ParseTree* parseTree);
 void handleRule(ParseTreeElement* ptNode);
-void assign(AstNode** lhs, AstNode** rhs);
