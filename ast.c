@@ -1,12 +1,7 @@
 #include "ast.h"
 #include <stdlib.h>
 
-#define declareAstNode(VARNAME, ENUM, STRUCT, FIELD) \
-    AstNode *VARNAME = makeEmptyAstNode();           \
-    VARNAME->type = ENUM;                            \
-    VARNAME->node.FIELD = malloc(sizeof(STRUCT));
 
-#define nodeToAst(VAR, FIELD) VAR->node.FIELD
 
 AstNode *makeEmptyAstNode()
 {

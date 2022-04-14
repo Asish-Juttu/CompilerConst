@@ -3,6 +3,13 @@
 
 #include "type.h"
 
+#define declareAstNode(VARNAME, ENUM, STRUCT, FIELD) \
+    AstNode *VARNAME = makeEmptyAstNode();           \
+    VARNAME->type = ENUM;                            \
+    VARNAME->node.FIELD = malloc(sizeof(STRUCT));
+
+#define nodeToAst(VAR, FIELD) VAR->node.FIELD
+
 typedef enum {
     AST_PROGRAM, AST_OTHERFUNCTIONS, AST_MAIN, AST_FUNCTION, AST_PARAMETERLIST, AST_CONSTRUCTEDDATATYPE, AST_STMTS, AST_TYPEDEFINITION,
     AST_FIELDDEFINITIONS, AST_FIELDDEFINITION, AST_DECLARATION, AST_ASSIGNMENTSTMT,
@@ -106,8 +113,6 @@ typedef struct {
 ////////////////////////////////////////////////////////////////////////
 
 typedef struct {
-    Datatype type;
-    char* name;
     TypeExpression typeExpr;
 } Ast_Datatype;
 
@@ -192,8 +197,7 @@ typedef struct {
 } Ast_ConstructedDatatype;
 
 typedef struct {
-    Datatype type;
-    char* id;
+    char* id1; char* id2;
     Ast_FieldDefinitions* fieldDefinitions;
     TypeExpression typeExpr;
 } Ast_TypeDefinition;

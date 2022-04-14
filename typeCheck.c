@@ -1,4 +1,5 @@
 #include "typeCheck.h"
+#include "ast_def.h"
 
 int isTypeError(TypeExpression t){
     return t.basicType == BTYPE_ERROR;
@@ -12,7 +13,11 @@ void tcOtherStmts (Ast_OtherStmts* otherStmts);
 void tcDeclarations (Ast_Declarations* declarations);
 void tcIdList (Ast_IdList* idList);
 void tcOtherFunctions (Ast_OtherFunctions* otherFunctions){
-    
+    int isTE = 0;
+    for(int i = 0; i < otherFunctions->functionList->size; i++){
+        isTE = isTE || isTypeError(nodeToAst(otherFunctions->functionList->nodes[i], function)->typeExpr);
+    }
+    otherFunctions->typeExpr = isTE ? typeError : typeVoid;
 }
 void tcParameterList (Ast_ParameterList* parameterList);
 void tcFieldDefinitions (Ast_FieldDefinitions* fieldDefinitions);
@@ -41,11 +46,31 @@ void tcMain (Ast_Main* main){
 void tcProgram (Ast_Program* program){
     program->typeExpr = (isTypeError(program->otherFunctions->typeExpr) ? typeError : program->mainFunction->typeExpr);
 }
-void tcFunction (Ast_Function* function);
-void tcParameterDeclaration (Ast_ParameterDeclaration* parameterDeclaration);
-void tcPrimitiveDatatype (Ast_PrimitiveDatatype* primitiveDatatype);
+void tcFunction (Ast_Function* function){
+    function->typeExpr = functionTypeExpression();
+    
+    for(int i = 0; i < function->input_par->parameterList->size; i++){
+        TypeExpression parTE = nodeToAst(function->input_par->parameterList->nodes[i], parameterDeclaration)->typeExpr;
+        if(isTypeError(parTE)) function->typeExpr.basicType = BTYPE_ERROR;
+        addToFuncInput(function->typeExpr, parTE);
+    }
+
+    for(int i = 0; i < function->input_par->parameterList->size; i++){
+        TypeExpression parTE = nodeToAst(function->output_par->parameterList->nodes[i], parameterDeclaration)->typeExpr;
+        if(isTypeError(parTE)) function->typeExpr.basicType = BTYPE_ERROR;
+        addToFuncOutput(function->typeExpr, parTE);
+    }
+}
+void tcParameterDeclaration (Ast_ParameterDeclaration* parameterDeclaration){
+    parameterDeclaration->typeExpr = parameterDeclaration->datatype->typeExpr;
+}
+void tcPrimitiveDatatype (Ast_PrimitiveDatatype* primitiveDatatype){
+
+}
 void tcConstructedDatatype (Ast_ConstructedDatatype* constructedDatatype);
-void tcTypeDefinition (Ast_TypeDefinition* typeDefinition);
+void tcTypeDefinition (Ast_TypeDefinition* typeDefinition){
+    
+}
 void tcArithmeticExpression (Ast_ArithmeticExpression* arithmeticExpression);
 void tcAssignmentStmt (Ast_AssignmentStmt* assignmentStmt);
 void tcFunCallStmt (Ast_FunCallStmt*funCallStmt);
