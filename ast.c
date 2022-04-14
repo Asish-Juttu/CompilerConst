@@ -495,6 +495,103 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 single_or_rec_id->node_syn = nodeSingleOrRecId;
                 break;
         }
+          case FUN_CALL_STMT :{
+                ParseTreeElement* fun_call_stmt = ptElement;
+                ParseTreeElement* output_parameters = &ptElement->children[0];
+                ParseTreeElement* input_parameters = &ptElement->children[5];
+                handleParseTreeElement(output_parameters);
+                handleParseTreeElement(input_parameters);
+
+                //TK_FUNID
+                declareAstNode(nodeFunCallStmt, AST_FUNCALLSTMT, Ast_FunCallStmt, funCallStmt);
+                nodeToAst(nodeFunCallStmt, funCallStmt)->outputIdList = nodeToAst(outputIdList->node_syn, Ast_IdList);
+                nodeToAst(nodeFunCallStmt, funCallStmt)->inputIdList = nodeToAst(inputIdList->node_syn, Ast_IdList);
+                fun_call_stmt->node_syn = nodeFunCallStmt;
+                break;
+        }
+        case OUTPUT_PARAMETERS : {
+                ParseTreeElement* output_parameters = ptElement;
+                if(ptElement->ruleNo == 0){
+                    ParseTreeElement* id_list = &ptElement->children[1];
+
+                    id_list->node_inh = remaining_list->node_inh;
+                    declareAstNode(nodeIdList, AST_IDLIST,  Ast_IdList, idList);
+                    nodeToAst(nodeIdList, idList)->idList = createAstList();
+                    handleParseTreeElement(id_list);
+                    id_list->node_inh = nodeIdList;
+                    output_parameters->node_syn = id_list->node_syn;
+                }
+                else if(ptElement->ruleNo == 1){
+                    output_parameters->node_syn = null;
+                }
+                break;
+            }
+            
+            case INPUT_PARAMETERS : {
+                ParseTreeElement* input_parameters = ptElement;
+                ParseTreeElement* id_list = &ptElement->children[1];
+
+                
+                declareAstNode(nodeIdList, AST_IDLIST,  Ast_IdList, idList);
+                nodeToAst(nodeIdList, idList)->idList = createAstList();
+                id_list->node_inh = nodeIdList;
+                handleParseTreeElement(id_list);
+                input_parameters->node_syn = id_list->node_syn;
+                break;
+            }
+            case ITERATIVE_STMT : {
+                ParseTreeElement* iterative_stmt = ptElement;
+                ParseTreeElement* boolean_expression = &ptElement->children[2];
+                ParseTreeElement* stmt = &ptElement->children[4];
+                ParseTreeElement* other_stmts = &ptElement->children[5];
+                handleParseTreeElement(boolean_expression);
+                declareAstNode(nodeOtherStmts, AST_OTHERSTMTS,  Ast_OtherStmts, otherStmts);
+                nodeToAst(nodeOtherStmts, otherStmts)->otherStmtList = createAstList();
+                stmt->node_inh = nodeOtherStmts;
+                handleParseTreeElement(stmt);
+                other_stmts->node_inh = stmt->node_syn;
+                handleParseTreeElement(other_stmts);
+                declareAstNode(nodeIterativeStmt, AST_ITERATIVESTMT,  Ast_IterativeStmt, iterativeStmt);
+                nodeToAst(nodeIterativeStmt, iterativeStmt)->condition =  nodeToAst(nodeBooleanExpression, booleanExpression);
+                nodeToAst(nodeIterativeStmt, iterativeStmt)->body =  nodeToAst(nodeOtherStmts, otherStmts);
+
+
+                break;
+            }
+            
+
+
+            
+        case CONDITIONAL_STMT : {
+            ParseTreeElement* condStmt = ptElement;
+            ParseTreeElement* boolExp = &ptElement->children[2];
+            ParseTreeElement* stmt = &ptElement->children[4];
+            ParseTreeElement* other_stmts = &ptElement->children[5];
+            ParseTreeElement* else_part = &ptElement->children[6];
+            handleParseTreeElement(boolean_expression);
+            declareAstNode(nodeOtherStmts, AST_OTHERSTMTS,  Ast_OtherStmts, otherStmts);
+            nodeToAst(nodeOtherStmts, otherStmts)->otherStmtList = createAstList();
+            stmt->node_inh = nodeOtherStmts;
+            handleParseTreeElement(stmt);
+            other_stmts->node_inh = stmt->node_syn;
+            handleParseTreeElement(other_stmts);
+            handleParseTreeElement(else_part);
+
+            declareAstNode(nodeConditionalStmt, AST_CONDITIONALSTMT,
+                Ast_ConditionalStmt, conditionalStmt);
+            
+            nodeToAst(nodeConditionalStmt, conditionalStmt)->body
+                 = nodeOtherStmts;
+            nodeToAst(nodeConditionalStmt, conditionalStmt)->condition
+                = nodeToAst(boolExp->node_syn, booleanExpression);
+            
+            nodeToAst(nodeConditionalStmt, conditionalStmt)->elsePart
+                = nodeToAst(else_part->node_syn, elsePart);
+            
+            condStmt->node_syn = nodeConditionalStmt;
+           
+        }
+
             case BOOLEAN_EXPRESSION:
             {
                 ParseTreeElement *boolean_expression = ptElement;
@@ -795,37 +892,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             }
 
         }
-         case FUN_CALL_STMT :{
-                ParseTreeElement* fun_call_stmt = ptElement;
-                ParseTreeElement* output_parameters = &ptElement->children[0];
-                ParseTreeElement* input_parameters = &ptElement->children[5];
-                handleParseTreeElement(output_parameters);
-                handleParseTreeElement(input_parameters);
 
-                //TK_FUNID
-                declareAstNode(nodeFunCallStmt, AST_FUNCALLSTMT, Ast_FunCallStmt, funCallStmt);
-                nodeToAst(nodeFunCallStmt, funCallStmt)->outputIdList = nodeToAst(outputIdList->node_syn, Ast_IdList);
-                nodeToAst(nodeFunCallStmt, funCallStmt)->inputIdList = nodeToAst(inputIdList->node_syn, Ast_IdList);
-                fun_call_stmt->node_syn = nodeFunCallStmt;
-                break;
-        }
-        case OUTPUT_PARAMETERS : {
-                ParseTreeElement* output_parameters = ptElement;
-                if(ptElement->ruleNo == 0){
-                    ParseTreeElement* id_list = &ptElement->children[1];
-
-                    id_list->node_inh = remaining_list->node_inh;
-                    declareAstNode(nodeIdList, AST_IDLIST,  Ast_IdList, idList);
-                    nodeToAst(nodeIdList, idList)->idList = createAstList();
-                    handleParseTreeElement(id_list);
-                    id_list->node_inh = nodeIdList;
-                    output_parameters->node_syn = id_list->node_syn;
-                }
-                else if(ptElement->ruleNo == 1){
-                    output_parameters->node_syn = null;
-                }
-                break;
-            }
 
 
 
