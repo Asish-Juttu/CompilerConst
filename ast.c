@@ -592,8 +592,40 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 = nodeToAst(else_part->node_syn, elsePart);
             
             condStmt->node_syn = nodeConditionalStmt;
-           
+            break;
         }
+        
+        case IO_STMT :{
+                ParseTreeElement* io_stmt = ptElement;
+               
+                if(ptElement->ruleNo == 0){
+                ParseTreeElement* var = &ptElement->children[2];
+                handleParseTreeElement(var);
+                //TK_ID
+                declareAstNode(nodeIoStmt, AST_IOSTMT, Ast_IoStmt, ioStmt);
+                nodeToAst(nodeIoStmt, ioStmt)->fieldNameList = nodeToAst(optionSingleConstructed->node_syn, optionSingleConstructed)->fieldNameList;
+                nodeToAst(nodeIoStmt, ioStmt)->ioType = IO_READ;
+                single_or_rec_id->node_syn = nodeSingleOrRecId;
+                
+                }
+                else if(ptElement->ruleNo == 1){
+                }
+                break;
+        }
+        case ARITHMETIC_EXPRESSION :{
+                ParseTreeElement* arithmetic_expression = ptElement;
+                ParseTreeElement* term = &ptElement->children[0];
+                ParseTreeElement* exp_prime = &ptElement->children[1];
+                handleParseTreeElement(term);
+                exp_prime->node_inh=term->node_syn;
+                handleParseTreeElement(exp_prime);
+                arithmetic_expression->node_syn = exp_prime->node_syn;
+                break;
+        }
+
+                
+        
+
 
             case BOOLEAN_EXPRESSION:
             {
@@ -671,10 +703,10 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 }
                 else if (ptElement->ruleNo == 1)
                 { 
-                    TokenInfo tkNum = &ptElement->children[0].tinfo;
+                    TokenInfo tkNum = ptElement->children[0].tinfo;
                     declareAstNode(nodeNum,AST_NUM,Ast_Num,num);
                     nodeToAst(nodeNum,num)->typeExpr = numTypeExpression();
-                    nodeToAst(nodeNum,num)->name = tkNum.lexeme;
+                    nodeToAst(nodeNum,num)->val = tkNum.lexeme;
                     var->node_syn = nodeNum;
                 }
                 else if (ptElement->ruleNo == 2)
