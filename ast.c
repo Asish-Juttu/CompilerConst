@@ -23,6 +23,8 @@ int strToInt(char* str)
 
 void handleParseTreeElement(ParseTreeElement *ptElement)
 {
+    printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
+        ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
     if (!ptElement->elem.isTerminal)
     {
         switch (ptElement->elem.symbol)
@@ -155,7 +157,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 declareAstNode(nodeParameterDecl, AST_PARAMETERDECL, Ast_ParameterDeclaration, parameterDeclaration);
 
                 nodeToAst(nodeParameterDecl, parameterDeclaration)->datatype = 
-                    nodeToAst(datatype->node_syn, datatype)->datatype;
+                    nodeToAst(datatype->node_syn, datatype);
                 nodeToAst(nodeParameterDecl, parameterDeclaration)->id = 
                     tkId.lexeme;
 
@@ -254,16 +256,30 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *declarations = &ptElement->children[1];
                 ParseTreeElement *other_stmts = &ptElement->children[2];
                 ParseTreeElement *return_stmt = &ptElement->children[3];
+
+                declareAstNode(nodeTypeDefinitions, AST_TYPEDEFINITIONS, Ast_TypeDefinitions, typeDefinitions);
+                nodeToAst(nodeTypeDefinitions, typeDefinitions)->typeDefintionList = createAstList();
+                type_definitions->node_inh = nodeTypeDefinitions;
                 handleParseTreeElement(type_definitions);
+        
+                declareAstNode(nodeDecls, AST_DECLARATIONS, Ast_Declarations, declarations);
+                nodeToAst(nodeDecls, declarations)->declarationList = createAstList();
+                declarations->node_inh = nodeDecls;
                 handleParseTreeElement(declarations);
+
+                declareAstNode(nodeOtherStmts, AST_OTHERSTMTS, Ast_OtherStmts, otherStmts);
+                nodeToAst(nodeOtherStmts, otherStmts)->otherStmtList = createAstList();
+                other_stmts->node_inh = nodeOtherStmts;
                 handleParseTreeElement(other_stmts);
+
                 handleParseTreeElement(return_stmt);
 
                 declareAstNode(nodeStmts, AST_STMTS, Ast_Stmts, stmts);
-                nodeToAst(nodeStmts, stmts)->typeDefinitions = nodeToAst(type_definitions->node_syn, typedefinitions);
+                nodeToAst(nodeStmts, stmts)->typeDefinitions = (Ast_TypeDefinitions*)nodeToAst(type_definitions->node_syn, program);
                 nodeToAst(nodeStmts, stmts)->declarations = nodeToAst(declarations->node_syn, declarations);
                 nodeToAst(nodeStmts, stmts)->otherStmts = nodeToAst(other_stmts->node_syn, otherStmts);
                 nodeToAst(nodeStmts, stmts)->returnIds = nodeToAst(return_stmt->node_syn, idList);
+                printf("HI\n");
                 stmts->node_syn = nodeStmts;
                 break;
             }
@@ -285,6 +301,9 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     type_def->node_syn = type_def->node_inh;
                 }
+                else{
+                    printf("Error Rule doesnt match!!!\n");
+                }
                 break;
             }
 
@@ -299,13 +318,13 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(field_def);
 
                     declareAstNode(nodeTypeDefinition, AST_TYPEDEFINITION, Ast_TypeDefinition, typeDefinition);
+                    nodeToAst(nodeTypeDefinition, typeDefinition)->type = TDEF;
+              
+                    tdef(nodeToAst(nodeTypeDefinition, typeDefinition))->fieldDefinitions = nodeToAst(field_def->node_syn, fieldDefinitions);
+                    tdef(nodeToAst(nodeTypeDefinition, typeDefinition))->id = tkRuid.lexeme;
+                    tdef(nodeToAst(nodeTypeDefinition, typeDefinition))->datatype = DT_RECORD;
 
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->fieldDefinitions = nodeToAst(field_def->node_syn, fieldDefinitions);
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->id1 = tkRuid.lexeme;
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->id2 = NULL;
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->datatype = DT_RECORD;
-
-                    insertTo(nodeToAst(type_def->node_inh, typedefinitions)->typeDefintionList,
+                    insertTo(nodeToAst(type_def->node_inh, typeDefinitions)->typeDefintionList,
                             nodeTypeDefinition);
 
                     type_def->node_syn = type_def->node_inh;
@@ -318,13 +337,13 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(field_def);
 
                     declareAstNode(nodeTypeDefinition, AST_TYPEDEFINITION, Ast_TypeDefinition, typeDefinition);
+                    nodeToAst(nodeTypeDefinition, typeDefinition)->type = TDEF;
+              
+                    tdef(nodeToAst(nodeTypeDefinition, typeDefinition))->fieldDefinitions = nodeToAst(field_def->node_syn, fieldDefinitions);
+                    tdef(nodeToAst(nodeTypeDefinition, typeDefinition))->id = tkRuid.lexeme;
+                    tdef(nodeToAst(nodeTypeDefinition, typeDefinition))->datatype = DT_UNION;
 
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->datatype = DT_UNION;
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->id1 = tkRuid.lexeme;
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->id2 = NULL;
-                    nodeToAst(nodeTypeDefinition, typeDefinition)->fieldDefinitions = nodeToAst(field_def->node_syn, fieldDefinitions);
-
-                    insertTo(nodeToAst(type_def->node_inh, typedefinitions)->typeDefintionList,
+                    insertTo(nodeToAst(type_def->node_inh, typeDefinitions)->typeDefintionList,
                             nodeTypeDefinition);
 
                     type_def->node_syn = type_def->node_inh;
@@ -525,11 +544,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             {
                 ParseTreeElement *single_or_rec_id = ptElement;
                 ParseTreeElement *option_single_constructed = &ptElement->children[1];
+                TokenInfo tkId = ptElement->children[0].tinfo;
+
                 handleParseTreeElement(option_single_constructed);
                 // TK_ID
                 declareAstNode(nodeSingleOrRecId, AST_SINGLEORRECID, Ast_SingleOrRecId, singleOrRecId);
+                nodeToAst(nodeSingleOrRecId, singleOrRecId)->id = tkId.lexeme;
                 nodeToAst(nodeSingleOrRecId, singleOrRecId)->fieldNameList = nodeToAst(option_single_constructed->node_syn, 
-                    optionSingleConstructed)->fieldNameList;
+                    moreExp)->oneExpansionList;
 
                 single_or_rec_id->node_syn = nodeSingleOrRecId;
                 break;
@@ -846,6 +868,25 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 break;
             }
 
+            case DEFINE_TYPE_STATEMENT:
+            {
+                ParseTreeElement* dtypeStmt = ptElement;
+                ParseTreeElement* a = &ptElement->children[1];
+
+                TokenInfo tkruid = dtypeStmt->children[2].tinfo;
+                TokenInfo tkruid1 = dtypeStmt->children[4].tinfo;
+
+                handleParseTreeElement(a);
+                declareAstNode(nodeTrdef, AST_TYPEDEFINITION, 
+                    Ast_TypeDefinition, typeDefinition);
+                nodeToAst(nodeTrdef, typeDefinition)->type = TRDEF;
+                trdef(nodeToAst(nodeTrdef, typeDefinition))->from
+                    = tkruid.lexeme;
+                trdef(nodeToAst(nodeTrdef, typeDefinition))->from
+                    = tkruid1.lexeme;
+                
+                dtypeStmt->node_syn = nodeTrdef;
+            }
             case ID_LIST:
             {
                 ParseTreeElement *idList = &ptElement;
@@ -888,7 +929,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     ParseTreeElement *typeDefinition = &ptElement->children[0];
                     handleParseTreeElement(typeDefinition);
-                    insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList, typeDefinition->node_syn->node.typeDefinition);
+                    insertTo(nodeToAst(actualOrredefined->node_inh, typeDefinitions)->typeDefintionList, nodeToAst(typeDefinition->node_syn, typeDefinition));
                     ptElement->node_syn = ptElement->node_inh;
                 }
 
@@ -896,24 +937,9 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     ParseTreeElement *defineTypeStatement = &ptElement->children[0];
                     handleParseTreeElement(defineTypeStatement);
-                    insertTo(actualOrredefined->node_inh->node.typedefinitions->typeDefintionList, defineTypeStatement->node_syn->node.typeDefinition);
+                    insertTo(nodeToAst(actualOrredefined->node_inh, typeDefinitions)->typeDefintionList, nodeToAst(defineTypeStatement->node_syn, typeDefinition));
                     ptElement->node_syn = ptElement->node_inh;
                 }
-                break;
-            }
-
-            case DEFINE_TYPE_STATEMENT:
-            {
-                ParseTreeElement *defineTypeStatement = &ptElement;
-                ParseTreeElement *a_1 = &ptElement->children[1];
-                TokenInfo tkRuId = ptElement->children[2].tinfo;
-                TokenInfo tkRuId1 = ptElement->children[4].tinfo;
-                handleParseTreeElement(a_1);
-                declareAstNode(nodedefineTypeStatement, AST_DEFINETYPESTMT, Ast_DefineTypeStmt, defineTypeStmt);
-                nodeToAst(nodedefineTypeStatement, defineTypeStmt)->datatype = nodeToAst(a_1->node_syn, a);
-                nodeToAst(nodedefineTypeStatement, defineTypeStmt)->idOld = tkRuId.lexeme;
-                nodeToAst(nodedefineTypeStatement, defineTypeStmt)->idNew = tkRuId1.lexeme;
-                defineTypeStatement->node_syn = nodedefineTypeStatement;
                 break;
             }
 
@@ -939,22 +965,26 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             {
                 ParseTreeElement *optionSingleConstructed = &ptElement;
 
-                if (ptElement->ruleNo == 0)
-                {
-                    ParseTreeElement *oneExpansion = &ptElement->children[0];
-                    ParseTreeElement *moreExpansions = &ptElement->children[1];
-                    declareAstNode(nodeOneExpansion, AST_OPTIONSINGLECONSTRUCTED, Ast_OptionSingleConstructed, optionSingleConstructed);
-                    nodeOneExpansion->node.optionSingleConstructed->fieldNameList = NULL;
-                    oneExpansion->node_inh = nodeOneExpansion;
-                    handleParseTreeElement(oneExpansion);
-                    handleParseTreeElement(moreExpansions);
-                    declareAstNode(nodeOptionSingleConstructed, AST_OPTIONSINGLECONSTRUCTED, Ast_OptionSingleConstructed, optionSingleConstructed);
-                    nodeOptionSingleConstructed->node.optionSingleConstructed->fieldNameList = moreExpansions->node_syn->node.optionSingleConstructed->fieldNameList;
-                    optionSingleConstructed->node_syn = nodeOptionSingleConstructed;
+                if(optionSingleConstructed->ruleNo == 0){
+                    ParseTreeElement* oneExp = &ptElement->children[0];
+                    ParseTreeElement* moreExp = &ptElement->children[1];
+                    declareAstNode(nodeMoreExp, AST_MOREEXPANSION, Ast_MoreExpansion,
+                        moreExp);
+                    nodeToAst(nodeMoreExp, moreExp)->oneExpansionList = createAstList();
+                    oneExp->node_inh = nodeMoreExp;
+
+                    handleParseTreeElement(oneExp);
+
+                    moreExp->node_inh = oneExp->node_syn;
+                    handleParseTreeElement(moreExp);
+
+                    optionSingleConstructed->node_syn = moreExp->node_syn;
                 }
-                else if (ptElement->ruleNo == 1)
-                {
-                    optionSingleConstructed->node_syn = NULL;
+                else if(optionSingleConstructed->ruleNo == 1){
+                    declareAstNode(nodeMoreExp, AST_MOREEXPANSION, Ast_MoreExpansion,
+                        moreExp);
+                    nodeToAst(nodeMoreExp, moreExp)->oneExpansionList = createAstList();
+                    optionSingleConstructed->node_syn = nodeMoreExp;
                 }
                 break;
             }

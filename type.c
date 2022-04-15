@@ -91,8 +91,19 @@ TypeExpression unionTypeExpression(){
     return unionTE;
 }
 
-TypeExpression rnumTypeExpression();
-TypeExpression numTypeExpression();
+TypeExpression rnumTypeExpression(){
+    TypeExpression rnumTE = typeExpression(BTYPE_RNUM);
+    rnumTE.expList = NULL;
+
+    return rnumTE;
+}
+
+TypeExpression numTypeExpression(){
+    TypeExpression numTE = typeExpression(BTYPE_NUM);
+    numTE.expList = NULL;
+
+    return numTE;
+}
 
 TypeExpression recordTypeExpression(char* name){
     TypeExpression recordTE = typeExpression(BTYPE_RECORD);
@@ -101,4 +112,9 @@ TypeExpression recordTypeExpression(char* name){
 
     return recordTE;
 }
-TypeExpression paramListTypeExpression();
+TypeExpression paramListTypeExpression(){
+    TypeExpression paramListTE = typeExpression(BTYPE_PARAM_LIST);
+    paramListTE.expList = createExpressionList();
+
+    return paramListTE;
+}

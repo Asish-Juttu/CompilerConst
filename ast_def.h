@@ -6,14 +6,19 @@
 #define declareAstNode(VARNAME, ENUM, STRUCT, FIELD) \
     AstNode *VARNAME = makeEmptyAstNode();           \
     VARNAME->type = ENUM;                            \
-    VARNAME->node.FIELD = malloc(sizeof(STRUCT));
+    VARNAME->node.FIELD = malloc(sizeof(STRUCT)); \
+    printf("Declaring ast node %s of type %s\n", #VARNAME, #STRUCT);
 
-#define nodeToAst(VAR, FIELD) VAR->node.FIELD
+#define nodeToAst(VAR, FIELD) (VAR == NULL ? printf("%s is null.\n", #VAR) :\
+    (toAstType(#FIELD) == VAR->type) ? VAR->node.FIELD : printf("%s being accessed as %s\n [nodeToAst(%s, %s)", astToStr(VAR->type), \
+    astToStr(toAstType(#FIELD)), #VAR, #FIELD))
 #define boolOpBexp(VAR) VAR->bexp.boolOp
 #define varCompBexp(VAR) VAR->bexp.varComp
 #define numVar(VAR) VAR->varUnion.num
 #define rnumVar(VAR) VAR->varUnion.rnum
 #define varVar(VAR) VAR->varUnion.singleOrRecId
+#define tdef(VAR) VAR->tdefUnion.tdef
+#define trdef(VAR) VAR->tdefUnion.trdef
 
 typedef enum {
     AST_PROGRAM, AST_OTHERFUNCTIONS, AST_MAIN, AST_FUNCTION, AST_PARAMETERLIST, AST_CONSTRUCTEDDATATYPE, AST_STMTS, AST_TYPEDEFINITION,
@@ -24,7 +29,7 @@ typedef enum {
     AST_OPTIONSINGLECONSTRUCTED, AST_A, AST_ELSEPART, AST_FACTOR,
     AST_PLUS, AST_MINUS, AST_MUL, AST_DIV, AST_OTHERSTMTS, AST_DATATYPE, AST_PARAMETERDECL, AST_PRIMITIVEDT, AST_CONSTRDT,
     AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT, AST_BOOLEXP, AST_LOGICALOP, AST_ARITHMETICOP,
-    AST_RELATIONALOP, AST_ID
+    AST_RELATIONALOP, AST_ID, AST_TYPEDEFINITIONS, AST_DECLARATIONS, AST_UNKNOWN
 } AstNodeType;
 
 typedef enum{
@@ -226,10 +231,29 @@ typedef struct {
     int lineNo;
 } Ast_ConstructedDatatype;
 
-typedef struct {
-    char* id1; char* id2;
+typedef enum{
+    TDEF, TRDEF
+} TypeDefType;
+
+typedef struct{
+    char* id;
     Datatype datatype;
     Ast_FieldDefinitions* fieldDefinitions;
+} TypeDef;
+
+typedef struct {
+    char*  from;
+    char* to;
+} TypeRdef;
+
+typedef union{
+    TypeDef* tdef;
+    TypeRdef* trdef;
+} TypeDefinitionUnion;
+
+typedef struct {
+    TypeDefinitionUnion tdefUnion;
+    TypeDefType type;
     TypeExpression typeExpr;
     int lineNo;
 } Ast_TypeDefinition;
@@ -352,7 +376,7 @@ typedef struct {
 
 typedef union { 
     Ast_Id* id;
-    Ast_TypeDefinitions* typedefinitions;
+    Ast_TypeDefinitions* typeDefinitions;
     Ast_OtherStmts* otherStmts;
     Ast_Declarations* declarations;
     Ast_IdList* idList;
@@ -397,4 +421,6 @@ typedef struct _AstNode{
     AstNodeType type;
 } AstNode;
 
+int isTypeRedefinition(Ast_TypeDefinition* tdef);
+char* astToStr(AstNodeType t);
 #endif

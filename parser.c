@@ -88,7 +88,7 @@ void printSymbols(Symbol* syms, int size){
 void addRule(Grammar* grammar, NonTerminal nt, Symbol* symbols, int size, int rNum){
     Symbol* sym = malloc(size * sizeof(Symbol));
     memmove(sym, symbols, size * sizeof(Symbol));
-    Rule r = {size, nt, rNum, sym};
+    Rule r = {size, rNum, nt, sym};
     if(rNum >= grammar->ruleArray[nt].size || rNum < 0){
         LOG("Error !! rNum greater than size for %s \n", nonTermToStr(nt));
         return;
@@ -721,8 +721,9 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     store = stackPop(store); 
 
                 }
-                else if(parseTable->table[m->elem.symbol][tinfo.token].symbol[0].symbol == EPSILON){
+                else if(rule.symbol[0].symbol == EPSILON){
                     store = stackPop(store);
+                    m->ruleNo = rule.ruleNum;
                 }
                 
                 else{
