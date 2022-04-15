@@ -23,6 +23,10 @@ int strToInt(char* str)
 
 void handleParseTreeElement(ParseTreeElement *ptElement)
 {
+    if(ptElement == NULL){
+        printf("PTELEMENT IS NULL!!");
+        return;
+    }
     printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
         ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
     if (!ptElement->elem.isTerminal)
@@ -109,7 +113,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeFunction, function)->output_par = nodeToAst(output_par->node_syn, parameterList);
                 nodeToAst(nodeFunction, function)->stmts = nodeToAst(statements->node_syn, stmts);
 
-                insertTo(nodeToAst(func->node_inh, otherFunctions), nodeFunction);
+                insertTo(nodeToAst(func->node_inh, otherFunctions)->functionList, nodeFunction);
                 func->node_syn = func->node_inh;
                 break;
             }
@@ -194,14 +198,16 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
                     nodeToAst(nodeDatatype, datatype)->typeExpr = numTypeExpression();
-                    nodeToAst(nodeDatatype, datatype)->name = tkNum.lexeme;
+                    nodeToAst(nodeDatatype, datatype)->datatype = DT_NUM;
+                    nodeToAst(nodeDatatype, datatype)->name = NULL;
                     primitive_datatype->node_syn = nodeDatatype;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
                     declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
                     nodeToAst(nodeDatatype, datatype)->typeExpr = rnumTypeExpression();
-                    nodeToAst(nodeDatatype, datatype)->name = tkNum.lexeme;
+                    nodeToAst(nodeDatatype, datatype)->datatype = DT_RNUM;
+                    nodeToAst(nodeDatatype, datatype)->name = NULL;
                     primitive_datatype->node_syn = nodeDatatype;
                 }
                 break;
@@ -215,11 +221,15 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 if (ptElement->ruleNo == 0)
                 {
                     tkRuid = ptElement->children[1].tinfo;
+                    nodeToAst(nodeDatatype, datatype)->name = tkRuid.lexeme;
+                    nodeToAst(nodeDatatype, datatype)->datatype = DT_RECORD;
                     nodeToAst(nodeDatatype, datatype)->typeExpr = recordTypeExpression();
                 }
                 else if (ptElement->ruleNo == 1)
                 {
                     tkRuid = ptElement->children[1].tinfo;
+                    nodeToAst(nodeDatatype, datatype)->name = tkRuid.lexeme;
+                    nodeToAst(nodeDatatype, datatype)->datatype = DT_UNION;
                     nodeToAst(nodeDatatype, datatype)->typeExpr = unionTypeExpression();
                 }
                 else if (ptElement->ruleNo == 2)
@@ -275,7 +285,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(return_stmt);
 
                 declareAstNode(nodeStmts, AST_STMTS, Ast_Stmts, stmts);
-                nodeToAst(nodeStmts, stmts)->typeDefinitions = (Ast_TypeDefinitions*)nodeToAst(type_definitions->node_syn, program);
+                nodeToAst(nodeStmts, stmts)->typeDefinitions = nodeToAst(type_definitions->node_syn, typeDefinitions);
                 nodeToAst(nodeStmts, stmts)->declarations = nodeToAst(declarations->node_syn, declarations);
                 nodeToAst(nodeStmts, stmts)->otherStmts = nodeToAst(other_stmts->node_syn, otherStmts);
                 nodeToAst(nodeStmts, stmts)->returnIds = nodeToAst(return_stmt->node_syn, idList);
@@ -436,12 +446,18 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *declaration = ptElement;
                 ParseTreeElement *datatype = &ptElement->children[1];
                 ParseTreeElement *global_or_not = &ptElement->children[4];
-
+                TokenInfo tkId = ptElement->children[3].tinfo;
+                printf("Declaration id is %s \n", tkId.lexeme);
                 handleParseTreeElement(datatype);
-                // TK_ID
+                
                 handleParseTreeElement(global_or_not);
                 declareAstNode(nodeDeclaration, AST_DECLARATION, Ast_Declaration, declaration);
                 // DATATYPE: nodeToAst(nodeDeclaration,declaration)->type = nodeToAst(type->node_syn,datatype);
+
+                nodeToAst(nodeDeclaration, declaration)->id = tkId.lexeme;
+                nodeToAst(nodeDeclaration, declaration)->type = nodeToAst(datatype->node_syn,
+                    datatype)->datatype;
+                nodeToAst(nodeDeclaration, declaration)->isGlobal = nodeToAst(global_or_not->node_syn, isGlobalOrNot)->isGlobal;
                 insertTo(nodeToAst(declaration->node_inh, declarations)->declarationList, nodeDeclaration);
                 declaration->node_syn = declaration->node_inh;
                 break;
@@ -452,11 +468,19 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *global_or_not = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
-                    // MAKE LEAF
+                    declareAstNode(nodeIsG, AST_ISGLOBALORNOT, Ast_IsGlobalOrNot,
+                        isGlobalOrNot);
+                    nodeToAst(nodeIsG, isGlobalOrNot)->isGlobal = 1;
+
+                    global_or_not->node_syn = nodeIsG;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
-                    global_or_not->node_syn = NULL;
+                    declareAstNode(nodeIsG, AST_ISGLOBALORNOT, Ast_IsGlobalOrNot,
+                        isGlobalOrNot);
+                    nodeToAst(nodeIsG, isGlobalOrNot)->isGlobal = 0;
+
+                    global_or_not->node_syn = nodeIsG;
                 }
                 break;
             }
@@ -489,21 +513,35 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     ParseTreeElement *assignment_stmt = &ptElement->children[0];
                     handleParseTreeElement(assignment_stmt);
-                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, assignment_stmt->node_syn);
+
+                    declareAstNode(nodeStmt, AST_STMT, Ast_Stmt, stmt);
+                    nodeToAst(nodeStmt, stmt)->type = STMT_ASSIGN;
+                    assignStmt(nodeToAst(nodeStmt, stmt)) = nodeToAst(assignment_stmt->node_syn, assignmentStmt);
+                    
+                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, nodeStmt);
                     stmt->node_syn = stmt->node_inh;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
                     ParseTreeElement *iterative_stmt = &ptElement->children[0];
                     handleParseTreeElement(iterative_stmt);
-                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, iterative_stmt->node_syn);
+
+                    declareAstNode(nodeStmt, AST_STMT, Ast_Stmt, stmt);
+                    nodeToAst(nodeStmt, stmt)->type = STMT_ITER;
+                    iterStmt(nodeToAst(nodeStmt, stmt)) = nodeToAst(iterative_stmt->node_syn, iterativeStmt);
+
+                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, nodeStmt);
                     stmt->node_syn = stmt->node_inh;
                 }
                 else if (ptElement->ruleNo == 2)
                 {
                     ParseTreeElement *conditional_stmt = &ptElement->children[0];
                     handleParseTreeElement(conditional_stmt);
-                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, conditional_stmt->node_syn);
+                    declareAstNode(nodeStmt, AST_STMT, Ast_Stmt, stmt);
+                    nodeToAst(nodeStmt, stmt)->type = STMT_COND;
+                    condStmt(nodeToAst(nodeStmt, stmt)) = nodeToAst(conditional_stmt->node_syn, conditionalStmt);
+
+                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, nodeStmt);
                     stmt->node_syn = stmt->node_inh;
                 }
 
@@ -511,14 +549,22 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     ParseTreeElement *io_stmt = &ptElement->children[0];
                     handleParseTreeElement(io_stmt);
-                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, io_stmt->node_syn);
+                    declareAstNode(nodeStmt, AST_STMT, Ast_Stmt, stmt);
+                    nodeToAst(nodeStmt, stmt)->type = STMT_IO;
+                    ipopStmt(nodeToAst(nodeStmt, stmt)) = nodeToAst(io_stmt->node_syn, ioStmt);
+
+                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, nodeStmt);
                     stmt->node_syn = stmt->node_inh;
                 }
                 else if (ptElement->ruleNo == 4)
                 {
                     ParseTreeElement *fun_call_stmt = &ptElement->children[0];
                     handleParseTreeElement(fun_call_stmt);
-                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, fun_call_stmt->node_syn);
+                    declareAstNode(nodeStmt, AST_STMT, Ast_Stmt, stmt);
+                    nodeToAst(nodeStmt, stmt)->type = STMT_FUN_CALL;
+                    fCallStmt(nodeToAst(nodeStmt, stmt)) = nodeToAst(fun_call_stmt->node_syn, funCallStmt);
+
+                    insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, nodeStmt);
                     stmt->node_syn = stmt->node_inh;
                 }
                 break;
@@ -579,7 +625,6 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     ParseTreeElement *id_list = &ptElement->children[1];
 
                     declareAstNode(nodeIdList, AST_IDLIST, Ast_IdList, idList);
-
                     nodeToAst(nodeIdList, idList)->idList = createAstList();
                     id_list->node_inh = nodeIdList;
 
@@ -628,6 +673,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 nodeToAst(nodeIterativeStmt, iterativeStmt)->body = nodeToAst(nodeOtherStmts, otherStmts);
 
+                iterative_stmt->node_syn = nodeIterativeStmt;
                 break;
             }
 
@@ -655,8 +701,32 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeConditionalStmt, conditionalStmt)->elsePart = nodeToAst(else_part->node_syn, elsePart);
 
                 condStmt->node_syn = nodeConditionalStmt;
+                break;
             }
             
+            case IO_STMT:
+            {
+                
+                ParseTreeElement* ioStmt = ptElement;
+                ParseTreeElement* var = &ptElement->children[2];
+                handleParseTreeElement(var);
+
+                if(ioStmt->ruleNo == 0){
+                    declareAstNode(nodeIo, AST_IOSTMT, Ast_IoStmt,
+                        ioStmt);
+                    nodeToAst(nodeIo, ioStmt)->ioType = IO_READ;
+                    nodeToAst(nodeIo, ioStmt)->var = var->node_syn;
+                    ioStmt->node_syn = nodeIo;
+                }
+                else if(ioStmt->ruleNo == 1){
+                    declareAstNode(nodeIo, AST_IOSTMT, Ast_IoStmt,
+                        ioStmt);
+                    nodeToAst(nodeIo, ioStmt)->ioType = IO_WRITE;
+                    nodeToAst(nodeIo, ioStmt)->var = var->node_syn;
+                    ioStmt->node_syn = nodeIo;
+                }
+                break;
+            }
             case BOOLEAN_EXPRESSION:
             {
                 ParseTreeElement *boolean_expression = ptElement;
@@ -698,7 +768,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeBooleanExpression->node.booleanExpression->bexpType = BEXP_VAR_COMP;
                     nodeBooleanExpression->node.booleanExpression->bexp.varComp = (VarComparison *)malloc(sizeof(VarComparison));
                     varCompBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->op =
-                        nodeToAst(relop->node_syn, logicalOp)->op;
+                        nodeToAst(relop->node_syn, relationalOp)->op;
                     nodeBooleanExpression->node.booleanExpression->bexp.varComp->left = var1->node_syn;
                     nodeBooleanExpression->node.booleanExpression->bexp.varComp->right = var2->node_syn;
 
@@ -726,14 +796,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case VAR:
             {
-                ParseTreeElement *var = &ptElement;
+                ParseTreeElement *var = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     ParseTreeElement *singleorrecId = &ptElement->children[0];
                     handleParseTreeElement(singleorrecId);
 
                     declareAstNode(nodeVar, AST_VAR, Ast_Var, var);
-                    nodeToAst(nodeVar, var)->varType = VAR_NUM;
+                    nodeToAst(nodeVar, var)->varType = VAR_ID;
                     varVar(nodeToAst(nodeVar, var)) = 
                         nodeToAst(singleorrecId->node_syn, singleOrRecId);  
 
@@ -770,7 +840,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case LOGICAL_OP:
             {
-                ParseTreeElement *localOp = &ptElement;
+                ParseTreeElement *localOp = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     ParseTreeElement *tkand = &ptElement->children[0];
@@ -794,7 +864,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case RELATIONAL_OP:
             {
-                ParseTreeElement *relationalOP = &ptElement;
+                ParseTreeElement *relationalOP = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     TokenInfo tkLt = ptElement->children[0].tinfo;
@@ -842,7 +912,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case RETURN_STMT:
             {
-                ParseTreeElement *returnStmt = &ptElement;
+                ParseTreeElement *returnStmt = ptElement;
                 ParseTreeElement *optioanlReturn = &ptElement->children[1];
                 handleParseTreeElement(optioanlReturn);
                 returnStmt->node_syn = optioanlReturn->node_syn;
@@ -851,19 +921,21 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case OPTIONAL_RETURN:
             {
-                ParseTreeElement *optionalReturn = &ptElement;
+                ParseTreeElement *optionalReturn = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     ParseTreeElement *idList = &ptElement->children[1];
-                    declareAstNode(nodeidList, ID_LIST, Ast_IdList, idList);
-                    nodeidList->node.idList->idList = NULL;
+                    declareAstNode(nodeidList, AST_IDLIST, Ast_IdList, idList);
+                    nodeToAst(nodeidList, idList)->idList = createAstList();
                     idList->node_inh = nodeidList;
                     handleParseTreeElement(idList);
                     optionalReturn->node_syn = idList->node_syn;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
-                    optionalReturn->node_syn = NULL;
+                    declareAstNode(nodeidList, AST_IDLIST, Ast_IdList, idList);
+                    nodeToAst(nodeidList, idList)->idList = createAstList();
+                    optionalReturn->node_syn = nodeidList;
                 }
                 break;
             }
@@ -886,10 +958,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     = tkruid1.lexeme;
                 
                 dtypeStmt->node_syn = nodeTrdef;
+                break;
             }
             case ID_LIST:
             {
-                ParseTreeElement *idList = &ptElement;
+                ParseTreeElement *idList = ptElement;
                 TokenInfo tkId = ptElement->children[0].tinfo;
                 ParseTreeElement *moreIds = &ptElement->children[1];
 
@@ -904,7 +977,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case MORE_IDS:
             {
-                ParseTreeElement *moreIds = &ptElement;
+                ParseTreeElement *moreIds = ptElement;
 
                 if (ptElement->ruleNo == 0)
                 {
@@ -916,14 +989,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 else if (ptElement->ruleNo == 1)
                 {
-                    moreIds->node_syn = moreIds->node_syn;
+                    moreIds->node_syn = moreIds->node_inh;
                 }
                 break;
             }
 
             case ACTUAL_OR_REDEFINED:
             {
-                ParseTreeElement *actualOrredefined = &ptElement;
+                ParseTreeElement *actualOrredefined = ptElement;
 
                 if (ptElement->ruleNo == 0)
                 {
@@ -945,7 +1018,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case FIELD_TYPE:
             {
-                ParseTreeElement *fieldType = &ptElement;
+                ParseTreeElement *fieldType = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     ParseTreeElement *primitiveDatatype = &ptElement->children[0];
@@ -963,7 +1036,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case OPTION_SINGLE_CONSTRUCTED:
             {
-                ParseTreeElement *optionSingleConstructed = &ptElement;
+                ParseTreeElement *optionSingleConstructed = ptElement;
 
                 if(optionSingleConstructed->ruleNo == 0){
                     ParseTreeElement* oneExp = &ptElement->children[0];
@@ -1002,7 +1075,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case MORE_EXPANSIONS:
             {
-                ParseTreeElement *moreExpansions = &ptElement;
+                ParseTreeElement *moreExpansions = ptElement;
 
                 if (moreExpansions->ruleNo == 0)
                 {
@@ -1025,42 +1098,66 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             case EXP_PRIME:
             {
                 ParseTreeElement *expPrime = ptElement;
-                ParseTreeElement *lowPrOp = &expPrime->children[0];
-                ParseTreeElement *term = &expPrime->children[1];
+                if(expPrime->ruleNo == 0){
+                    ParseTreeElement *lowPrOp = &expPrime->children[0];
+                    ParseTreeElement *term = &expPrime->children[1];
+                    ParseTreeElement* expPrime1 = &ptElement->children[2];
 
-                declareAstNode(nodeArithExpr, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
-                            arithmeticExpression);
+                    declareAstNode(nodeArithExpr, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
+                                arithmeticExpression);
+                                
+                    handleParseTreeElement(lowPrOp);
+                    nodeToAst(nodeArithExpr, arithmeticExpression)->op =
+                        nodeToAst(lowPrOp->node_syn, arithmeticOp)->op;
 
-                nodeToAst(nodeArithExpr, arithmeticExpression)->left =
-                    nodeToAst(expPrime->node_inh, arithmeticExpression);
+                    handleParseTreeElement(term);
 
-                handleParseTreeElement(lowPrOp);
-                nodeToAst(nodeArithExpr, arithmeticExpression)->op =
-                    nodeToAst(lowPrOp->node_syn, arithmeticOp)->op;
+                    AstNode* left = expPrime->node_inh;
+                    AstNode* right = term->node_syn;
+                    Ast_ArithmeticExpression* aexp = nodeToAst(nodeArithExpr, arithmeticExpression);
 
-                handleParseTreeElement(term);
-                nodeToAst(nodeArithExpr, arithmeticExpression)->right =
-                    nodeToAst(term->node_syn, arithmeticExpression);
+                    if(left->type == AST_VAR){
+                        aexp->lefType = AEXP_VAR;
+                        aexp->left.var = nodeToAst(left, var);
+                    }
+                    else if(left->type == AST_ARITHMETICEXPR){
+                        aexp->lefType = AEXP_EXP;
+                        aexp_expLeft(aexp) = nodeToAst(left, arithmeticExpression);
+                    }
 
-                expPrime->node_syn = nodeArithExpr;
+                    if(right->type == AST_VAR){
+                        aexp->rightType = AEXP_VAR;
+                        aexp_varRight(aexp) = nodeToAst(right, var);
+                    }
+                    else if(left->type == AST_ARITHMETICEXPR){
+                        aexp->rightType = AEXP_EXP;
+                        aexp_expRight(aexp) = nodeToAst(right, arithmeticExpression);
+                    }
+                    expPrime1->node_inh = nodeArithExpr;
+                    handleParseTreeElement(expPrime1);
+                    expPrime->node_syn = expPrime1->node_syn;
+                }
+
+                else if(expPrime->ruleNo == 1){
+                    expPrime->node_syn = expPrime->node_inh;
+                }
+                break;
             }
 
             case A:
             {
                 ParseTreeElement *a = ptElement;
-                TokenInfo tkNum = ptElement->children[0].tinfo;
+    
                 if (ptElement->ruleNo == 0)
                 {
                     declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
-                    nodeToAst(nodeDatatype, datatype)->typeExpr = recordTypeExpression();
-                    nodeToAst(nodeDatatype, datatype)->name = tkNum.lexeme;
+                    nodeToAst(nodeDatatype, datatype)->datatype = DT_RECORD;
                     a->node_syn = nodeDatatype;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
                     declareAstNode(nodeDatatype, AST_DATATYPE, Ast_Datatype, datatype);
-                    nodeToAst(nodeDatatype, datatype)->typeExpr = unionTypeExpression();
-                    nodeToAst(nodeDatatype, datatype)->name = tkNum.lexeme;
+                    nodeToAst(nodeDatatype, datatype)->datatype = DT_UNION;
                     a->node_syn = nodeDatatype;
                 }
                 break;
@@ -1111,6 +1208,19 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 break;
             }
 
+            case ARITHMETIC_EXPRESSION:
+            {
+                ParseTreeElement* aExp = ptElement;
+                ParseTreeElement* term = &ptElement->children[0];
+                ParseTreeElement* expPrime = &ptElement->children[1];
+
+                handleParseTreeElement(term);
+                expPrime->node_inh = term->node_syn;
+                handleParseTreeElement(expPrime);
+
+                aExp->node_syn = expPrime->node_syn;
+                break;
+            }
             case TERM:
             {
                 ParseTreeElement* term = ptElement;
@@ -1127,7 +1237,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case LOW_PRECEDENCE_OPERATORS:
             {
-                ParseTreeElement *low_precedence_operators = &ptElement;
+                ParseTreeElement *low_precedence_operators = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     declareAstNode(nodeAop, AST_ARITHMETICOP, Ast_ArithmeticOperator,
@@ -1179,18 +1289,36 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
                         arithmeticExpression);
                     
-                    nodeToAst(nodeAexp, arithmeticExpression)->left = 
-                        nodeToAst(term_prime->node_inh, arithmeticExpression);
-                    
-                    nodeToAst(nodeAexp, arithmeticExpression)->right = 
-                        nodeToAst(factor->node_syn, arithmeticExpression);
-                    
                     nodeToAst(nodeAexp, arithmeticExpression)->op = 
                         nodeToAst(hpOp->node_syn, arithmeticOp)->op;
                     
+                    AstNode* left = term_prime->node_inh;
+                    AstNode* right = factor->node_syn;
+                    Ast_ArithmeticExpression* aexp = nodeToAst(nodeAexp, arithmeticExpression);
+
+                    if(left->type == AST_VAR){
+                        aexp->lefType = AEXP_VAR;
+                        aexp->left.var = nodeToAst(left, var);
+                    }
+                    else if(left->type == AST_ARITHMETICEXPR){
+                        aexp->lefType = AEXP_EXP;
+                        aexp_expLeft(aexp) = nodeToAst(left, arithmeticExpression);
+                    }
+
+                    if(right->type == AST_VAR){
+                        aexp->rightType = AEXP_VAR;
+                        aexp_varRight(aexp) = nodeToAst(right, var);
+                    }
+
+                    else if(left->type == AST_ARITHMETICEXPR){
+                        aexp->rightType = AEXP_EXP;
+                        aexp_expRight(aexp) = nodeToAst(right, arithmeticExpression);
+                    }
+
                     term_prime1->node_inh = nodeAexp;
                     
                     handleParseTreeElement(term_prime1);
+
                     term_prime->node_syn = term_prime1->node_syn;
                 }
                 else if (ptElement->ruleNo == 1)
@@ -1202,18 +1330,22 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
             case HIGH_PRECEDENCE_OPERATORS:
             {
-                ParseTreeElement *high_precedence_operators = &ptElement;
+                ParseTreeElement *high_precedence_operators = ptElement;
                 if (ptElement->ruleNo == 0)
                 {
                     declareAstNode(nodeAop, AST_ARITHMETICOP, Ast_ArithmeticOperator,
                         arithmeticOp);
-                    nodeToAst(nodeAop, arithmeticOp)->op = AOP_DIV;
+                    nodeToAst(nodeAop, arithmeticOp)->op = AOP_MUL;
+
+                    high_precedence_operators->node_syn = nodeAop;
                 }
                 else if (ptElement->ruleNo == 1)
                 {
                     declareAstNode(nodeAop, AST_ARITHMETICOP, Ast_ArithmeticOperator,
                         arithmeticOp);
-                    nodeToAst(nodeAop, arithmeticOp)->op = AOP_MUL;
+                    nodeToAst(nodeAop, arithmeticOp)->op = AOP_DIV;
+
+                    high_precedence_operators->node_syn = nodeAop;
                 }
                 break;
             }  

@@ -10,7 +10,7 @@
     printf("Declaring ast node %s of type %s\n", #VARNAME, #STRUCT);
 
 #define nodeToAst(VAR, FIELD) (VAR == NULL ? printf("%s is null.\n", #VAR) :\
-    (toAstType(#FIELD) == VAR->type) ? VAR->node.FIELD : printf("%s being accessed as %s\n [nodeToAst(%s, %s)", astToStr(VAR->type), \
+    (toAstType(#FIELD) == VAR->type) ? VAR->node.FIELD : printf("%s being accessed as %s\n [nodeToAst(%s, %s)]\n", astToStr(VAR->type), \
     astToStr(toAstType(#FIELD)), #VAR, #FIELD))
 #define boolOpBexp(VAR) VAR->bexp.boolOp
 #define varCompBexp(VAR) VAR->bexp.varComp
@@ -19,6 +19,15 @@
 #define varVar(VAR) VAR->varUnion.singleOrRecId
 #define tdef(VAR) VAR->tdefUnion.tdef
 #define trdef(VAR) VAR->tdefUnion.trdef
+#define assignStmt(VAR) VAR->stmtUnion.assignStmt
+#define iterStmt(VAR) VAR->stmtUnion.iterStmt
+#define fCallStmt(VAR) VAR->stmtUnion.funCallStmt
+#define condStmt(VAR) VAR->stmtUnion.condStmt
+#define ipopStmt(VAR) VAR->stmtUnion.ioStmt
+#define aexp_expLeft(VAR) VAR->left.exp
+#define aexp_expRight(VAR) VAR->right.exp
+#define aexp_varLeft(VAR) VAR->left.var
+#define aexp_varRight(VAR) VAR->right.var
 
 typedef enum {
     AST_PROGRAM, AST_OTHERFUNCTIONS, AST_MAIN, AST_FUNCTION, AST_PARAMETERLIST, AST_CONSTRUCTEDDATATYPE, AST_STMTS, AST_TYPEDEFINITION,
@@ -29,7 +38,8 @@ typedef enum {
     AST_OPTIONSINGLECONSTRUCTED, AST_A, AST_ELSEPART, AST_FACTOR,
     AST_PLUS, AST_MINUS, AST_MUL, AST_DIV, AST_OTHERSTMTS, AST_DATATYPE, AST_PARAMETERDECL, AST_PRIMITIVEDT, AST_CONSTRDT,
     AST_ARITHMETICEXPR, AST_VAR, AST_IOSTMT, AST_BOOLEXP, AST_LOGICALOP, AST_ARITHMETICOP,
-    AST_RELATIONALOP, AST_ID, AST_TYPEDEFINITIONS, AST_DECLARATIONS, AST_UNKNOWN
+    AST_RELATIONALOP, AST_ID, AST_TYPEDEFINITIONS, AST_DECLARATIONS, AST_UNKNOWN, AST_ISGLOBALORNOT,
+    AST_STMT
 } AstNodeType;
 
 typedef enum{
@@ -37,7 +47,7 @@ typedef enum{
 } ArithmeticOperator;
 
 typedef enum{
-    DT_PRIMITIVE, DT_UNION, DT_RECORD
+    DT_PRIMITIVE, DT_UNION, DT_RECORD, DT_NUM, DT_RNUM
 } Datatype;
 
 typedef enum {
@@ -180,6 +190,18 @@ typedef struct {
 } Ast_Declaration;
 
 /////////////////////////////////////////////////////////////////////////
+typedef union {
+    Ast_Num* num;
+    Ast_Rnum* rnum;
+    Ast_SingleOrRecId* singleOrRecId;
+} Var;
+
+typedef struct {
+    Var varUnion;
+    VarType varType;
+    TypeExpression typeExpr;
+    int lineNo;
+} Ast_Var;
 
 typedef struct {
     Ast_TypeDefinitions* typeDefinitions;
@@ -225,6 +247,10 @@ typedef struct {
     int lineNo;
 } Ast_PrimitiveDatatype;
 
+typedef struct{
+    int isGlobal;
+} Ast_IsGlobalOrNot;
+
 typedef struct {
     Ast_Datatype* datatype;
     TypeExpression typeExpr;
@@ -258,9 +284,22 @@ typedef struct {
     int lineNo;
 } Ast_TypeDefinition;
 
+typedef enum {
+    AEXP_EXP, AEXP_VAR
+} AexpType;
+
+typedef union {
+    struct _Ast_ArithmeticExpression* exp;
+    Ast_Var* var;
+} AexpUnion;
+
 typedef struct _Ast_ArithmeticExpression{
-    struct _Ast_ArithmeticExpression* left;
-    struct _Ast_ArithmeticExpression* right;
+    AexpUnion left;
+    AexpType lefType;
+
+    AexpUnion right;
+    AexpType rightType;
+
     ArithmeticOperator op;
     TypeExpression typeExpr;
     int lineNo;
@@ -285,19 +324,6 @@ typedef struct {
 
 struct _astBexp;
 typedef struct _astBexp Ast_BooleanExpression;
-
-typedef union {
-    Ast_Num* num;
-    Ast_Rnum* rnum;
-    Ast_SingleOrRecId* singleOrRecId;
-} Var;
-
-typedef struct {
-    Var varUnion;
-    VarType varType;
-    TypeExpression typeExpr;
-    int lineNo;
-} Ast_Var;
 
 typedef struct {
     Ast_Var* left;
@@ -354,6 +380,23 @@ typedef struct {
 typedef struct {
     RelationalOperator op;
 } Ast_RelationalOperator;
+
+typedef enum {
+    STMT_ASSIGN, STMT_COND, STMT_ITER, STMT_FUN_CALL, STMT_IO
+} StmtType;
+
+typedef union {
+    Ast_AssignmentStmt* assignStmt;
+    Ast_ConditionalStmt* condStmt;
+    Ast_IterativeStmt* iterStmt;
+    Ast_IoStmt* ioStmt;
+    Ast_FunCallStmt* funCallStmt;
+} StmtUnion;
+
+typedef struct {
+    StmtUnion stmtUnion;
+    StmtType type;
+} Ast_Stmt;
 
 typedef struct {
     ArithmeticOperator op;
@@ -413,6 +456,8 @@ typedef union {
     Ast_RelationalOperator* relationalOp;
     Ast_ArithmeticOperator* arithmeticOp;
     Ast_MoreExpansion* moreExp;
+    Ast_IsGlobalOrNot* isGlobalOrNot;
+    Ast_Stmt* stmt;
 } AstNodeUnion;
 
 AstNodeType toAstType(char* name);

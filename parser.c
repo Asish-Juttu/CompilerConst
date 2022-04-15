@@ -736,7 +736,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                         Symbol elem = parseTable->table[m->elem.symbol][tinfo.token].symbol[j];
                         initParseTreeElement(&m->children[j], elem);
 
-                        if(elem.isTerminal) m->children[j].tinfo = tinfo;
+                        //if(elem.isTerminal) m->children[j].tinfo = tinfo;
                         store = stackPush(store, &m->children[j]);
                     }
 
@@ -748,8 +748,9 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                         tinfo.lineNumber, tokToStr(tinfo.token), tinfo.lexeme, tokToStr(m->elem.symbol));  
                 }
                 else{
-                    tinfo = nextValidToken(tbuf);
                     m->lineNo = tinfo.lineNumber;
+                    m->tinfo = tinfo;
+                    tinfo = nextValidToken(tbuf);
                 }
                 store = stackPop(store);
 

@@ -29,7 +29,7 @@ AstNodeType toAstType(char* name){
     else if(equals(name, "primitiveDatatype")) return AST_PRIMITIVEDT;
     else if(equals(name, "constructedDatatype")) return AST_CONSTRDT;
     else if(equals(name, "typeDefinition")) return AST_TYPEDEFINITION;
-    else if(equals(name, "arithmeticExporession")) return AST_ARITHMETICEXPR;
+    else if(equals(name, "arithmeticExpression")) return AST_ARITHMETICEXPR;
     else if(equals(name, "assignmentStmt")) return AST_ASSIGNMENTSTMT;
     else if(equals(name, "funCallStmt")) return AST_FUNCALLSTMT;
     else if(equals(name, "var")) return AST_VAR;
@@ -37,6 +37,14 @@ AstNodeType toAstType(char* name){
     else if(equals(name, "conditionalStmt")) return AST_CONDITIONALSTMT;
     else if(equals(name, "ioStmt")) return AST_IOSTMT;
     else if(equals(name, "elsePart")) return AST_ELSEPART;
+    else if(equals(name, "moreExp")) return AST_MOREEXPANSION;
+    else if(equals(name, "relationalOp")) return AST_RELATIONALOP;
+    else if(equals(name, "arithmeticOp")) return AST_ARITHMETICOP;
+    else if(equals(name, "logicalOp")) return AST_LOGICALOP;
+    else if(equals(name, "booleanExpression")) return AST_BOOLEXP;
+    else if(equals(name, "id")) return AST_ID;
+    else if(equals(name, "isGlobalOrNot")) return AST_ISGLOBALORNOT;
+    else if(equals(name, "stmt")) return AST_STMT;
     else return AST_UNKNOWN;
 }
 
@@ -74,7 +82,14 @@ char* astToStr(AstNodeType type){
         case AST_CONDITIONALSTMT : return "AST_CONDITIONALSTMT";
         case AST_IOSTMT : return "AST_IOSTMT";
         case AST_ELSEPART : return "AST_ELSEPART";
-                                          
+        case AST_MOREEXPANSION : return "AST_MOREEXPANSION";   
+        case AST_ARITHMETICOP : return "AST_ARITHMETICOP";
+        case AST_RELATIONALOP : return "AST_RELATIONALOP";
+        case AST_LOGICALOP : return "AST_LOGICALOP";
+        case AST_BOOLEXP : return "AST_BOOLEXP";        
+        case AST_ID : return "AST_ID";      
+        case AST_ISGLOBALORNOT : return "AST_ISGLOBALORNOT";
+        case AST_STMT : return "AST_STMT";
     }
 
     return "AST_UNKNOWN";

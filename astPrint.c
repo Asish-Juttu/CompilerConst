@@ -1,7 +1,7 @@
 #include "astPrint.h"
 #include <stdio.h>
 void printTabs(int n){
-    for(int i = 0; i < n; i++) printf("\t");
+    for(int i = 0; i < n; i++) printf("  ");
 }
 
 void print(char* str, int n){
@@ -26,22 +26,28 @@ void printDtype(Datatype dt, int n){
     char* str;
 
     if(dt == DT_PRIMITIVE){
-        str = "DATATYPE: PRIMITIVE";
+        str = "PRIMITIVE";
     }
     else if(dt == DT_UNION){
-        str = "DATATYPE: UNION";
+        str = "UNION";
     }
     else if(dt == DT_RECORD){
-        str = "DATATYPE: RECORD";
+        str = "RECORD";
     }
-
+    else if(dt == DT_NUM){
+        str = "NUM";
+    }
+    else if(dt == DT_RNUM){
+        str = "RNUM";
+    }
     print(str, n);
 }
 
 void printDatatype(Ast_Datatype* t, int n){
     print("Ast_Datatype:", n);
     printDtype(t->datatype, 0);
-    print(t->name, 0);
+    if(t->name != NULL)
+        print(t->name, 0);
 }
 void printTypeDefinition(Ast_TypeDefinition* t, int n){
     print("\nAst_TypeDefinition:\n", n);
@@ -68,21 +74,23 @@ void printTypeDefinition(Ast_TypeDefinition* t, int n){
 
 void printOtherStmts(Ast_OtherStmts* t, int n){
     print("\nAst_OtherStmts:\n",n);
-    n=n+1;
+    n=n + 1;
     AstList* list = t->otherStmtList;
-    n = n + 1;
     for(int i = 0; i < list->size; i++){
-        printStmts(nodeToAst(list->nodes[i], stmts), n);
+        printStmt(nodeToAst(list->nodes[i], stmt), n);
+        printf("\n");
     }
 }
 
 void printDeclarations(Ast_Declarations* t, int n){
-    print("Ast_Declarations",n);
-    n=n+1;
+    print("Ast_Declarations\n",n);
+    //n=n+1;
     AstList* list = t->declarationList;
     n = n + 1;
+    printTabs(n);
     for(int i = 0; i < list->size; i++){
         printDeclaration(nodeToAst(list->nodes[i], declaration), n);
+        printf("\n");
     }
 
 }
@@ -98,24 +106,22 @@ void printIdList(Ast_IdList* t, int n){
 }
 
 void printOtherFunctions(Ast_OtherFunctions* t, int n){
-    print("Ast_OtherFunctions",n);
+    print("Ast_OtherFunctions\n",n);
     n=n+1;
     AstList* list = t->functionList;
     n = n + 1;
     for(int i = 0; i < list->size; i++){
-        printTypeDefinition(nodeToAst(list->nodes[i], function), n);
+        printFunction(nodeToAst(list->nodes[i], function), n);
     }
 }
 
 void printParameterList(Ast_ParameterList* t, int n){
-    print("Ast_ParameterList",n);
-    n=n+1;
+    print("Ast_ParameterList:",n);
     AstList* list = t->parameterList;
-    n = n + 1;
     for(int i = 0; i < list->size; i++){
-        printParameterDeclaration(nodeToAst(list->nodes[i], parameterDeclaration), n);
+        printParameterDeclaration(nodeToAst(list->nodes[i], parameterDeclaration), 0);
+        print(",", 0);
     }
-
 }
 
 void printFieldDefinitions(Ast_FieldDefinitions* t, int n){
@@ -179,26 +185,43 @@ void printDeclaration(Ast_Declaration* t, int n){
     print(t->id,0);
 }
 
+void printStmt(Ast_Stmt* stmt, int n){
+    if(stmt->type == STMT_ASSIGN){
+        printAssignmentStmt(assignStmt(stmt), n);
+    }
+    else if(stmt->type == STMT_COND){
+        printConditionalStmt(condStmt(stmt), n);
+    }
+    else if(stmt->type == STMT_ITER){
+        printIterativeStmt(iterStmt(stmt), n);
+    }
+    else if(stmt->type == STMT_IO){
+        printIoStmt(ipopStmt(stmt), n);
+    }
+    else if(stmt->type == STMT_FUN_CALL){
+        printFunCallStmt(fCallStmt(stmt), n);
+    }
+}
 void printStmts(Ast_Stmts* t, int n){
     print("Ast_Stmts:\n",n);
     n = n + 1;
+    printf("Is t Null ? %d\n", t == NULL);
     printTypeDefinitions(t->typeDefinitions, n);
+    printf("\n");
+
     printDeclarations(t->declarations, n);
+    printf("\n");
+
     printOtherStmts(t->otherStmts, n);
+    printf("\n");
+
     printId(t->returnIds,n);
-
-
-
-
 }
 
 void printMain(Ast_Main* t, int n){
     print("Ast_Main:\n",n);
     n = n + 1;
-
     printStmts(t->stmts,n);
-
-
 }
 
 void printProgram(Ast_Program* t, int n){
@@ -206,18 +229,24 @@ void printProgram(Ast_Program* t, int n){
     n = n + 1;
     printOtherFunctions(t->otherFunctions,n);
     printMain(t->mainFunction,n);
-
 }
 
 void printFunction(Ast_Function* t, int n){
-    print("Ast_Function:",n);
-    printParameterList(t->input_par,0);
-    printParameterList(t->output_par,0);
+    print("Ast_Function:\n",n);
+    
     n = n + 1;
+    print("Name:", n);
+    print(t->funId, 0);
+    printf("\n");
+
+    print("Input Params :", n);
+    printParameterList(t->input_par,0);
+
+    printf("\n");
+    print("Output Params :", n);
+    printParameterList(t->output_par,0);
     printf("\n");
     printStmts(t->stmts,n);
-
-
 }
 
 void printParameterDeclaration(Ast_ParameterDeclaration* t, int n){
@@ -250,9 +279,26 @@ void printTypeDefinitions(Ast_TypeDefinitions* t, int n){
 
 void printArithmeticExpression(Ast_ArithmeticExpression* t, int n){
     print("Ast_ArithmeticExpression:", n);
-    printArithmeticExpression(t->left,0);
+    
+    print("(", 0);
+    if(t->lefType == AEXP_EXP)
+        printArithmeticExpression(aexp_expLeft(t),0);
+
+    else if(t->lefType == AEXP_VAR)
+        printVar(aexp_varLeft(t), 0);
+
+    print(")", 0);
+
     printAop(t->op,0);
-    printArithmeticExpression(t->right,0);
+    
+    print("(", 0);
+    if(t->rightType == AEXP_EXP)
+        printArithmeticExpression(aexp_expRight(t), 0);
+
+    else if(t->rightType == AEXP_VAR)
+        printVar(aexp_varRight(t), 0);
+    print(")", 0);
+
 }
 
 void printRelop(RelationalOperator op, int n){
@@ -336,8 +382,6 @@ void printIterativeStmt(Ast_IterativeStmt* t, int n){
     print("Ast_IterativeStmt:", n);
     printBooleanExpression(t->condition,n);
     printOtherStmts(t->body,n);
-
-
 }
 
 void printConditionalStmt(Ast_ConditionalStmt* t, int n){
