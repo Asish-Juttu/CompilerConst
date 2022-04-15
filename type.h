@@ -3,7 +3,8 @@
 
 
 typedef enum{
-    BTYPE_RNUM, BTYPE_NUM, BTYPE_UNION, BTYPE_RECORD, BTYPE_PARAM_LIST, BTYPE_FIELD, BTYPE_FUNCTION, BTYPE_ERROR, BTYPE_VOID, BTYPE_TAGGED_UNION
+    BTYPE_RNUM, BTYPE_NUM, BTYPE_UNION, BTYPE_RECORD, BTYPE_PARAM_LIST, BTYPE_FIELD, BTYPE_FUNCTION, BTYPE_ERROR, BTYPE_VOID, BTYPE_TAGGED_UNION,
+    BTYPE_VOID
 } BasicType;
 
 struct _TypeExpression;
@@ -16,7 +17,7 @@ typedef struct {
 
 typedef struct _TypeExpression{
     BasicType basicType;
-    char* name;
+    char* name; //what is this name?
     ExpressionList* expList;
 } TypeExpression;
 
