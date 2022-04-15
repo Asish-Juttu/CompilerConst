@@ -8,5 +8,5 @@ int main(){
     ParseTree pt = parse("testcases/s1.txt");
     handleParseTreeElement(pt.head);
     printProgram(nodeToAst(pt.head->node_syn, program), 0);
-    return 1;
+    return 0;
 }

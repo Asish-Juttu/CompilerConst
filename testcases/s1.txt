@@ -26,7 +26,7 @@ output parameter list[real d3];
 		d7<--- d3 + 36.87 - 29.67E-35; %No error as d7 is global and the types are same.
 		d3 <--- d3 + c3bd;	   %ERROR- type mismatch as the expression has arguments of types integer and real
 		b5b567 <--- b5b567 + c3bd; %No error
-		b5b567 <--- b5b567 + c3bd * d7dddd2; %ERROR- variable d7dddd2 not declared
+		b5b567 <--- b5b567 - c3bd * d7dddd2; %ERROR- variable d7dddd2 not declared
 	endwhile
 	return [d3];
 end

@@ -595,7 +595,7 @@ TokenInfoArray tokenize(char* file){
     TwinBuffer tb;
     TwinBuffer* tbuf = &tb;
     initTwinBuffer(tbuf, file);
-    initSymbolTable(&symbolTable);
+    initLexerSymbolTable(&symbolTable);
     TokenInfo tinf;
     while((tinf = getNextToken(tbuf)).token != EPSILON){
         if(tinf.token != ERROR_TOKEN){

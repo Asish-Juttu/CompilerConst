@@ -294,9 +294,11 @@ void printArithmeticExpression(Ast_ArithmeticExpression* t, int n){
     print("(", 0);
     if(t->rightType == AEXP_EXP)
         printArithmeticExpression(aexp_expRight(t), 0);
-
     else if(t->rightType == AEXP_VAR)
         printVar(aexp_varRight(t), 0);
+    else {
+        printf("<######>%d", t->rightType);
+    }
     print(")", 0);
 
 }
@@ -375,6 +377,9 @@ void printVar(Ast_Var* t, int n){
         print("[", 0);
         printFloat(rnumVar(t)->val, 0);
         print("]", 0);
+    }
+    else{
+        printf("<#####>%d", t->varType);
     }
 }
 

@@ -24,7 +24,7 @@ int main(){
     TwinBuffer* tbuf = &tb;
 
     initTwinBuffer(tbuf, "testcases/t3.txt");
-    initSymbolTable(&symbolTable);
+    initLexerSymbolTable(&symbolTable);
     TokenInfo tinf;
     while((tinf = getNextToken(tbuf)).token != EOF_TOKEN){
         if(tinf.token != ERROR_TOKEN){

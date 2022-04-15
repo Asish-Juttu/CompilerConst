@@ -864,7 +864,7 @@ LocationArray* getLocationArray(){
 ParseTree parse(char* c){
     Grammar grammar;
     initGrammar(&grammar);
-    initSymbolTable(&symbolTable);
+    initLexerSymbolTable(&symbolTable);
     FirstAndFollow fnf;
     initFirstAndFollow(&fnf, &grammar);
     ParseTable ptable;
