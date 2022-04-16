@@ -19,15 +19,17 @@ ID: 2019A7PS0065P
 #define _SYMBOL_TABLE_
 #include "token.h"
 #include "typeDef.h"
+#include "ast_def.h"
 
 #define HASHTABLE_SIZE 500
 
 typedef struct{
-    char* name;
-    char* to;
-    Token token;
-    Datatype type;
-    char* typeName;
+    char* name; // key (or alias of some record)
+    char* to; // the actual reocrd referenced by alias
+    Token token; // lexeme
+    Datatype type; // RNUM, NUM, UNION, RECORD
+    char* typeName; // name
+    Ast_FieldDefinitions* fieldDefs; // storing pointer to field def list of a record/union
 } SymbolVal;
 
 typedef struct{
@@ -80,6 +82,7 @@ extern SymbolTable lexerSymbolTable;
 extern SymbolTable typeDefSymbolTable;
 extern SymbolTable typeRedefSymbolTable;
 extern SymbolTable globVarSymbolTable;
+extern SymbolTable fieldSymbolTable;
 
 void initLexerSymbolTable();
 void initTypeDefSymbolTable();
@@ -90,7 +93,6 @@ void initGlobalSymbolTables();
 
 void insertVar(char* name, Datatype datatype, char* typeName);
 SymbolVal* findVar(char* name);
-
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t);
 void insertTypeDef(char* name, Datatype recOrUn);
 void insertTypeRedef(char* name, char* to);
@@ -99,7 +101,7 @@ void insert(SymbolTable* symTable, KeyVal kv);
 
 
 SymbolVal* find(SymbolTable* symTable, char* str);
-SymbolVal* findType(char* name);
+SymbolVal* findType(Ast_SingleOrRecId* id);
 
 int hash(char* name);
 

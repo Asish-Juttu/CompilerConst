@@ -115,21 +115,22 @@ void loadNextSymbolTable(){
 }
 
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t){
-    insert(&lexerSymbolTable, (KeyVal){lexeme, {lexeme, NULL, tk, t, NULL}});
+    insert(&lexerSymbolTable, (KeyVal){lexeme, {lexeme, NULL, tk, t, NULL, NULL}});
 }
 
-SymbolVal* findType(char* name){
-    SymbolVal* tdef = find(&typeDefSymbolTable, name);
-    if(tdef == NULL){
-        SymbolVal* trdef = find(&typeRedefSymbolTable, name);
-        return trdef != NULL ? find(&typeDefSymbolTable, trdef->to) : NULL;
-    }
+SymbolVal* findType(Ast_SingleOrRecId* id){
+    // SymbolVal* tdef = find(&typeDefSymbolTable, name);
+    // if(tdef == NULL){
+    //     SymbolVal* trdef = find(&typeRedefSymbolTable, name);
+    //     return trdef != NULL ? find(&typeDefSymbolTable, trdef->to) : NULL;
+    // }
 
-    return tdef;
+    // return tdef;
+
 }
 
 void insertVar(char* name, Datatype datatype, char* typeName){
-    KeyVal kv = (KeyVal){name, {name, NULL, 0, datatype, typeName}};
+    KeyVal kv = (KeyVal){name, {name, NULL, 0, datatype, typeName, NULL}};
     insert(currentSymbolTable(), kv);
 }
 
@@ -140,19 +141,19 @@ SymbolVal* findVar(char* name){
 
 void insertTypeDef(char* name, Datatype recOrUn){
     printf("insertTypeDef %s %s\n", name, dtypeToStr(recOrUn));
-    KeyVal kv = (KeyVal){name, {name, NULL, 0, recOrUn, name}};
+    KeyVal kv = (KeyVal){name, {name, NULL, 0, recOrUn, name, NULL}};
     insert(&typeDefSymbolTable, kv);
 }
 
 void insertTypeRedef(char* name, char* to){
     printf("insertTypeRedef %s %s\n", name, to);
-    KeyVal kv = (KeyVal){name, {name, to, 0, 0, name}};
+    KeyVal kv = (KeyVal){name, {name, to, 0, 0, name, NULL}};
     insert(&typeRedefSymbolTable, kv);
 }
 
 void insertGlobVar(char* name, Datatype t, char* typeName){
     printf("insertGlobalVar %s %s %s\n", name, dtypeToStr(t), typeName);
-    KeyVal kv = (KeyVal){name, {name, NULL, 0, t, typeName}};
+    KeyVal kv = (KeyVal){name, {name, NULL, 0, t, typeName, NULL}};
     insert(&globVarSymbolTable, kv);
 }
 
