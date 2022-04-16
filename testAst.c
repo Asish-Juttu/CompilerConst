@@ -5,7 +5,7 @@
 
 int main(){
     setbuf(stdout, NULL);
-    ParseTree pt = parse("testcases/s4.txt");
+    ParseTree pt = parse("testcases/s2.txt");
     handleParseTreeElement(pt.head);
     printProgram(nodeToAst(pt.head->node_syn, program), 0);
     return 0;
