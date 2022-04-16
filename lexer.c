@@ -56,12 +56,12 @@ int num_2(char ch){
 
 
 TokenInfo keyWordOrFieldId(char* lexeme, int lineNum){
-    SymbolVal* symInfo = find(&symbolTable, lexeme);
+    SymbolVal* symInfo = find(&lexerSymbolTable, lexeme);
 
     Token token = TK_FIELDID;
 
     if(symInfo == NULL){
-        insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FIELDID, NONE}});
+        insertIntoLexSymbolTable(lexeme, TK_FIELDID, DT_NONE);
         token = TK_FIELDID;
     }
 
@@ -73,12 +73,12 @@ TokenInfo keyWordOrFieldId(char* lexeme, int lineNum){
 
 TokenInfo keyWordOrFunId(char* lexeme, int lineNum){
     
-    SymbolVal* symInfo = find(&symbolTable, lexeme);
+    SymbolVal* symInfo = find(&lexerSymbolTable, lexeme);
 
     Token token = TK_FUNID;
 
     if(symInfo == NULL){
-        insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FUNID, NONE}});
+        insertIntoLexSymbolTable(lexeme, TK_FUNID, DT_NONE);
         token = TK_FUNID;
     }
 
@@ -89,7 +89,7 @@ TokenInfo keyWordOrFunId(char* lexeme, int lineNum){
 }
 
 TokenInfo getId(char* lexeme, int lineNum){
-    insert(&symbolTable, (KeyVal){lexeme, {lexeme, TK_FUNID, NONE}});
+    insertIntoLexSymbolTable(lexeme, TK_FUNID, DT_NONE);
     return (TokenInfo) {TK_ID, lexeme, lineNum};
 }
 
@@ -146,6 +146,9 @@ TokenInfo getNextToken(TwinBuffer* tbuf){
                     resetBegin(tbuf,0,NULL);
                 }
                 else if(ch == '\t'){
+                    resetBegin(tbuf,0,NULL);
+                }
+                else if(ch == ' '){
                     resetBegin(tbuf,0,NULL);
                 }
                 else if(isFieldID_1(ch)){
@@ -595,7 +598,7 @@ TokenInfoArray tokenize(char* file){
     TwinBuffer tb;
     TwinBuffer* tbuf = &tb;
     initTwinBuffer(tbuf, file);
-    initLexerSymbolTable(&symbolTable);
+    initGlobalSymbolTables(&lexerSymbolTable);
     TokenInfo tinf;
     while((tinf = getNextToken(tbuf)).token != EPSILON){
         if(tinf.token != ERROR_TOKEN){

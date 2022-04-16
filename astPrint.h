@@ -1,5 +1,9 @@
 #include "ast.h"
 
+void printStmt(Ast_Stmt* t, int n);
+void printAop(ArithmeticOperator op, int n);
+void printLop(LogicalOperator op, int n);
+void printRelop(RelationalOperator op, int n);
 
 void printTypeDefinitions(Ast_TypeDefinitions* t, int n);
 void printOtherStmts(Ast_OtherStmts* t, int n);

@@ -21,25 +21,10 @@ void printInt(int i, int n){
 
 void printId(Ast_Id* id, int n){
     print("Ast_Id", n);
+    print(id->id, 0);
 }
 void printDtype(Datatype dt, int n){
-    char* str;
-
-    if(dt == DT_PRIMITIVE){
-        str = "PRIMITIVE";
-    }
-    else if(dt == DT_UNION){
-        str = "UNION";
-    }
-    else if(dt == DT_RECORD){
-        str = "RECORD";
-    }
-    else if(dt == DT_NUM){
-        str = "NUM";
-    }
-    else if(dt == DT_RNUM){
-        str = "RNUM";
-    }
+    char* str = dtypeToStr(dt);
     print(str, n);
 }
 
@@ -51,6 +36,7 @@ void printDatatype(Ast_Datatype* t, int n){
 }
 void printTypeDefinition(Ast_TypeDefinition* t, int n){
     print("\nAst_TypeDefinition:\n", n);
+    printf("Is null %d\n", t == NULL);
     n = n + 1;
 
     if(t->type == TDEF){
@@ -158,7 +144,7 @@ void printOptionSingleConstructed(Ast_OptionSingleConstructed* t, int n){
 
 void printFieldDefinition(Ast_FieldDefinition* t, int n){
     print("Ast_FieldDefinition",n);
-    printDtype(t->fieldType, n);
+    printDatatype(t->fieldType, n);
     print(t->id,n);
 }
 
@@ -169,7 +155,7 @@ void printA(Ast_A* t, int n){
 
 void printNum(Ast_Num* t, int n){
     print("Ast_Num:",n);
-    print(t->val,0);
+    printInt(t->val,0);
 }
 
 void printRnum(Ast_Rnum* t, int n){
@@ -181,7 +167,7 @@ void printDeclaration(Ast_Declaration* t, int n){
     print("Ast_Declaration:",n);
 
     print(t->isGlobal ? "(Global)" : "",0);
-    printDtype(t->type, 0);
+    printDatatype(t->datatype, 0);
     print(t->id,0);
 }
 
@@ -215,7 +201,7 @@ void printStmts(Ast_Stmts* t, int n){
     printOtherStmts(t->otherStmts, n);
     printf("\n");
 
-    printId(t->returnIds,n);
+    printIdList(t->returnIds,n);
 }
 
 void printMain(Ast_Main* t, int n){
@@ -356,7 +342,7 @@ void printFunCallStmt(Ast_FunCallStmt* t, int n){
     
     printIdList(t->outputIdList, 0);
     printf("<---");
-    print(t->funId, n);
+    print(t->funId, 0);
     printIdList(t->inputIdList, 0);
 
 }
