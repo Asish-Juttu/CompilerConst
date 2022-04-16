@@ -107,7 +107,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *input_par = &ptElement->children[1];
                 ParseTreeElement *output_par = &ptElement->children[2];
                 ParseTreeElement *statements = &ptElement->children[4];
-
+               
                 pushSymbolTable(tkFunId.lexeme);
                 loadNextSymbolTable();
 
@@ -120,7 +120,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeFunction, function)->input_par = nodeToAst(input_par->node_syn, parameterList);
                 nodeToAst(nodeFunction, function)->output_par = nodeToAst(output_par->node_syn, parameterList);
                 nodeToAst(nodeFunction, function)->stmts = nodeToAst(statements->node_syn, stmts);
-
+    
                 insertTo(nodeToAst(func->node_inh, otherFunctions)->functionList, nodeFunction);
                 func->node_syn = func->node_inh;
 
@@ -361,7 +361,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     type_def->node_syn = nodeTypeDefinition;
 
-                    insertTypeDef(tkRuid.lexeme, DT_RECORD);
+                    insertTypeDef(tkRuid.lexeme, DT_RECORD, nodeToAst(nodeTypeDefinition, typeDefinition));
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -382,7 +382,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     //         nodeTypeDefinition);
 
                     type_def->node_syn = nodeTypeDefinition;
-                    insertTypeDef(tkRuid.lexeme, DT_UNION);
+                    insertTypeDef(tkRuid.lexeme, DT_UNION, nodeToAst(nodeTypeDefinition, typeDefinition));
                 }
                 break;
             }

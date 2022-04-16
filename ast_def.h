@@ -225,6 +225,7 @@ typedef struct {
     Ast_ParameterList* input_par;
     Ast_ParameterList* output_par;
     Ast_Stmts* stmts;
+    Ast_IdList* retIdList;
     TypeExpression typeExpr;
     int lineNo;
 } Ast_Function;

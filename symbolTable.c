@@ -27,8 +27,15 @@ SymbolTable globVarSymbolTable;
 SymbolTableList localSymbolTableList;
 int init = 0;
 
+SymbolTable* curSymTable = NULL;
+
 KeyVal keyVal(char* name){
     return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL}};
+}
+
+void loadSymbolTable(char* funId){
+    SymbolVal* sval = findFunc(funId);
+    curSymTable = sval->symbolTable;
 }
 
 void initSymTable(SymbolTable* symTable){
@@ -48,6 +55,10 @@ void initTypeDefSymbolTable(){
 void initTypeRedefSymbolTable(){
     typeRedefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
     initSymTable(&typeRedefSymbolTable);
+}
+
+void setCurrentSymbolTable(SymbolTable* symbolTable){
+    curSymTable = symbolTable;
 }
 
 void initGlobVarSymbolTable(){
@@ -71,7 +82,7 @@ void initGlobalSymbolTables(){
 
     localSymbolTableList.cap = 1;
     localSymbolTableList.size = 0;
-    localSymbolTableList.current = -1;
+    //localSymbolTableList.current = -1;
 
     initLexerSymbolTable();
     initTypeDefSymbolTable();
@@ -102,20 +113,7 @@ SymbolTable* topSymbolTable(){
 }
 
 SymbolTable* currentSymbolTable(){
-    int index = localSymbolTableList.current;
-    if(index < 0){
-        printf("Local symbol table list current is pointing to -1\n");
-        return NULL;
-    }
-    return localSymbolTableList.symTables[index];
-}
-
-void resetCurrentSymbolTable(){
-    localSymbolTableList.current = -1;
-}
-
-void loadNextSymbolTable(){
-    localSymbolTableList.current++;
+    return curSymTable;
 }
 
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t){

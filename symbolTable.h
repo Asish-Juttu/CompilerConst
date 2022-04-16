@@ -32,6 +32,8 @@ typedef struct {
     Datatype type; // RNUM, NUM, UNION, RECORD
     char* typeName; // name
     struct _SymbolTable* symbolTable;
+    int offset;
+    int width; // in bytes
 } SymbolVal;
 
 typedef struct{
@@ -63,7 +65,6 @@ typedef struct _SymbolTableList{
     SymbolTable** symTables;
     int size;
     int cap;
-    int current;
 } SymbolTableList;
 
 extern SymbolTableList localSymbolTableList;
@@ -73,18 +74,38 @@ void pushSymbolTable(char* fname);
 SymbolTable* topSymbolTable();
 SymbolTable* currentSymbolTable();
 void resetCurrentSymbolTable();
-void loadNextSymbolTable();
+void loadSymbolTable(char* funId);
+void setCurrentSymbolTable(SymbolTable* symbolTable);
 
 typedef struct {
 
 } SymbolTableStack;
 
 
-extern SymbolTable lexerSymbolTable;
-extern SymbolTable typeDefSymbolTable;
-extern SymbolTable typeRedefSymbolTable;
-extern SymbolTable globVarSymbolTable;
-extern SymbolTable funSymbolTable;
+extern SymbolTable lexerSymbolTable; // for id - token distinguishing
+
+extern SymbolTable typeDefSymbolTable; // for each record / union
+// stores (initially) name of record
+// stores symbolTable which maps fieldNames to its type
+// for ex rec A : int a; point b;
+// a -> int
+// b -> record b
+
+extern SymbolTable typeRedefSymbolTable; // for each define type statement
+// definetype oldType as newType
+// newType -> oldType
+// (name)      (to)
+
+extern SymbolTable globVarSymbolTable; // stores all global variables
+// int a; point b; 
+// a -> int
+//       (type)
+// b -> record point
+//      (type)  (typeName)
+
+extern SymbolTable funSymbolTable; // function - symTable map
+// f -> symTable(f)
+// (name) (symbolTable)
 
 void initLexerSymbolTable();
 void initTypeDefSymbolTable();
