@@ -51,7 +51,7 @@ typedef struct{
 struct _SybolTableList;
 typedef struct _SymbolTable{
     TableEntry* tb;
-    struct _SymbolTable* previous;
+    char* name;
 } SymbolTable;
 
 
@@ -66,6 +66,10 @@ extern SymbolTableList localSymbolTableList;
 
 void growIfFull(SymbolTableList* list);
 void pushSymbolTable(char* fname);
+SymbolTable* topSymbolTable();
+SymbolTable* currentSymbolTable();
+void resetCurrentSymbolTable();
+void loadNextSymbolTable();
 
 typedef struct {
 
@@ -85,7 +89,7 @@ void initGlobalSymbolTables();
 
 
 void insertVar(char* name, Datatype datatype, char* typeName);
-SymbolVal* findVar();
+SymbolVal* findVar(char* name);
 
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t);
 void insertTypeDef(char* name, Datatype recOrUn);

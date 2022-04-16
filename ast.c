@@ -66,7 +66,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *statements = &ptElement->children[1];
 
                 handleParseTreeElement(statements);
-
+                pushSymbolTable("main");
+                
                 declareAstNode(nodeMainFunction, AST_MAIN, Ast_Main, mainFunction);
                 nodeToAst(nodeMainFunction, mainFunction)->stmts =
                     nodeToAst(statements->node_syn, stmts);
@@ -106,6 +107,10 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *input_par = &ptElement->children[1];
                 ParseTreeElement *output_par = &ptElement->children[2];
                 ParseTreeElement *statements = &ptElement->children[4];
+
+                pushSymbolTable(tkFunId.lexeme);
+                loadNextSymbolTable();
+
                 handleParseTreeElement(input_par);
                 handleParseTreeElement(output_par);
                 handleParseTreeElement(statements);
@@ -118,6 +123,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 insertTo(nodeToAst(func->node_inh, otherFunctions)->functionList, nodeFunction);
                 func->node_syn = func->node_inh;
+
                 break;
             }
 
@@ -127,6 +133,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *parameter_list = &ptElement->children[4];
                 declareAstNode(nodeParameterList, AST_PARAMETERLIST, Ast_ParameterList, parameterList);
                 nodeToAst(nodeParameterList, parameterList)->parameterList = createAstList();
+                AstList* list = nodeToAst(nodeParameterList, parameterList)->parameterList;
+                for(int i = 0; i < list->size; i++){
+                    Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
+                    insertVar(param->id, param->datatype->datatype, param->datatype->name);
+                }
                 parameter_list->node_inh = nodeParameterList;
                 handleParseTreeElement(parameter_list);
                 input_par->node_syn = parameter_list->node_syn;
@@ -143,6 +154,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeParameterList, parameterList)->parameterList = createAstList();
                     parameter_list->node_inh = nodeParameterList;
                     handleParseTreeElement(parameter_list);
+                    AstList* list = nodeToAst(nodeParameterList, parameterList)->parameterList;
+                    for(int i = 0; i < list->size; i++){
+                        Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
+                        insertVar(param->id, param->datatype->datatype, param->datatype->name);
+                    }
                     output_par->node_syn = parameter_list->node_syn;
                 }
                 else if (ptElement->ruleNo == 1)
@@ -485,6 +501,9 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 if(isGlobal){
                     insertGlobVar(tkId.lexeme, dtype->datatype, dtype->name);
+                }
+                else{
+                    insertVar(tkId.lexeme, dtype->datatype, dtype->name);
                 }
                 break;
             }

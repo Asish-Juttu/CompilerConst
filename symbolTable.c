@@ -33,7 +33,9 @@ void initSymTable(SymbolTable* symTable){
         symTable->tb[i].head = NULL;
         symTable->tb[i].tail = NULL;
     }
+    symTable->name = NULL;
 }
+
 void initTypeDefSymbolTable(){
     typeDefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
     initSymTable(&typeDefSymbolTable);
@@ -58,10 +60,10 @@ void initGlobalSymbolTables(){
         free(localSymbolTableList.symTables);
     }
     init = 1;
-    typeDefSymbolTable.previous = NULL;
-    typeRedefSymbolTable.previous = NULL;
-    lexerSymbolTable.previous = NULL;
-    globVarSymbolTable.previous = NULL;
+    // typeDefSymbolTable.previous = NULL;
+    // typeRedefSymbolTable.previous = NULL;
+    // lexerSymbolTable.previous = NULL;
+    // globVarSymbolTable.previous = NULL;
 
     localSymbolTableList.cap = 1;
     localSymbolTableList.size = 0;
@@ -83,7 +85,35 @@ void pushSymbolTable(char* fname){
     growIfFull(&localSymbolTableList);
     SymbolTable* symTable = malloc(sizeof(SymbolTable));
     localSymbolTableList.symTables[localSymbolTableList.size] = symTable;
+    localSymbolTableList.size++;
 }
+
+SymbolTable* topSymbolTable(){
+    int index = localSymbolTableList.size - 1;
+    if(index < 0){
+        printf("Local symbol table list is empty\n");
+        return NULL;
+    }
+    return localSymbolTableList.symTables[index];
+}
+
+SymbolTable* currentSymbolTable(){
+    int index = localSymbolTableList.current;
+    if(index < 0){
+        printf("Local symbol table list current is pointing to -1\n");
+        return NULL;
+    }
+    return localSymbolTableList.symTables[index];
+}
+
+void resetCurrentSymbolTable(){
+    localSymbolTableList.current = -1;
+}
+
+void loadNextSymbolTable(){
+    localSymbolTableList.current++;
+}
+
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t){
     insert(&lexerSymbolTable, (KeyVal){lexeme, {lexeme, NULL, tk, t, NULL}});
 }
@@ -98,6 +128,15 @@ SymbolVal* findType(char* name){
     return tdef;
 }
 
+void insertVar(char* name, Datatype datatype, char* typeName){
+    KeyVal kv = (KeyVal){name, {name, NULL, 0, datatype, typeName}};
+    insert(currentSymbolTable(), kv);
+}
+
+SymbolVal* findVar(char* name){
+    SymbolVal* res = find(currentSymbolTable(), name);
+    return res;
+}
 
 void insertTypeDef(char* name, Datatype recOrUn){
     printf("insertTypeDef %s %s\n", name, dtypeToStr(recOrUn));
