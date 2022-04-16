@@ -18,47 +18,246 @@ ID: 2019A7PS0065P
 #include "symbolTable.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-SymbolTable symbolTable;
+SymbolTable lexerSymbolTable;
+SymbolTable typeDefSymbolTable;
+SymbolTable typeRedefSymbolTable;
+SymbolTable globVarSymbolTable;
+SymbolTableList localSymbolTableList;
+int init = 0;
 
-void initLexerSymbolTable(SymbolTable* symTable){
-    symTable->tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+KeyVal keyVal(char* name){
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL}};
+}
 
+void initSymTable(SymbolTable* symTable){
     for(int i = 0; i < HASHTABLE_SIZE; i++){
         symTable->tb[i].sz = 0;
         symTable->tb[i].head = NULL;
         symTable->tb[i].tail = NULL;
     }
+    symTable->name = NULL;
+}
+
+void initTypeDefSymbolTable(){
+    typeDefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    initSymTable(&typeDefSymbolTable);
+}
+
+void initTypeRedefSymbolTable(){
+    typeRedefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    initSymTable(&typeRedefSymbolTable);
+}
+
+void initGlobVarSymbolTable(){
+    globVarSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    initSymTable(&globVarSymbolTable);
+}
+
+void initGlobalSymbolTables(){
+    if(init){
+        free(lexerSymbolTable.tb);
+        free(typeDefSymbolTable.tb);
+        free(typeRedefSymbolTable.tb);
+        free(globVarSymbolTable.tb);
+        free(localSymbolTableList.symTables);
+    }
+    init = 1;
+    // typeDefSymbolTable.previous = NULL;
+    // typeRedefSymbolTable.previous = NULL;
+    // lexerSymbolTable.previous = NULL;
+    // globVarSymbolTable.previous = NULL;
+
+    localSymbolTableList.cap = 1;
+    localSymbolTableList.size = 0;
+    localSymbolTableList.current = -1;
+
+    initLexerSymbolTable();
+    initTypeDefSymbolTable();
+    initTypeRedefSymbolTable();
+    initGlobVarSymbolTable();
+}
+
+void growIfFull(SymbolTableList* list){
+    if(list->size == list->cap){
+        list->cap = (int)(list->cap * 1.4 + 1);
+        list->symTables = realloc(list->symTables, list->cap * sizeof(SymbolTable*));
+    }
+}
+void pushSymbolTable(char* fname){
+    growIfFull(&localSymbolTableList);
+    SymbolTable* symTable = malloc(sizeof(SymbolTable));
+    localSymbolTableList.symTables[localSymbolTableList.size] = symTable;
+    localSymbolTableList.size++;
+}
+
+SymbolTable* topSymbolTable(){
+    int index = localSymbolTableList.size - 1;
+    if(index < 0){
+        printf("Local symbol table list is empty\n");
+        return NULL;
+    }
+    return localSymbolTableList.symTables[index];
+}
+
+SymbolTable* currentSymbolTable(){
+    int index = localSymbolTableList.current;
+    if(index < 0){
+        printf("Local symbol table list current is pointing to -1\n");
+        return NULL;
+    }
+    return localSymbolTableList.symTables[index];
+}
+
+void resetCurrentSymbolTable(){
+    localSymbolTableList.current = -1;
+}
+
+void loadNextSymbolTable(){
+    localSymbolTableList.current++;
+}
+
+void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t){
+    KeyVal kv = keyVal(lexeme);
+    kv.val.token = tk;
+    kv.val.type = t;
+
+    insert(&lexerSymbolTable, kv);
+}
+
+SymbolVal* findTypeDefinition(char* name){
+    SymbolVal* tdef = find(&typeDefSymbolTable, name);
+    if(tdef == NULL){
+        SymbolVal* trdef = find(&typeRedefSymbolTable, name);
+        if(trdef == NULL) return NULL;
+        return find(&typeDefSymbolTable, trdef->to);
+    }
+
+    return tdef;
+}
+
+// if returns null => no such variable
+SymbolVal* findType(Ast_SingleOrRecId* id){
+    SymbolVal* firstId = findVar(id->id);
+    if(firstId == NULL) return NULL;
+
+    AstList* list = id->fieldNameList;
+    if(list->size == 0)
+        return firstId;
+    
+    SymbolVal* fVal = NULL;
+    char* typeName = firstId->typeName;
+    for(int i = 0; i < list->size; i++){
+        if(typeName == NULL){
+            return NULL;
+        }
+        fVal = findTypeDefinition(typeName);
+        char* id = nodeToAst(list->nodes[i], id)->id;
+        fVal = find(fVal->symbolTable, id);
+        typeName = fVal->typeName;
+    }
+    
+    return fVal;
+}
+
+void insertVar(char* name, Datatype datatype, char* typeName){
+    KeyVal kv = keyVal(name);
+    kv.val.type = datatype;
+    kv.val.typeName = typeName;
+
+    insert(currentSymbolTable(), kv);
+}
+
+SymbolVal* findVar(char* name){
+    SymbolVal* res = find(currentSymbolTable(), name);
+    return res;
+}
+
+void insertFunc(char* name, char* symbolTable){
+    KeyVal kv = keyVal(name);
+    kv.val.symbolTable = symbolTable;
+    
+    insert(&funSymbolTable, kv);
+}
+
+SymbolVal* findFunc(char* name){
+    return find(&funSymbolTable, name);
+}
+
+void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs){
+    printf("insertTypeDef %s %s\n", name, dtypeToStr(recOrUn));
+    KeyVal kv = keyVal(name);
+    kv.val.type = recOrUn;
+
+    AstList* list = fieldDefs->fieldDefinitionList;
+    SymbolTable* flistSymTab = malloc(sizeof(SymbolTable));
+    for(int i = 0; i < list->size; i++){
+        Ast_FieldDefinition* fdef = nodeToAst(list->nodes[i], fieldDefinition);
+
+        KeyVal kv = keyVal(fdef->id);
+        kv.val.type = fdef->fieldType->datatype;
+        kv.val.typeName = fdef->fieldType->name;
+
+        insert(flistSymTab, kv);
+    }
+
+    kv.val.symbolTable = flistSymTab;
+    insert(&typeDefSymbolTable, kv);
+}
+
+void insertTypeRedef(char* name, char* to){
+    printf("insertTypeRedef %s %s\n", name, to);
+    KeyVal kv = keyVal(name);
+    kv.val.to = to;
+
+    insert(&typeRedefSymbolTable, kv);
+}
+
+void insertGlobVar(char* name, Datatype t, char* typeName){
+    printf("insertGlobalVar %s %s %s\n", name, dtypeToStr(t), typeName);
+    KeyVal kv = keyVal(name);
+    kv.val.type = t;
+    kv.val.typeName = typeName;
+
+    insert(&globVarSymbolTable, kv);
+}
+
+void initLexerSymbolTable(){
+    SymbolTable* symTable = &lexerSymbolTable;
+    symTable->tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+
+    initSymTable(symTable);
 
     //initalize keywords
-    insert(symTable, (KeyVal){"with", {"with", TK_WITH, NONE}});
-    insert(symTable, (KeyVal){"parameters", {"parameters", TK_PARAMETERS, NONE}});
-    insert(symTable, (KeyVal){"while", {"while", TK_WHILE, NONE}});
-    insert(symTable, (KeyVal){"union", {"union", TK_UNION, NONE}});
-    insert(symTable, (KeyVal){"endunion", {"endunion", TK_ENDUNION, NONE}});
-    insert(symTable, (KeyVal){"definetype", {"definetype", TK_DEFINETYPE, NONE}});
-    insert(symTable, (KeyVal){"as", {"as", TK_AS, NONE}});
-    insert(symTable, (KeyVal){"type", {"type", TK_TYPE, NONE}});
-    insert(symTable, (KeyVal){"_main", {"_main", TK_MAIN, NONE}});
-    insert(symTable, (KeyVal){"global", {"global", TK_GLOBAL, NONE}});
-    insert(symTable, (KeyVal){"parameter", {"parameter", TK_PARAMETER, NONE}});
-    insert(symTable, (KeyVal){"list", {"list", TK_LIST, NONE}});
-    insert(symTable, (KeyVal){"input", {"input", TK_INPUT, NONE}});
-    insert(symTable, (KeyVal){"output", {"output", TK_OUTPUT, NONE}});
-    insert(symTable, (KeyVal){"int", {"int", TK_INT, NONE}});
-    insert(symTable, (KeyVal){"real", {"real", TK_REAL, NONE}});
-    insert(symTable, (KeyVal){"endwhile", {"endwhile", TK_ENDWHILE, NONE}});
-    insert(symTable, (KeyVal){"if", {"if", TK_IF, NONE}});
-    insert(symTable, (KeyVal){"then", {"then", TK_THEN, NONE}});
-    insert(symTable, (KeyVal){"endif", {"endif", TK_ENDIF, NONE}});
-    insert(symTable, (KeyVal){"read", {"read", TK_READ, NONE}});
-    insert(symTable, (KeyVal){"write", {"write", TK_WRITE, NONE}});
-    insert(symTable, (KeyVal){"return", {"return", TK_RETURN, NONE}});
-    insert(symTable, (KeyVal){"call", {"call", TK_CALL, NONE}});
-    insert(symTable, (KeyVal){"record", {"record", TK_RECORD, NONE}});
-    insert(symTable, (KeyVal){"endrecord", {"endrecord", TK_ENDRECORD, NONE}});
-    insert(symTable, (KeyVal){"else", {"else", TK_ELSE, NONE}});
-    insert(symTable, (KeyVal){"end", {"end", TK_END, NONE}});
+    insertIntoLexSymbolTable("with", TK_WITH, DT_NONE);
+    insertIntoLexSymbolTable("parameters", TK_PARAMETERS, DT_NONE);
+    insertIntoLexSymbolTable("while", TK_WHILE, DT_NONE);
+    insertIntoLexSymbolTable("union", TK_UNION, DT_NONE);
+    insertIntoLexSymbolTable("endunion", TK_ENDUNION, DT_NONE);
+    insertIntoLexSymbolTable("definetype", TK_DEFINETYPE, DT_NONE);
+    insertIntoLexSymbolTable("as", TK_AS, DT_NONE);
+    insertIntoLexSymbolTable("type", TK_TYPE, DT_NONE);
+    insertIntoLexSymbolTable("_main", TK_MAIN, DT_NONE);
+    insertIntoLexSymbolTable("global", TK_GLOBAL, DT_NONE);
+    insertIntoLexSymbolTable("parameter", TK_PARAMETER, DT_NONE);
+    insertIntoLexSymbolTable("list", TK_LIST, DT_NONE);
+    insertIntoLexSymbolTable("input", TK_INPUT, DT_NONE);
+    insertIntoLexSymbolTable("output", TK_OUTPUT, DT_NONE);
+    insertIntoLexSymbolTable("int", TK_INT, DT_NONE);
+    insertIntoLexSymbolTable("real", TK_REAL, DT_NONE);
+    insertIntoLexSymbolTable("endwhile", TK_ENDWHILE, DT_NONE);
+    insertIntoLexSymbolTable("if", TK_IF, DT_NONE);
+    insertIntoLexSymbolTable("then", TK_THEN, DT_NONE);
+    insertIntoLexSymbolTable("endif", TK_ENDIF, DT_NONE);
+    insertIntoLexSymbolTable("read", TK_READ, DT_NONE);
+    insertIntoLexSymbolTable("write", TK_WRITE, DT_NONE);
+    insertIntoLexSymbolTable("return", TK_RETURN, DT_NONE);
+    insertIntoLexSymbolTable("call", TK_CALL, DT_NONE);
+    insertIntoLexSymbolTable("record", TK_RECORD, DT_NONE);
+    insertIntoLexSymbolTable("endrecord", TK_ENDRECORD, DT_NONE);
+    insertIntoLexSymbolTable("else", TK_ELSE, DT_NONE);
+    insertIntoLexSymbolTable("end", TK_END, DT_NONE);
 }
 
 int hash(char* name){

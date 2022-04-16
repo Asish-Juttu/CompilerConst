@@ -1,0 +1,17 @@
+Types of Semantic errors:
+1. Variable in a function cannot have the same name as any parameters/cannot be redeclared.
+2. Global variables cannot be redeclared
+3. Type mismatch (LHS is of type real and RHS is of type int)
+4. Type mismatch (Adding real and int types)
+5. Variable not declared
+6. Addition and subtraction of different record types.
+7. Type mismatch (Adding number with a record/union)
+8. Constructed variable's field does not exist.
+9. Number of parameters don't match in function call
+10. Type of parameters don't match in function call
+11. Function parameter cannot be of union type. Can be record type.
+12. Infinite Loop condition. Report Line number as the line number of the iterative statement. -- 
+    Basically, variables are not assigned any value
+13. Recursion is not valid
+14. Function Overloading is not valid
+15. Function not defined before calling it

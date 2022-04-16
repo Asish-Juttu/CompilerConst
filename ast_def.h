@@ -6,12 +6,11 @@
 #define declareAstNode(VARNAME, ENUM, STRUCT, FIELD) \
     AstNode *VARNAME = makeEmptyAstNode();           \
     VARNAME->type = ENUM;                            \
-    VARNAME->node.FIELD = malloc(sizeof(STRUCT)); \
-    printf("Declaring ast node %s of type %s\n", #VARNAME, #STRUCT);
+    VARNAME->node.FIELD = malloc(sizeof(STRUCT)); 
 
-#define nodeToAst(VAR, FIELD) (VAR == NULL ? printf("%s is null.\n", #VAR) :\
-    (toAstType(#FIELD) == VAR->type) ? VAR->node.FIELD : printf("%s being accessed as %s\n [nodeToAst(%s, %s)]\n", astToStr(VAR->type), \
-    astToStr(toAstType(#FIELD)), #VAR, #FIELD))
+#define nodeToAst(VAR, FIELD) (VAR == NULL ? (printf("%s is null.\n", #VAR) ? VAR->node.FIELD : VAR->node.FIELD) :\
+    (toAstType(#FIELD) == VAR->type) ? VAR->node.FIELD : (printf("%s being accessed as %s\n [nodeToAst(%s, %s)]\n", astToStr(VAR->type), \
+    astToStr(toAstType(#FIELD)), #VAR, #FIELD) ? VAR->node.FIELD : VAR->node.FIELD))
 #define boolOpBexp(VAR) VAR->bexp.boolOp
 #define varCompBexp(VAR) VAR->bexp.varComp
 #define numVar(VAR) VAR->varUnion.num
@@ -45,10 +44,6 @@ typedef enum {
 typedef enum{
     AOP_PLUS, AOP_MINUS, AOP_MUL, AOP_DIV
 } ArithmeticOperator;
-
-typedef enum{
-    DT_PRIMITIVE, DT_UNION, DT_RECORD, DT_NUM, DT_RNUM
-} Datatype;
 
 typedef enum {
     BEXP_VAR_COMP, BEXP_BOOL_OP
@@ -149,7 +144,7 @@ typedef struct {
 } Ast_Datatype;
 
 typedef struct {
-    Datatype fieldType;
+    Ast_Datatype* fieldType;
     char* id;
     TypeExpression typeExpr;
     int lineNo;
@@ -182,7 +177,7 @@ typedef struct {
 } Ast_Rnum;
 
 typedef struct {
-    Datatype type;
+    Ast_Datatype* datatype;
     char* id;
     int isGlobal;
     TypeExpression typeExpr;

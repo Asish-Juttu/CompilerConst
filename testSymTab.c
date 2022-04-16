@@ -18,8 +18,8 @@ ID: 2019A7PS0065P
 #include <stdio.h>
 
 int main(){
-    insert(&symbolTable, (KeyVal){"Hello", {"Hello", TK_AND, NONE}});
-    SymbolVal* symInfo = find(&symbolTable, "Hello");
+    insert(&lexerSymbolTable, (KeyVal){"Hello", {"Hello", TK_AND, NONE}});
+    SymbolVal* symInfo = find(&lexerSymbolTable, "Hello");
     printf("Is Null %d", (symInfo == NULL));
     return 1;
 }

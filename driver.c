@@ -68,7 +68,7 @@ int ex=0;
 
         Grammar grammar;
         initGrammar(&grammar);
-        initLexerSymbolTable(&symbolTable);
+        initGlobalSymbolTables(&lexerSymbolTable);
         FirstAndFollow fnf;
         initFirstAndFollow(&fnf, &grammar);
         ParseTable ptable;

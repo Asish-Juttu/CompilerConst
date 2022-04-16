@@ -26,6 +26,7 @@ void growIfFull(ExpressionList *list)
 
 void insertToExpList(ExpressionList *list, TypeExpression t)
 {
+    growIfFull(list);
     list->typeExpressionList[list->size] = t;
     list->size++;
 }
@@ -222,12 +223,10 @@ void handleTypeExpressionParameterList(Ast_ParameterList *astElement)
     {
         astElement->typeExpr.basicType = BTYPE_PARAM_LIST;
         astElement->typeExpr.expList = createExpressionList();
+        
         for (int i = 0; i < astElement->parameterList->size; i++)
         {
-            if (astElement->typeExpr.expList->size == cap)
-            {
-                growIfFull(astElement->typeExpr.expList);
-            }
+
             Ast_ParameterDeclaration *paradec = astElement->parameterList->nodes[i]->node.parameterDeclaration;
             insertToExpList(astElement->typeExpr.expList, paradec->typeExpr);
         }

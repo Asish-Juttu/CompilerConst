@@ -4,6 +4,7 @@
         "stdlib.h": "c",
         "type.h": "c",
         "token.h": "c",
-        "symboltable.h": "c"
+        "symboltable.h": "c",
+        "ast.h": "c"
     }
 }

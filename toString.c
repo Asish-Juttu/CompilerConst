@@ -159,3 +159,15 @@ char* basicTypeToString(BasicType bt){
 
     return "INVALID TYPE";
 }
+
+char* dtypeToStr(Datatype t){
+    switch(t){
+        case DT_PRIMITIVE : return "DT_PRIMITIVE";
+        case DT_UNION : return "DT_UNION";
+        case DT_RECORD : return "DT_RECORD";
+        case DT_NUM : return "DT_NUM";
+        case DT_RNUM  : return "DT_RNUM";
+        case DT_NONE : return "DT_NONE";
+    }
+    return "INVALID DATATYPE";
+}
