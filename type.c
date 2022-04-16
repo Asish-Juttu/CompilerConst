@@ -26,7 +26,6 @@ void growIfFull(ExpressionList *list)
 
 void insertToExpList(ExpressionList *list, TypeExpression t)
 {
-    growIfFull(list);
     list->typeExpressionList[list->size] = t;
     list->size++;
 }
@@ -223,10 +222,12 @@ void handleTypeExpressionParameterList(Ast_ParameterList *astElement)
     {
         astElement->typeExpr.basicType = BTYPE_PARAM_LIST;
         astElement->typeExpr.expList = createExpressionList();
-        
         for (int i = 0; i < astElement->parameterList->size; i++)
         {
-
+            if (astElement->typeExpr.expList->size == astElement->typeExpr.expList->cap)
+            {
+                growIfFull(astElement->typeExpr.expList);
+            }
             Ast_ParameterDeclaration *paradec = astElement->parameterList->nodes[i]->node.parameterDeclaration;
             insertToExpList(astElement->typeExpr.expList, paradec->typeExpr);
         }
@@ -301,17 +302,120 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
 
 void handleTypeExpressionTypeDefinitions(Ast_TypeDefinitions *astElement)
 {
-    
+    int isError = 0;
+    for (int i = 0; i < astElement->typeDefintionList->size; i++)
+    {
+        Ast_TypeDefinition *typedeff = astElement->typeDefintionList->nodes[i]->node.typeDefinition;
+        handleTypeExpressionTypeDefinition(typedeff);
+        if (typedeff->typeExpr.basicType == BTYPE_ERROR)
+        {
+            isError = 1;
+        }
+    }
+    if (isError)
+    {
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
+    else
+    {
+        astElement->typeExpr.basicType = BTYPE_VOID;
+        astElement->typeExpr.expList = NULL;
+    }
 }
 
 void handleTypeExpressionDeclarations(Ast_Declarations *astElement)
 {
+    int isError = 0;
+    for (int i = 0; i < astElement->declarationList->size; i++)
+    {
+        Ast_Declaration *astdec = astElement->declarationList->nodes[i]->node.declaration;
+        handleTypeExpressionDeclaration(astdec);
+        if (astdec->typeExpr.basicType == BTYPE_ERROR)
+        {
+            isError = 1;
+        }
+    }
+    if (isError)
+    {
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
+    else
+    {
+        astElement->typeExpr.basicType = BTYPE_VOID;
+        astElement->typeExpr.expList = NULL;
+    }
 }
 
 void handleTypeExpressionOtherStmts(Ast_OtherStmts *astElement)
 {
+    int isError = 0;
+    for (int i = 0; i < astElement->otherStmtList->size; i++)
+    {
+        Ast_Stmt *statement = astElement->otherStmtList->nodes[i]->node.stmt;
+        handleTypeExpressionStmt(statement);
+        if (statement->type == STMT_ASSIGN)
+        {
+            if (statement->stmtUnion.assignStmt->typeExpr.basicType == BTYPE_ERROR)
+            {
+                isError = 1;
+            }
+        }
+        else if (statement->type == STMT_COND)
+        {
+            if (statement->stmtUnion.condStmt->typeExpr.basicType == BTYPE_ERROR)
+            {
+                isError = 1;
+            }
+        }
+        else if (statement->type == STMT_ITER)
+        {
+            if (statement->stmtUnion.iterStmt->typeExpr.basicType == BTYPE_ERROR)
+            {
+                isError = 1;
+            }
+        }
+        else if (statement->type == STMT_FUN_CALL)
+        {
+            if (statement->stmtUnion.funCallStmt->typeExpr.basicType == BTYPE_ERROR)
+            {
+                isError = 1;
+            }
+        }
+        else if (statement->type == STMT_IO)
+        {
+            if (statement->stmtUnion.ioStmt->typeExpr.basicType == BTYPE_ERROR)
+            {
+                isError = 1;
+            }
+        }
+    }
+    if (isError)
+    {
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
+    else
+    {
+        astElement->typeExpr.basicType = BTYPE_VOID;
+        astElement->typeExpr.expList = NULL;
+    }
 }
 
 void handleTypeExpressionIdlist(Ast_IdList *astElement)
+{
+
+}
+
+void handleTypeExpressionTypeDefinition(Ast_TypeDefinition *astElement)
+{
+}
+
+void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
+{
+}
+
+void handleTypeExpressionStmt(Ast_Stmt *astElement)
 {
 }
