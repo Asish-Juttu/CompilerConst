@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+StringList code;
 void initStringList(StringList* list){
     list->cap = 1;
     list->size = 0;
@@ -62,6 +63,8 @@ void genConditionalStmt(Ast_ConditionalStmt* cstmt){
 
 void read(Ast_Var* var){
     //for primitive_datatype - base case - do read
+    
+    if()
     //else call read on all vars in record
 }
 
@@ -95,7 +98,14 @@ void genAssStmt(Ast_AssignmentStmt* aStmt){
 void genIoStmt(Ast_IoStmt* iostmt){
     //for read
         //call read
-
+    
+    if(iostmt->ioType == IO_READ){
+        append(&code, ";io read\n");
+        read(iostmt->var);
+    }
     //for write
         //call write
+    else if(iostmt->ioType == IO_WRITE){
+
+    }
 }
