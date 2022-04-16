@@ -533,6 +533,9 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
     else if (astElement->type == STMT_COND)
     {
         Ast_ConditionalStmt *conditionalStatement = astElement->stmtUnion.condStmt;
+        handleTypeExpressionOtherStmts(conditionalStatement->body);
+        handleTypeExpressionOtherStmts(conditionalStatement->elsePart);
+        handleTypeExpressionBooleanExpression(conditionalStatement->condition);
     }
     else if (astElement->type == STMT_ITER)
     {
@@ -736,4 +739,8 @@ void handleExpressionVar(Ast_Var *astElement)
         astElement->typeExpr.expList = NULL;
     }
 
+}
+
+void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
+    
 }
