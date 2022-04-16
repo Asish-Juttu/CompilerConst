@@ -204,52 +204,114 @@ void handleTypeExpressionOtherFunctions(Ast_OtherFunctions *astElement)
 void handleTypeExpressionParameterList(Ast_ParameterList *astElement)
 {
     int isError = 0;
-    for(int i=0;i<astElement->parameterList->size;i++){
+    for (int i = 0; i < astElement->parameterList->size; i++)
+    {
         Ast_ParameterDeclaration *paradec = astElement->parameterList->nodes[i]->node.parameterDeclaration;
         handleTypeExpressionParameterDeclaration(paradec);
-        if(paradec->typeExpr.basicType == BTYPE_ERROR){
+        if (paradec->typeExpr.basicType == BTYPE_ERROR)
+        {
             isError = 1;
         }
     }
 
-    if(isError == 0){
+    if (isError == 0)
+    {
         astElement->typeExpr.basicType = BTYPE_ERROR;
         astElement->typeExpr.expList = NULL;
-    }else{
+    }
+    else
+    {
         astElement->typeExpr.basicType = BTYPE_PARAM_LIST;
         astElement->typeExpr.expList = createExpressionList();
-        for(int i=0;i<astElement->parameterList->size;i++){
+        
+        for (int i = 0; i < astElement->parameterList->size; i++)
+        {
+
             Ast_ParameterDeclaration *paradec = astElement->parameterList->nodes[i]->node.parameterDeclaration;
-            insertToExpList(astElement->typeExpr.expList,paradec->typeExpr);
+            insertToExpList(astElement->typeExpr.expList, paradec->typeExpr);
         }
     }
 }
 
 void handleTypeExpressionStmts(Ast_Stmts *astElement)
 {
-
+    handleTypeExpressionTypeDefinitions(astElement->typeDefinitions);
+    handleTypeExpressionDeclarations(astElement->declarations);
+    handleTypeExpressionOtherStmts(astElement->otherStmts);
+    handleTypeExpressionIdlist(astElement->returnIds);
+    if ((astElement->declarations->typeExpr.basicType == BTYPE_ERROR) || (astElement->typeDefinitions->typeExpr.basicType == BTYPE_ERROR) || (astElement->otherStmts->typeExpr.basicType == BTYPE_ERROR) || (astElement->returnIds->typeExpr.basicType == BTYPE_ERROR))
+    {
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
+    else
+    {
+        astElement->typeExpr.basicType = BTYPE_VOID;
+        astElement->typeExpr.expList = NULL;
+    }
 }
 
 void handleTypeExpressionParameterDeclaration(Ast_ParameterDeclaration *astElement)
 {
+    handleTypeExpressionDatatype(astElement->datatype);
+
+    if (astElement->datatype->typeExpr.basicType == BTYPE_ERROR)
+    {
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
+    else
+    {
+        astElement->typeExpr = astElement->datatype->typeExpr;
+    }
 }
 
 void handleTypeExpressionDatatype(Ast_Datatype *astElement)
 {
+    if (astElement->datatype == DT_NUM)
+    {
+        astElement->typeExpr.basicType = BTYPE_NUM;
+        astElement->typeExpr.expList = NULL;
+    }
+    else if (astElement->datatype == DT_RECORD)
+    {
+        astElement->typeExpr.basicType = BTYPE_RECORD;
+        astElement->typeExpr.expList = NULL; // it should not be null but where can I get the list of fields in the record.
+        astElement->typeExpr.name = astElement->name;
+    }
+    else if (astElement->datatype == DT_RNUM)
+    {
+        astElement->typeExpr.basicType = BTYPE_RNUM;
+        astElement->typeExpr.expList = NULL;
+    }
+    else if (astElement->datatype == DT_UNION)
+    {
+        astElement->typeExpr.basicType = BTYPE_UNION;
+        astElement->typeExpr.expList = NULL; // it should not be null but where can I get the list of fields in the union.
+        astElement->typeExpr.name = astElement->name;
+    }
+    else
+    {
+        printf("Error: Datatype does not exist\n");
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+        return;
+    }
 }
 
-void handleTypeExpressionTypeDefinitions(Ast_TypeDefinitions *astElement){
-
-}
-
-void handleTypeExpressionDeclarations(Ast_Declarations *astElement){
-
-}
-
-void handleTypeExpressionOtherStmts(Ast_OtherStmts *astElement){
-
-}
-
-void handleTypeExpressionIdlist(Ast_IdList *astElement){
+void handleTypeExpressionTypeDefinitions(Ast_TypeDefinitions *astElement)
+{
     
+}
+
+void handleTypeExpressionDeclarations(Ast_Declarations *astElement)
+{
+}
+
+void handleTypeExpressionOtherStmts(Ast_OtherStmts *astElement)
+{
+}
+
+void handleTypeExpressionIdlist(Ast_IdList *astElement)
+{
 }
