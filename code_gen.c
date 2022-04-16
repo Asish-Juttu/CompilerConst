@@ -99,3 +99,33 @@ void genIoStmt(Ast_IoStmt* iostmt){
     //for write
         //call write
 }
+
+list* postFix(Ast_ArithmeticExpression* aexp, list* head){
+    list* temp = head;
+    if(aexp->lefType==AEXP_VAR){
+        temp->next = (list*)malloc(sizeof(list));
+        temp = temp->next;
+        temp->name = aexp->left.var;
+        temp->t = LL_VAL;
+        temp->next = NULL;
+    }
+    else if(aexp->lefType==AEXP_EXP){
+        temp->next = postFix(aexp->left.exp,temp);
+        while(temp->next!=NULL) temp = temp->next;
+    }
+    if(aexp->rightType==AEXP_VAR){
+        temp->next = (list*)malloc(sizeof(list));
+        temp = temp->next;
+        temp->name = aexp->right.var;
+        temp->t = LL_VAL;
+        temp->next = NULL;
+    }
+    else if(aexp->rightType==AEXP_EXP){
+        temp->next = postFix(aexp->right.exp,temp);
+        while(temp->next!=NULL) temp = temp->next;
+    }
+    temp->next = (list*)malloc(sizeof(list));
+    temp = temp->next;
+    temp->op = aexp->op;
+    return head;
+}
