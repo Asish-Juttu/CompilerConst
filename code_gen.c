@@ -127,5 +127,7 @@ list* postFix(Ast_ArithmeticExpression* aexp, list* head){
     temp->next = (list*)malloc(sizeof(list));
     temp = temp->next;
     temp->op = aexp->op;
+    temp->t = LL_OP;
+    temp->next = NULL;
     return head;
 }
