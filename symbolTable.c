@@ -27,6 +27,10 @@ SymbolTable globVarSymbolTable;
 SymbolTableList localSymbolTableList;
 int init = 0;
 
+KeyVal keyVal(char* name){
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL}};
+}
+
 void initSymTable(SymbolTable* symTable){
     for(int i = 0; i < HASHTABLE_SIZE; i++){
         symTable->tb[i].sz = 0;
@@ -115,22 +119,53 @@ void loadNextSymbolTable(){
 }
 
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t){
-    insert(&lexerSymbolTable, (KeyVal){lexeme, {lexeme, NULL, tk, t, NULL, NULL}});
+    KeyVal kv = keyVal(lexeme);
+    kv.val.token = tk;
+    kv.val.type = t;
+
+    insert(&lexerSymbolTable, kv);
 }
 
+SymbolVal* findTypeDefinition(char* name){
+    SymbolVal* tdef = find(&typeDefSymbolTable, name);
+    if(tdef == NULL){
+        SymbolVal* trdef = find(&typeRedefSymbolTable, name);
+        if(trdef == NULL) return NULL;
+        return find(&typeDefSymbolTable, trdef->to);
+    }
+
+    return tdef;
+}
+
+// if returns null => no such variable
 SymbolVal* findType(Ast_SingleOrRecId* id){
-    // SymbolVal* tdef = find(&typeDefSymbolTable, name);
-    // if(tdef == NULL){
-    //     SymbolVal* trdef = find(&typeRedefSymbolTable, name);
-    //     return trdef != NULL ? find(&typeDefSymbolTable, trdef->to) : NULL;
-    // }
+    SymbolVal* firstId = findVar(id->id);
+    if(firstId == NULL) return NULL;
 
-    // return tdef;
-
+    AstList* list = id->fieldNameList;
+    if(list->size == 0)
+        return firstId;
+    
+    SymbolVal* fVal = NULL;
+    char* typeName = firstId->typeName;
+    for(int i = 0; i < list->size; i++){
+        if(typeName == NULL){
+            return NULL;
+        }
+        fVal = findTypeDefinition(typeName);
+        char* id = nodeToAst(list->nodes[i], id)->id;
+        fVal = find(fVal->symbolTable, id);
+        typeName = fVal->typeName;
+    }
+    
+    return fVal;
 }
 
 void insertVar(char* name, Datatype datatype, char* typeName){
-    KeyVal kv = (KeyVal){name, {name, NULL, 0, datatype, typeName, NULL}};
+    KeyVal kv = keyVal(name);
+    kv.val.type = datatype;
+    kv.val.typeName = typeName;
+
     insert(currentSymbolTable(), kv);
 }
 
@@ -139,21 +174,52 @@ SymbolVal* findVar(char* name){
     return res;
 }
 
-void insertTypeDef(char* name, Datatype recOrUn){
+void insertFunc(char* name, char* symbolTable){
+    KeyVal kv = keyVal(name);
+    kv.val.symbolTable = symbolTable;
+    
+    insert(&funSymbolTable, kv);
+}
+
+SymbolVal* findFunc(char* name){
+    return find(&funSymbolTable, name);
+}
+
+void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs){
     printf("insertTypeDef %s %s\n", name, dtypeToStr(recOrUn));
-    KeyVal kv = (KeyVal){name, {name, NULL, 0, recOrUn, name, NULL}};
+    KeyVal kv = keyVal(name);
+    kv.val.type = recOrUn;
+
+    AstList* list = fieldDefs->fieldDefinitionList;
+    SymbolTable* flistSymTab = malloc(sizeof(SymbolTable));
+    for(int i = 0; i < list->size; i++){
+        Ast_FieldDefinition* fdef = nodeToAst(list->nodes[i], fieldDefinition);
+
+        KeyVal kv = keyVal(fdef->id);
+        kv.val.type = fdef->fieldType->datatype;
+        kv.val.typeName = fdef->fieldType->name;
+
+        insert(flistSymTab, kv);
+    }
+
+    kv.val.symbolTable = flistSymTab;
     insert(&typeDefSymbolTable, kv);
 }
 
 void insertTypeRedef(char* name, char* to){
     printf("insertTypeRedef %s %s\n", name, to);
-    KeyVal kv = (KeyVal){name, {name, to, 0, 0, name, NULL}};
+    KeyVal kv = keyVal(name);
+    kv.val.to = to;
+
     insert(&typeRedefSymbolTable, kv);
 }
 
 void insertGlobVar(char* name, Datatype t, char* typeName){
     printf("insertGlobalVar %s %s %s\n", name, dtypeToStr(t), typeName);
-    KeyVal kv = (KeyVal){name, {name, NULL, 0, t, typeName, NULL}};
+    KeyVal kv = keyVal(name);
+    kv.val.type = t;
+    kv.val.typeName = typeName;
+
     insert(&globVarSymbolTable, kv);
 }
 

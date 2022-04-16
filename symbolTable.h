@@ -23,13 +23,15 @@ ID: 2019A7PS0065P
 
 #define HASHTABLE_SIZE 500
 
-typedef struct{
+struct _SymbolTable;
+
+typedef struct {
     char* name; // key (or alias of some record)
     char* to; // the actual reocrd referenced by alias
     Token token; // lexeme
     Datatype type; // RNUM, NUM, UNION, RECORD
     char* typeName; // name
-    Ast_FieldDefinitions* fieldDefs; // storing pointer to field def list of a record/union
+    struct _SymbolTable* symbolTable;
 } SymbolVal;
 
 typedef struct{
@@ -82,19 +84,24 @@ extern SymbolTable lexerSymbolTable;
 extern SymbolTable typeDefSymbolTable;
 extern SymbolTable typeRedefSymbolTable;
 extern SymbolTable globVarSymbolTable;
-extern SymbolTable fieldSymbolTable;
+extern SymbolTable funSymbolTable;
 
 void initLexerSymbolTable();
 void initTypeDefSymbolTable();
 void initTypeRedefSymbolTable();
 void initGlobVarSymbolTable();
 void initGlobalSymbolTables();
+void initFuncSybolTable(); // required to be implemented
 
 
 void insertVar(char* name, Datatype datatype, char* typeName);
+void insertFunc(char* name, char* symbolTable);
+
+SymbolVal* findFunc(char* name);
 SymbolVal* findVar(char* name);
+
 void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t);
-void insertTypeDef(char* name, Datatype recOrUn);
+void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs);
 void insertTypeRedef(char* name, char* to);
 void insertGlobVar(char* name, Datatype t, char* typeName);
 void insert(SymbolTable* symTable, KeyVal kv);
@@ -102,6 +109,7 @@ void insert(SymbolTable* symTable, KeyVal kv);
 
 SymbolVal* find(SymbolTable* symTable, char* str);
 SymbolVal* findType(Ast_SingleOrRecId* id);
+SymbolVal* findTypeDefinition(char* name);
 
 int hash(char* name);
 
