@@ -21,7 +21,9 @@ ID: 2019A7PS0065P
 
 SymbolTable symbolTable;
 
-void initSymbolTable(SymbolTable* symTable){
+void initLexerSymbolTable(SymbolTable* symTable){
+    symTable->tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+
     for(int i = 0; i < HASHTABLE_SIZE; i++){
         symTable->tb[i].sz = 0;
         symTable->tb[i].head = NULL;

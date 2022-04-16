@@ -52,12 +52,17 @@ typedef struct{
 } TableEntry;
 
 typedef struct{
-    TableEntry tb[HASHTABLE_SIZE];
+    TableEntry* tb;
+    SymbolTable* previous;
 } SymbolTable;
 extern SymbolTable symbolTable;
 
-void initSymbolTable(SymbolTable* symbolTable);
-int hash(char* name);
+void initLexerSymbolTable(SymbolTable* symbolTable);
+
+SymbolTable* createSymbolTable(SymbolTable* previous);
+
 void insert(SymbolTable* symTable, KeyVal kv);
 SymbolVal* find(SymbolTable* symTable, char* str);
+int hash(char* name);
+
 #endif

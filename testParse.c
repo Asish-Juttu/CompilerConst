@@ -25,7 +25,7 @@ ID: 2019A7PS0065P
 int main(){
     Grammar grammar;
     initGrammar(&grammar);
-    initSymbolTable(&symbolTable);
+    initLexerSymbolTable(&symbolTable);
     FirstAndFollow fnf;
     initFirstAndFollow(&fnf, &grammar);
     ParseTable ptable;

@@ -13,12 +13,12 @@ AstNode *makeEmptyAstNode()
 
 float strToReal(char* str)
 {
-    return 0;
+    return strtof(str, NULL);
 }
 
 int strToInt(char* str)
-{
-    return 0;
+{   
+    return strtol(str, NULL, 10);
 }
 
 void handleParseTreeElement(ParseTreeElement *ptElement)
@@ -710,19 +710,20 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement* ioStmt = ptElement;
                 ParseTreeElement* var = &ptElement->children[2];
                 handleParseTreeElement(var);
+                
 
                 if(ioStmt->ruleNo == 0){
                     declareAstNode(nodeIo, AST_IOSTMT, Ast_IoStmt,
                         ioStmt);
                     nodeToAst(nodeIo, ioStmt)->ioType = IO_READ;
-                    nodeToAst(nodeIo, ioStmt)->var = var->node_syn;
+                    nodeToAst(nodeIo, ioStmt)->var = nodeToAst(var->node_syn, var);
                     ioStmt->node_syn = nodeIo;
                 }
                 else if(ioStmt->ruleNo == 1){
                     declareAstNode(nodeIo, AST_IOSTMT, Ast_IoStmt,
                         ioStmt);
                     nodeToAst(nodeIo, ioStmt)->ioType = IO_WRITE;
-                    nodeToAst(nodeIo, ioStmt)->var = var->node_syn;
+                    nodeToAst(nodeIo, ioStmt)->var = nodeToAst(var->node_syn, var);
                     ioStmt->node_syn = nodeIo;
                 }
                 break;
@@ -750,9 +751,27 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     boolOpBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->op =
                         nodeToAst(logical_op->node_syn, logicalOp)->op;
 
-                    nodeBooleanExpression->node.booleanExpression->bexp.boolOp->left = boolean_expression1->node_syn;
-                    nodeBooleanExpression->node.booleanExpression->bexp.boolOp->right = boolean_expression2->node_syn;
+                    Ast_BooleanExpression* left = boolean_expression1->node_syn;
+                    Ast_BooleanExpression* right = boolean_expression2->node_syn;
 
+                    if(left->bexpType == BEXP_BOOL_OP){
+                        boolOpBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->left = 
+                            boolOpBexp(left);
+                    }
+                    else if(left->bexpType == BEXP_VAR_COMP){
+                        boolOpBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->left =
+                            varCompBexp(left);
+                    }
+
+                    if(right->bexpType == BEXP_BOOL_OP){
+                        boolOpBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->right = 
+                            boolOpBexp(right);
+                    }
+                    else if(right->bexpType == BEXP_VAR_COMP){
+                        boolOpBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->right =
+                            varCompBexp(right);
+                    }
+                    
                     ptElement->node_syn = nodeBooleanExpression;
                 }
                 else if (ptElement->ruleNo == 1)
@@ -769,8 +788,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeBooleanExpression->node.booleanExpression->bexp.varComp = (VarComparison *)malloc(sizeof(VarComparison));
                     varCompBexp(nodeToAst(nodeBooleanExpression, booleanExpression))->op =
                         nodeToAst(relop->node_syn, relationalOp)->op;
-                    nodeBooleanExpression->node.booleanExpression->bexp.varComp->left = var1->node_syn;
-                    nodeBooleanExpression->node.booleanExpression->bexp.varComp->right = var2->node_syn;
+                    nodeBooleanExpression->node.booleanExpression->bexp.varComp->left = nodeToAst(var1->node_syn, var);
+                    nodeBooleanExpression->node.booleanExpression->bexp.varComp->right = nodeToAst(var2->node_syn, var);
 
                     ptElement->node_syn = nodeBooleanExpression;
                 }
@@ -834,6 +853,10 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     rnumVar(nodeToAst(nodeVar, var)) = nodeToAst(nodeRnum, rnum);
 
                     var->node_syn = nodeVar;
+                }
+                else{
+                    printf("BLahh");
+                    exit(0);
                 }
                 break;
             }
@@ -1129,10 +1152,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                         aexp->rightType = AEXP_VAR;
                         aexp_varRight(aexp) = nodeToAst(right, var);
                     }
-                    else if(left->type == AST_ARITHMETICEXPR){
+                    else if(right->type == AST_ARITHMETICEXPR){
                         aexp->rightType = AEXP_EXP;
                         aexp_expRight(aexp) = nodeToAst(right, arithmeticExpression);
                     }
+
                     expPrime1->node_inh = nodeArithExpr;
                     handleParseTreeElement(expPrime1);
                     expPrime->node_syn = expPrime1->node_syn;
@@ -1310,7 +1334,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                         aexp_varRight(aexp) = nodeToAst(right, var);
                     }
 
-                    else if(left->type == AST_ARITHMETICEXPR){
+                    else if(right->type == AST_ARITHMETICEXPR){
                         aexp->rightType = AEXP_EXP;
                         aexp_expRight(aexp) = nodeToAst(right, arithmeticExpression);
                     }
