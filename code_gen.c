@@ -64,7 +64,7 @@ void genConditionalStmt(Ast_ConditionalStmt* cstmt){
 void read(Ast_Var* var){
     //for primitive_datatype - base case - do read
     
-    if()
+    //if()
     //else call read on all vars in record
 }
 
@@ -108,4 +108,36 @@ void genIoStmt(Ast_IoStmt* iostmt){
     else if(iostmt->ioType == IO_WRITE){
 
     }
+}
+
+list* postFix(Ast_ArithmeticExpression* aexp, list* head){
+    list* temp = head;
+    if(aexp->lefType==AEXP_VAR){
+        temp->next = (list*)malloc(sizeof(list));
+        temp = temp->next;
+        temp->name = aexp->left.var;
+        temp->t = LL_VAL;
+        temp->next = NULL;
+    }
+    else if(aexp->lefType==AEXP_EXP){
+        temp->next = postFix(aexp->left.exp,temp);
+        while(temp->next!=NULL) temp = temp->next;
+    }
+    if(aexp->rightType==AEXP_VAR){
+        temp->next = (list*)malloc(sizeof(list));
+        temp = temp->next;
+        temp->name = aexp->right.var;
+        temp->t = LL_VAL;
+        temp->next = NULL;
+    }
+    else if(aexp->rightType==AEXP_EXP){
+        temp->next = postFix(aexp->right.exp,temp);
+        while(temp->next!=NULL) temp = temp->next;
+    }
+    temp->next = (list*)malloc(sizeof(list));
+    temp = temp->next;
+    temp->op = aexp->op;
+    temp->t = LL_OP;
+    temp->next = NULL;
+    return head;
 }
