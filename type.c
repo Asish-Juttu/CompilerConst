@@ -719,6 +719,8 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
                 printArithmeticExpression(expAexp(astElement)->left, 0);
                 printf("\n\tRight : ");
                 printArithmeticExpression(expAexp(astElement)->right, 0);
+                printf("\n");
+
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
                 return 0;
@@ -740,6 +742,7 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
                 printArithmeticExpression(expAexp(astElement)->left, 0);
                 printf("\n\tRight : ");
                 printArithmeticExpression(expAexp(astElement)->right, 0);
+                printf("\n");
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
                 return 0;
