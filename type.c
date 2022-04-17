@@ -178,7 +178,7 @@ void handleTypeExpressionProgram(Ast_Program *astElement)
 
 void handleTypeExpressionMain(Ast_Main* astElement){
     //change the symbol table.
-    loadSymbolTable("main");
+    loadSymbolTable("_main");
     handleTypeExpressionStmts(astElement->stmts);
     if(astElement->stmts->typeExpr.basicType == BTYPE_ERROR){
         astElement->typeExpr.basicType = BTYPE_ERROR;
@@ -313,8 +313,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     }
     else if (astElement->datatype == DT_RECORD)
     {
-        astElement->typeExpr.basicType = BTYPE_RECORD;
-        astElement->typeExpr.expList = NULL; // it should not be null but where can I get the list of fields in the record.
+        astElement->typeExpr = recordTypeExpression("");
         astElement->typeExpr.name = astElement->name;
     }
     else if (astElement->datatype == DT_RNUM)
@@ -324,8 +323,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     }
     else if (astElement->datatype == DT_UNION)
     {
-        astElement->typeExpr.basicType = BTYPE_UNION;
-        astElement->typeExpr.expList = NULL; // it should not be null but where can I get the list of fields in the union.
+        astElement->typeExpr = unionTypeExpression();
         astElement->typeExpr.name = astElement->name;
     }
     else
@@ -872,6 +870,7 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
      
      //what will be the type of boolean expression?
      if(astElement->bexpType == BEXP_BOOL_OP){
+
           BoolOperation *bool =  astElement->bexp.boolOp;
           handleTypeExpressionBooleanExpression(bool->left);
           handleTypeExpressionBooleanExpression(bool->right);
@@ -880,14 +879,14 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
           TypeExpression *righttypex;
 
           if(bool->left->bexpType == BEXP_BOOL_OP){
-              lefttypex = &bool->left->bexp.boolOp; 
+              lefttypex = &bool->left->bexp.boolOp->typeExpr; 
           }else{
-              lefttypex = &bool->left->bexp.varComp;
+              lefttypex = &bool->left->bexp.varComp->typeExpr;
           }
           if(bool->right->bexpType == BEXP_BOOL_OP){
-               righttypex = &bool->right->bexp.boolOp;  
+               righttypex = &bool->right->bexp.boolOp->typeExpr;  
           }else{
-               righttypex = &bool->right->bexp.varComp;
+               righttypex = &bool->right->bexp.varComp->typeExpr;
           }
 
 

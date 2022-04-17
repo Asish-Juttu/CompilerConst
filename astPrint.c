@@ -36,7 +36,7 @@ void printDatatype(Ast_Datatype* t, int n){
 }
 void printTypeDefinition(Ast_TypeDefinition* t, int n){
     print("\nAst_TypeDefinition:\n", n);
-    printf("Is null %d\n", t == NULL);
+    //printf("Is null %d\n", t == NULL);
     n = n + 1;
 
     if(t->type == TDEF){
@@ -83,7 +83,7 @@ void printDeclarations(Ast_Declarations* t, int n){
 
 void printIdList(Ast_IdList* t, int n){
     print("Ast_IdList",n);
-    n=n+1;
+    //n=n+1;
     AstList* list = t->idList;
     n = n + 1;
     for(int i = 0; i < list->size; i++){
@@ -93,11 +93,14 @@ void printIdList(Ast_IdList* t, int n){
 
 void printOtherFunctions(Ast_OtherFunctions* t, int n){
     print("Ast_OtherFunctions\n",n);
-    n=n+1;
+    //n=n+1;
     AstList* list = t->functionList;
+    n = n + 1;
+
     for(int i = 0; i < list->size; i++){
         printFunction(nodeToAst(list->nodes[i], function), n);
     }
+    
 }
 
 void printParameterList(Ast_ParameterList* t, int n){
@@ -111,7 +114,7 @@ void printParameterList(Ast_ParameterList* t, int n){
 
 void printFieldDefinitions(Ast_FieldDefinitions* t, int n){
     print("Ast_FieldDefinitions",n);
-    n=n+1;
+    //n=n+1;
     AstList* list = t->fieldDefinitionList;
     for(int i = 0; i < list->size; i++){
         printFieldDefinition(nodeToAst(list->nodes[i], fieldDefinition), n);
@@ -121,7 +124,7 @@ void printFieldDefinitions(Ast_FieldDefinitions* t, int n){
 
 void printSingleOrRecId(Ast_SingleOrRecId* t,int n){
     print("Ast_SingleOrRecId",n);
-    n = n + 1;
+    //n = n + 1;
     print(t->id, n);
     printf("");
      AstList* list = t->fieldNameList;
@@ -187,9 +190,9 @@ void printStmt(Ast_Stmt* stmt, int n){
     }
 }
 void printStmts(Ast_Stmts* t, int n){
-    print("Ast_Stmts:\n",n);
+    print("\nAst_Stmts:\n",n);
     n = n + 1;
-    printf("Is t Null ? %d\n", t == NULL);
+    //printf("Is t Null ? %d\n", t == NULL);
     printTypeDefinitions(t->typeDefinitions, n);
     printf("\n");
 
@@ -200,10 +203,11 @@ void printStmts(Ast_Stmts* t, int n){
     printf("\n");
 
     printIdList(t->returnIds,n);
+    printf("\n");
 }
 
 void printMain(Ast_Main* t, int n){
-    print("Ast_Main:\n",n);
+    print("\nAst_Main:\n",n);
     n = n + 1;
     printStmts(t->stmts,n);
 }
@@ -211,8 +215,10 @@ void printMain(Ast_Main* t, int n){
 void printProgram(Ast_Program* t, int n){
     print("Ast_Program:\n",n);
     n = n + 1;
+    
     printOtherFunctions(t->otherFunctions,n);
     printMain(t->mainFunction,n);
+   
 }
 
 void printFunction(Ast_Function* t, int n){
@@ -231,6 +237,7 @@ void printFunction(Ast_Function* t, int n){
     printParameterList(t->output_par,0);
     printf("\n");
     printStmts(t->stmts,n);
+    printf("}");
 }
 
 void printParameterDeclaration(Ast_ParameterDeclaration* t, int n){
