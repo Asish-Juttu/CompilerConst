@@ -74,6 +74,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(statements->node_syn, stmts);
 
                 mainFunc->node_syn = nodeMainFunction;
+                nodeToAst(nodeMainFunction,mainFunction)->lineNo = mainFunc->lineNo;
                 break;
             }
 
@@ -98,6 +99,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     otherFunc->node_syn = ptElement->node_inh;
                 }
+
                 break;
             }
 
