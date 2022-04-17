@@ -159,9 +159,7 @@ TypeExpression paramListTypeExpression()
 
 // I am basically writing function for each and every ast element separately.
 
-void handleTypeExpressionMain(Ast_Main* main){
 
-}
 void handleTypeExpressionProgram(Ast_Program *astElement)
 {
     // changing the current symbol table.
@@ -175,6 +173,19 @@ void handleTypeExpressionProgram(Ast_Program *astElement)
     else
     {
         astElement->typeExpr = typeExpression(BTYPE_VOID);
+    }
+}
+
+void handleTypeExpressionMain(Ast_Main* astElement){
+    //change the symbol table.
+    loadSymbolTable("main");
+    handleTypeExpressionStmts(astElement->stmts);
+    if(astElement->stmts->typeExpr.basicType == BTYPE_ERROR){
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }else{
+        astElement->typeExpr.basicType = BTYPE_VOID;
+        astElement->typeExpr.expList = NULL;
     }
 }
 
@@ -554,6 +565,24 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         handleTypeExpressionOtherStmts(conditionalStatement->body);
         handleTypeExpressionOtherStmts(conditionalStatement->elsePart);
         handleTypeExpressionBooleanExpression(conditionalStatement->condition);
+        TypeExpression *bodytype = &conditionalStatement->body->typeExpr;
+        TypeExpression *elseParttype = &conditionalStatement->elsePart->typeExpr;
+        TypeExpression *conditiontype;
+        if(conditionalStatement->condition->bexpType == BEXP_BOOL_OP){
+              conditiontype = &conditionalStatement->condition->bexp.boolOp->typeExpr;    
+        }
+        else if(conditionalStatement->condition->bexpType == BEXP_VAR_COMP){
+              conditiontype = &conditionalStatement->condition->bexp.boolOp->typeExpr;  
+        }
+
+        if((bodytype->basicType == BTYPE_ERROR) || (elseParttype->basicType == BTYPE_ERROR) || (conditiontype->basicType == BTYPE_ERROR)){
+            conditionalStatement->typeExpr.basicType = BTYPE_ERROR;
+            conditionalStatement->typeExpr.expList = NULL;
+        }else{
+            conditionalStatement->typeExpr.basicType = BTYPE_VOID;
+            conditionalStatement->typeExpr.expList = NULL;
+        }
+
     }
     else if (astElement->type == STMT_ITER)
     {
@@ -692,6 +721,25 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
     }
     else if (astElement->op == AOP_MUL)
     {
+        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else
+        {
+            astElement->typeExpr.basicType = BTYPE_ERROR;
+            astElement->typeExpr.expList = NULL;
+            printf("This type of operation is not supported between these type of datatypes\n");
+            return;
+        }
     }
 }
 
