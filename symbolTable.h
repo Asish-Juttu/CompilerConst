@@ -119,7 +119,7 @@ void initFuncSybolTable(); // required to be implemented
 
 
 void insertVar(char* name, Datatype datatype, char* typeName);
-void insertFunc(char* name, char* symbolTable);
+void insertFunc(char* name, SymbolTable* symbolTable);
 
 SymbolVal* findFunc(char* name);
 SymbolVal* findVar(char* name);
@@ -134,7 +134,7 @@ void insert(SymbolTable* symTable, KeyVal kv);
 SymbolVal* find(SymbolTable* symTable, char* str);
 SymbolVal* findType(Ast_SingleOrRecId* id);
 SymbolVal* findTypeDefinition(char* name);
-
+void computeTypes();
 int hash(char* name);
 
 #endif

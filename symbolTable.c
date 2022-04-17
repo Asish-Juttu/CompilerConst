@@ -19,12 +19,15 @@ ID: 2019A7PS0065P
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "type.h"
+
 #include "semError.h"
 SymbolTable lexerSymbolTable;
 SymbolTable typeDefSymbolTable;
 SymbolTable typeRedefSymbolTable;
 SymbolTable globVarSymbolTable;
 SymbolTableList localSymbolTableList;
+SymbolTable funSymbolTable; // function - symTable map
 
 // char* allTdefs[500];
 // int tIndex = 0;
@@ -40,7 +43,7 @@ void computeType(char* name, SymbolVal* symVal){
     SymbolTable* fTab = symVal->symbolTable;
     LL* node = fTab->keys.head;
     int k = 0;
-    for(int i = 0; i < symVal; i++){
+    for(int i = 0; i < fTab->keys.sz; i++){
         if(node->kv.val.type == DT_NUM){
             addToRecord(symVal->typeExpr, numTypeExpression());
         }
@@ -79,11 +82,13 @@ void computeTypes(){
     for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
         if(isVoid(node->kv.val.typeExpr))
             computeType(node->kv.name, &node->kv.val);
+        printTypeExpr(node->kv.val.typeExpr);
+
         node = node->next;
     }
 }
 KeyVal keyVal(char* name){
-    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid}};
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid()}};
 }
 
 void loadSymbolTable(char* funId){
@@ -92,6 +97,7 @@ void loadSymbolTable(char* funId){
 }
 
 void initSymTable(SymbolTable* symTable){
+    symTable->tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
     for(int i = 0; i < HASHTABLE_SIZE; i++){
         symTable->tb[i].sz = 0;
         symTable->tb[i].head = NULL;
@@ -101,12 +107,12 @@ void initSymTable(SymbolTable* symTable){
 }
 
 void initTypeDefSymbolTable(){
-    typeDefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    //typeDefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
     initSymTable(&typeDefSymbolTable);
 }
 
 void initTypeRedefSymbolTable(){
-    typeRedefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    //typeRedefSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
     initSymTable(&typeRedefSymbolTable);
 }
 
@@ -115,10 +121,19 @@ void setCurrentSymbolTable(SymbolTable* symbolTable){
 }
 
 void initGlobVarSymbolTable(){
-    globVarSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    //globVarSymbolTable.tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
     initSymTable(&globVarSymbolTable);
 }
 
+void initLocalSymbolTable(){
+    localSymbolTableList.cap = 1;
+    localSymbolTableList.size = 0;
+    localSymbolTableList.symTables = malloc(sizeof(SymbolTable*));
+}
+
+void initFunSymbolTable(){
+    initSymTable(&funSymbolTable);
+}
 void initGlobalSymbolTables(){
     if(init){
         free(lexerSymbolTable.tb);
@@ -126,21 +141,21 @@ void initGlobalSymbolTables(){
         free(typeRedefSymbolTable.tb);
         free(globVarSymbolTable.tb);
         free(localSymbolTableList.symTables);
+        free(funSymbolTable.tb);
     }
     init = 1;
     // typeDefSymbolTable.previous = NULL;
     // typeRedefSymbolTable.previous = NULL;
     // lexerSymbolTable.previous = NULL;
     // globVarSymbolTable.previous = NULL;
-
-    localSymbolTableList.cap = 1;
-    localSymbolTableList.size = 0;
     //localSymbolTableList.current = -1;
 
     initLexerSymbolTable();
     initTypeDefSymbolTable();
     initTypeRedefSymbolTable();
     initGlobVarSymbolTable();
+    initLocalSymbolTable();
+    initFunSymbolTable();
 }
 
 void growSlistIfFull(SymbolTableList* list){
@@ -152,8 +167,10 @@ void growSlistIfFull(SymbolTableList* list){
 void pushSymbolTable(char* fname){
     growSlistIfFull(&localSymbolTableList);
     SymbolTable* symTable = malloc(sizeof(SymbolTable));
+    initSymTable(symTable);
     localSymbolTableList.symTables[localSymbolTableList.size] = symTable;
     localSymbolTableList.size++;
+    insertFunc(fname, symTable);
 }
 
 SymbolTable* topSymbolTable(){
@@ -225,7 +242,7 @@ SymbolVal* findVar(char* name){
     return res;
 }
 
-void insertFunc(char* name, char* symbolTable){
+void insertFunc(char* name, SymbolTable* symbolTable){
     KeyVal kv = keyVal(name);
     kv.val.symbolTable = symbolTable;
     
@@ -243,6 +260,7 @@ void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs
 
     AstList* list = fieldDefs->fieldDefinitionList;
     SymbolTable* flistSymTab = malloc(sizeof(SymbolTable));
+    initSymTable(flistSymTab);
     for(int i = 0; i < list->size; i++){
         Ast_FieldDefinition* fdef = nodeToAst(list->nodes[i], fieldDefinition);
 
@@ -278,7 +296,7 @@ void insertGlobVar(char* name, Datatype t, char* typeName){
 
 void initLexerSymbolTable(){
     SymbolTable* symTable = &lexerSymbolTable;
-    symTable->tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
+    //symTable->tb = malloc(HASHTABLE_SIZE * sizeof(TableEntry));
 
     initSymTable(symTable);
 
@@ -324,8 +342,17 @@ int hash(char* name){
 }
 
 void insert(SymbolTable* st, KeyVal kv){
+    
+    if(st == NULL){
+        printf("ERROR sym table null while trying to insert %s", kv.name);
+        return;
+    }
     int key = hash(kv.name);
     TableEntry* t = &st->tb[key];
+    if(t == NULL){
+        printf("ERROR sym tableEntry null while trying to insert %s", kv.name);
+        return;
+    }
     LL* entry = (LL*) malloc(sizeof(LL));
     entry->kv = kv;
     entry->next = NULL;

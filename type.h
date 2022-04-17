@@ -3,6 +3,7 @@
 
 
 #include "typeDef.h"
+#include "ast_def.h"
 
 TypeExpression functionTypeExpression();
 TypeExpression unionTypeExpression();
@@ -22,8 +23,7 @@ TypeExpression getOutputType(TypeExpression functionType);
 TypeExpression getInputType(TypeExpression functionType);
 
 extern const TypeExpression typeError;
-extern const TypeExpression typeVoid;
+TypeExpression typeVoid();
+void printTypeExpr(TypeExpression t);
 
-
-char* basicTypeToString(BasicType bt);
 #endif
