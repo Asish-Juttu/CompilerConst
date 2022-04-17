@@ -69,7 +69,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 pushSymbolTable("_main");
                 loadSymbolTable("_main");
-                
+
                 handleParseTreeElement(statements);
                 
                 
@@ -144,6 +144,9 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *parameter_list = &ptElement->children[4];
                 declareAstNode(nodeParameterList, AST_PARAMETERLIST, Ast_ParameterList, parameterList);
                 nodeToAst(nodeParameterList, parameterList)->parameterList = createAstList();
+                parameter_list->node_inh = nodeParameterList;
+                handleParseTreeElement(parameter_list);
+                
                 AstList* list = nodeToAst(nodeParameterList, parameterList)->parameterList;
                 for(int i = 0; i < list->size; i++){
                     Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
@@ -152,8 +155,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     }
                     insertVar(param->id, IN_PAR, param->datatype->datatype, param->datatype->name);
                 }
-                parameter_list->node_inh = nodeParameterList;
-                handleParseTreeElement(parameter_list);
+                
                 input_par->node_syn = parameter_list->node_syn;
                 ptElement->lineNo = ptElement->children[0].lineNo;
 
@@ -1550,6 +1552,6 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
     else
     {
         Token t = ptElement->elem.symbol;
-        printf("Error !! Calling handleParseTreeELement on terminal symbol %s", tokToStr(t));
+        printf("Error !! Calling handleParseTreeELement on terminal symbol %s\n", tokToStr(t));
     }
 }

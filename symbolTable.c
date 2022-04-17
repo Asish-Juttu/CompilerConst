@@ -130,10 +130,10 @@ void computeTypes(){
 void computeLocalType(char* id){
     SymbolTable* fSym = findFunc(id)->symbolTable;
     LL* node = fSym->keys.head;
-    printf("Computing local types for %s\n", id);
+    // printf("Computing local types for %s\n", id);
 
     for(int i = 0; i < fSym->keys.sz; i++){
-        printf("Computing types for %s as", node->kv.name);
+        // printf("Computing types for %s as", node->kv.name);
 
         SymbolVal* varVal = findVar(node->kv.name);
         if(varVal->type == DT_NUM){
@@ -251,6 +251,8 @@ void pushSymbolTable(char* fname){
     growSlistIfFull(&localSymbolTableList);
     SymbolTable* symTable = malloc(sizeof(SymbolTable));
     initSymTable(symTable);
+    symTable->name = fname;
+
     localSymbolTableList.symTables[localSymbolTableList.size] = symTable;
     localSymbolTableList.size++;
     insertFunc(fname, symTable);
@@ -305,7 +307,12 @@ SymbolVal* findType(Ast_SingleOrRecId* id){
         }
         fVal = findTypeDefinition(typeName);
         char* id = nodeToAst(list->nodes[i], id)->id;
+        char* fname = fVal->name;
         fVal = find(fVal->symbolTable, id);
+        if(fVal == NULL){
+            printf("Error ! No id %s in %s\n", id, fname);
+            return NULL;
+        }
         typeName = fVal->typeName;
     }
     
@@ -317,7 +324,7 @@ void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName){
     kv.val.type = datatype;
     kv.val.typeName = typeName;
     kv.val.parType = ptype;
-    printf("Inserting var %s of type %s", name, dtypeToStr(datatype));
+    // printf("Inserting var %s of type %s\n", name, dtypeToStr(datatype));
     insert(currentSymbolTable(), kv);
 }
 

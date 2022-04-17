@@ -178,7 +178,7 @@ void handleTypeExpressionProgram(Ast_Program *astElement)
 
 void handleTypeExpressionMain(Ast_Main* astElement){
     //change the symbol table.
-    loadSymbolTable("main");
+    loadSymbolTable("_main");
     handleTypeExpressionStmts(astElement->stmts);
     if(astElement->stmts->typeExpr.basicType == BTYPE_ERROR){
         astElement->typeExpr.basicType = BTYPE_ERROR;
@@ -211,6 +211,8 @@ void handleTypeExpressionFunction(Ast_Function *astElement)
         astElement->typeExpr.expList->typeExpressionList[0] = astElement->input_par->typeExpr;
         astElement->typeExpr.expList->typeExpressionList[1] = astElement->output_par->typeExpr;
     }
+    SymbolVal *variable = findFunc(astElement->funId);
+    variable->typeExpr = astElement->typeExpr;
 }
 
 void handleTypeExpressionOtherFunctions(Ast_OtherFunctions *astElement)
@@ -451,6 +453,7 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
             isError = 1;
             printf("Variable %s is used without declaring\n", id->id);
         }
+
     }
     if (isError)
     {
@@ -466,6 +469,7 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
             SymbolVal *entry = findVar(id->id);
             // How do I initialise to typeexpr structure???
             // Insert all of them to this.
+            insertToExpList(astElement->typeExpr.expList,entry->typeExpr);
         }
     }
 }
@@ -481,19 +485,19 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
 {
     // push the corresponding thing into symbol table.
     // check if the id is alredy present in global symbol table.
-    SymbolVal *dec = find(&globVarSymbolTable, astElement->id);
-    if (dec != NULL)
-    {
-        printf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-    }
-    else
-    {
-        // Inserting into the symbol table.
-        //insertVar(astElement->id, NOT_PAR, astElement->datatype->datatype, astElement->datatype->name);
-        // what the hell is typename??
-    }
+    // SymbolVal *dec = find(&globVarSymbolTable, astElement->id);
+    // if (dec != NULL)
+    // {
+    //     printf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
+    //     astElement->typeExpr.basicType = BTYPE_ERROR;
+    //     astElement->typeExpr.expList = NULL;
+    // }
+    // else
+    // {
+    //     // Inserting into the symbol table.
+    //     insertVar(astElement->id, astElement->datatype->datatype, astElement->datatype->name);
+    //     // what the hell is typename??
+    // }
 }
 
 int checkifEqual(TypeExpression exp1, TypeExpression exp2)
@@ -624,6 +628,16 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         handleTypeExpressionIdlist(functionCallStatement->outputIdList);
         //extract function input and output par from symbol table and match them.
         
+        SymbolVal *variable = findFunc(functionCallStatement->funId);
+        if(checkifEqual(variable->typeExpr.expList->typeExpressionList[0],functionCallStatement->inputIdList->typeExpr) && (checkifEqual(variable->typeExpr.expList->typeExpressionList[1],functionCallStatement->outputIdList->typeExpr))){
+             functionCallStatement->typeExpr.basicType = BTYPE_VOID;
+             functionCallStatement->typeExpr.expList = NULL;
+
+        }else{
+             printf("function call data types not matched\n");
+             functionCallStatement->typeExpr.basicType = BTYPE_ERROR;
+             functionCallStatement->typeExpr.expList = NULL; 
+        }
 
 
     }
@@ -780,11 +794,12 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
 
 void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
 {
-    if (astElement->fieldNameList == NULL)
+    if (astElement->fieldNameList->size == 0)
     {
         SymbolVal *variable = findVar(astElement->id);
         if (variable == NULL)
         {
+            printf("YOOO THE ID %s is not present in sym table of %s\n", astElement->id, currentSymbolTable()->name);
             variable = find(&globVarSymbolTable, astElement->id);
             if (variable == NULL)
             {
@@ -794,10 +809,12 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
                 return;
             }
             // extract type from symbol table and then equate it to typeexpr.
+            astElement->typeExpr = variable->typeExpr;
         }
         else
         {
             // extract type from symbol table and then equate it to typeexpr.
+            astElement->typeExpr = variable->typeExpr;
         }
     }
     else
@@ -806,16 +823,24 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
         // check if the id is in the typedefinition symbol table.
         // if yes then check if the field definitons order match the record.
 
-        SymbolVal *variable = find(&typeDefSymbolTable, astElement->id);
-        if (variable == NULL)
-        {
-            printf("%s record is not declared but used\n", astElement->id);
+        // SymbolVal *variable = find(&typeDefSymbolTable, astElement->id);
+        // if (variable == NULL)
+        // {
+        //     printf("%s record is not declared but used\n", astElement->id);
+        //     astElement->typeExpr.basicType = BTYPE_ERROR;
+        //     astElement->typeExpr.expList = NULL;
+        // }
+        // else
+        // {
+        //     //incomplete.
+        // }
+
+        SymbolVal *variable = findType(astElement);
+        if(variable == NULL){
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-        }
-        else
-        {
-            //incomplete.
+        }else{
+            astElement->typeExpr =  variable->typeExpr;
         }
     }
 }
@@ -855,14 +880,14 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
           TypeExpression *righttypex;
 
           if(bool->left->bexpType == BEXP_BOOL_OP){
-              lefttypex = &bool->left->bexp.boolOp; 
+              lefttypex = &bool->left->bexp.boolOp->typeExpr; 
           }else{
-              lefttypex = &bool->left->bexp.varComp;
+              lefttypex = &bool->left->bexp.varComp->typeExpr;
           }
           if(bool->right->bexpType == BEXP_BOOL_OP){
-               righttypex = &bool->right->bexp.boolOp;  
+               righttypex = &bool->right->bexp.boolOp->typeExpr;  
           }else{
-               righttypex = &bool->right->bexp.varComp;
+               righttypex = &bool->right->bexp.varComp->typeExpr;
           }
 
 
