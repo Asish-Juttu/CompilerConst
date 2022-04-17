@@ -130,10 +130,10 @@ void computeTypes(){
 void computeLocalType(char* id){
     SymbolTable* fSym = findFunc(id)->symbolTable;
     LL* node = fSym->keys.head;
-    printf("Computing local types for %s\n", id);
+    // printf("Computing local types for %s\n", id);
 
     for(int i = 0; i < fSym->keys.sz; i++){
-        printf("Computing types for %s as", node->kv.name);
+        // printf("Computing types for %s as", node->kv.name);
 
         SymbolVal* varVal = findVar(node->kv.name);
         if(varVal->type == DT_NUM){

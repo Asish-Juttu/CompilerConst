@@ -178,7 +178,7 @@ void handleTypeExpressionProgram(Ast_Program *astElement)
 
 void handleTypeExpressionMain(Ast_Main* astElement){
     //change the symbol table.
-    loadSymbolTable("main");
+    loadSymbolTable("_main");
     handleTypeExpressionStmts(astElement->stmts);
     if(astElement->stmts->typeExpr.basicType == BTYPE_ERROR){
         astElement->typeExpr.basicType = BTYPE_ERROR;
@@ -855,14 +855,14 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
           TypeExpression *righttypex;
 
           if(bool->left->bexpType == BEXP_BOOL_OP){
-              lefttypex = &bool->left->bexp.boolOp; 
+              lefttypex = &bool->left->bexp.boolOp->typeExpr; 
           }else{
-              lefttypex = &bool->left->bexp.varComp;
+              lefttypex = &bool->left->bexp.varComp->typeExpr;
           }
           if(bool->right->bexpType == BEXP_BOOL_OP){
-               righttypex = &bool->right->bexp.boolOp;  
+               righttypex = &bool->right->bexp.boolOp->typeExpr;  
           }else{
-               righttypex = &bool->right->bexp.varComp;
+               righttypex = &bool->right->bexp.varComp->typeExpr;
           }
 
 
