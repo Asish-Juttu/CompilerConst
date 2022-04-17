@@ -310,8 +310,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     }
     else if (astElement->datatype == DT_RECORD)
     {
-        astElement->typeExpr.basicType = BTYPE_RECORD;
-        astElement->typeExpr.expList = NULL; // it should not be null but where can I get the list of fields in the record.
+        astElement->typeExpr = recordTypeExpression("");
         astElement->typeExpr.name = astElement->name;
     }
     else if (astElement->datatype == DT_RNUM)
@@ -321,8 +320,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     }
     else if (astElement->datatype == DT_UNION)
     {
-        astElement->typeExpr.basicType = BTYPE_UNION;
-        astElement->typeExpr.expList = NULL; // it should not be null but where can I get the list of fields in the union.
+        astElement->typeExpr = unionTypeExpression();
         astElement->typeExpr.name = astElement->name;
     }
     else
@@ -492,7 +490,7 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
     else
     {
         // Inserting into the symbol table.
-        insertVar(astElement->id, astElement->datatype->datatype, astElement->datatype->name);
+        //insertVar(astElement->id, NOT_PAR, astElement->datatype->datatype, astElement->datatype->name);
         // what the hell is typename??
     }
 }

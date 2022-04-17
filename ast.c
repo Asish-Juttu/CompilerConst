@@ -66,9 +66,11 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *mainFunc = ptElement;
                 ParseTreeElement *statements = &ptElement->children[1];
 
+                pushSymbolTable("_main");
+                loadSymbolTable("_main");
+                
                 handleParseTreeElement(statements);
-                pushSymbolTable("main");
-                loadSymbolTable("main");
+                
                 
                 declareAstNode(nodeMainFunction, AST_MAIN, Ast_Main, mainFunction);
                 nodeToAst(nodeMainFunction, mainFunction)->stmts =
@@ -94,13 +96,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(otherFunc1);
 
                     otherFunc->node_syn = otherFunc1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
 
                 else if (ptElement->ruleNo == 1)
                 {
                     otherFunc->node_syn = ptElement->node_inh;
                 }
-                ptElement->lineNo = ptElement->children[0].lineNo;
 
                 break;
             }
@@ -1300,12 +1303,13 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     expPrime1->node_inh = nodeArithExpr;
                     handleParseTreeElement(expPrime1);
                     expPrime->node_syn = expPrime1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
 
                 else if(expPrime->ruleNo == 1){
                     expPrime->node_syn = expPrime->node_inh;
                 }
-                ptElement->lineNo = ptElement->children[0].lineNo;
 
                 break;
             }

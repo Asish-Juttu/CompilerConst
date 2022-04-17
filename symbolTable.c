@@ -128,15 +128,22 @@ void computeTypes(){
 }
 
 void computeLocalType(char* id){
-    SymbolTable* fSym = findFunc(id);
+    SymbolTable* fSym = findFunc(id)->symbolTable;
     LL* node = fSym->keys.head;
+    printf("Computing local types for %s\n", id);
+
     for(int i = 0; i < fSym->keys.sz; i++){
+        printf("Computing types for %s as", node->kv.name);
+
         SymbolVal* varVal = findVar(node->kv.name);
         if(varVal->type == DT_NUM){
             varVal->typeExpr = numTypeExpression();
+            // printf("DT NUM\n");
         }
         else if(varVal->type == DT_RNUM){
             varVal->typeExpr = rnumTypeExpression();
+            // printf("DT RNUM\n");
+
         }
         else {
             SymbolVal* tdefVal = findTypeDefinition(varVal->typeName);
@@ -310,6 +317,7 @@ void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName){
     kv.val.type = datatype;
     kv.val.typeName = typeName;
     kv.val.parType = ptype;
+    printf("Inserting var %s of type %s", name, dtypeToStr(datatype));
     insert(currentSymbolTable(), kv);
 }
 

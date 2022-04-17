@@ -144,7 +144,7 @@ void insertGlobVar(char* name, Datatype t, char* typeName);
 SymbolVal* findGlobalVar(char* var);
 void insert(SymbolTable* symTable, KeyVal kv);
 
-
+void computeAllLocalType();
 SymbolVal* find(SymbolTable* symTable, char* str);
 SymbolVal* findType(Ast_SingleOrRecId* id);
 SymbolVal* findTypeDefinition(char* name);
