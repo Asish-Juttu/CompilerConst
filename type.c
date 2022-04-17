@@ -19,6 +19,9 @@ const int OUTPUT_LIST = 1;
 ExpressionList *createExpressionList()
 {
     ExpressionList *expList = malloc(sizeof(ExpressionList));
+    expList->typeExpressionList = malloc(sizeof(TypeExpression));
+    expList->size = 0;
+    expList->cap = 1;
     return expList;
 }
 
@@ -33,6 +36,7 @@ void growIfFull(ExpressionList *list)
 
 void insertToExpList(ExpressionList *list, TypeExpression t)
 {
+    growIfFull(list);
     list->typeExpressionList[list->size] = t;
     list->size++;
 }
@@ -806,11 +810,19 @@ void handleExpressionVar(Ast_Var *astElement)
 void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
      
      //what will be the type of boolean expression?
-
      if(astElement->bexpType == BEXP_BOOL_OP){
           BoolOperation *bool =  
      }
      else if(astElement->bexpType == BEXP_VAR_COMP){
 
      }
+}
+
+void printTypeExpr(TypeExpression t){
+    printf("%s<", basicTypeToString(t.basicType));
+    for(int i = 0; i < t.expList->size; i++){
+        printTypeExpr(t.expList->typeExpressionList[i]);
+        printf(", ");
+    }
+    printf(">");
 }

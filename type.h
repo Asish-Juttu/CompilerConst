@@ -25,5 +25,5 @@ TypeExpression getInputType(TypeExpression functionType);
 extern const TypeExpression typeError;
 TypeExpression typeVoid();
 void printTypeExpr(TypeExpression t);
-
+void insertToExpList(ExpressionList *list, TypeExpression t);
 #endif

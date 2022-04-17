@@ -155,6 +155,8 @@ char* basicTypeToString(BasicType bt){
         case BTYPE_FIELD : return "FIELD";
         case BTYPE_FUNCTION : return "FUNCTION";
         case BTYPE_ERROR : return "TYPE ERROR";
+        case BTYPE_TAGGED_UNION : return "TYPE TAGGED UNION";
+
         case BTYPE_VOID : return "VOID";
     }
 
@@ -168,6 +170,7 @@ char* dtypeToStr(Datatype t){
         case DT_RECORD : return "DT_RECORD";
         case DT_NUM : return "DT_NUM";
         case DT_RNUM  : return "DT_RNUM";
+        case DT_REC_OR_UNION : return "DT_REC_OR_UNION";
         case DT_NONE : return "DT_NONE";
     }
     return "INVALID DATATYPE";
