@@ -211,6 +211,8 @@ void handleTypeExpressionFunction(Ast_Function *astElement)
         astElement->typeExpr.expList->typeExpressionList[0] = astElement->input_par->typeExpr;
         astElement->typeExpr.expList->typeExpressionList[1] = astElement->output_par->typeExpr;
     }
+    SymbolVal *variable = findFunc(astElement->funId);
+    variable->typeExpr = astElement->typeExpr;
 }
 
 void handleTypeExpressionOtherFunctions(Ast_OtherFunctions *astElement)
@@ -453,6 +455,7 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
             isError = 1;
             printf("Variable %s is used without declaring\n", id->id);
         }
+
     }
     if (isError)
     {
@@ -468,6 +471,7 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
             SymbolVal *entry = findVar(id->id);
             // How do I initialise to typeexpr structure???
             // Insert all of them to this.
+            insertToExpList(astElement->typeExpr.expList,entry->typeExpr);
         }
     }
 }
@@ -490,12 +494,12 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
         astElement->typeExpr.basicType = BTYPE_ERROR;
         astElement->typeExpr.expList = NULL;
     }
-    else
-    {
-        // Inserting into the symbol table.
-        insertVar(astElement->id, astElement->datatype->datatype, astElement->datatype->name);
-        // what the hell is typename??
-    }
+    // else
+    // {
+    //     // Inserting into the symbol table.
+    //     insertVar(astElement->id, astElement->datatype->datatype, astElement->datatype->name);
+    //     // what the hell is typename??
+    // }
 }
 
 int checkifEqual(TypeExpression exp1, TypeExpression exp2)
@@ -626,6 +630,16 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         handleTypeExpressionIdlist(functionCallStatement->outputIdList);
         //extract function input and output par from symbol table and match them.
         
+        SymbolVal *variable = findFunc(functionCallStatement->funId);
+        if(checkifEqual(variable->typeExpr.expList->typeExpressionList[0],functionCallStatement->inputIdList->typeExpr) && (checkifEqual(variable->typeExpr.expList->typeExpressionList[1],functionCallStatement->outputIdList->typeExpr))){
+             functionCallStatement->typeExpr.basicType = BTYPE_VOID;
+             functionCallStatement->typeExpr.expList = NULL;
+
+        }else{
+             printf("function call data types not matched\n");
+             functionCallStatement->typeExpr.basicType = BTYPE_ERROR;
+             functionCallStatement->typeExpr.expList = NULL; 
+        }
 
 
     }
@@ -782,7 +796,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
 
 void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
 {
-    if (astElement->fieldNameList == NULL)
+    if (astElement->fieldNameList->size == 0)
     {
         SymbolVal *variable = findVar(astElement->id);
         if (variable == NULL)
@@ -796,10 +810,12 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
                 return;
             }
             // extract type from symbol table and then equate it to typeexpr.
+            astElement->typeExpr = variable->typeExpr;
         }
         else
         {
             // extract type from symbol table and then equate it to typeexpr.
+            astElement->typeExpr = variable->typeExpr;
         }
     }
     else
@@ -808,16 +824,24 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
         // check if the id is in the typedefinition symbol table.
         // if yes then check if the field definitons order match the record.
 
-        SymbolVal *variable = find(&typeDefSymbolTable, astElement->id);
-        if (variable == NULL)
-        {
-            printf("%s record is not declared but used\n", astElement->id);
+        // SymbolVal *variable = find(&typeDefSymbolTable, astElement->id);
+        // if (variable == NULL)
+        // {
+        //     printf("%s record is not declared but used\n", astElement->id);
+        //     astElement->typeExpr.basicType = BTYPE_ERROR;
+        //     astElement->typeExpr.expList = NULL;
+        // }
+        // else
+        // {
+        //     //incomplete.
+        // }
+
+        SymbolVal *variable = findType(astElement);
+        if(variable == NULL){
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-        }
-        else
-        {
-            //incomplete.
+        }else{
+            astElement->typeExpr =  variable->typeExpr;
         }
     }
 }
