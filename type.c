@@ -277,6 +277,13 @@ void handleTypeExpressionStmts(Ast_Stmts *astElement)
     handleTypeExpressionOtherStmts(astElement->otherStmts);
     handleTypeExpressionIdlist(astElement->returnIds);
     //should not we the return ids with output ids of the fucntion?
+    SymbolVal *variable = findFunc(currentSymbolTable()->name);
+    if(!checkifEqual(variable->typeExpr.expList->typeExpressionList[1],astElement->returnIds->typeExpr)){
+        printf("Return Ids of the function %s are not matching with output parameters\n",currentSymbolTable()->name);
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+        return;
+    }
     if ((astElement->declarations->typeExpr.basicType == BTYPE_ERROR) || (astElement->typeDefinitions->typeExpr.basicType == BTYPE_ERROR) || (astElement->otherStmts->typeExpr.basicType == BTYPE_ERROR) || (astElement->returnIds->typeExpr.basicType == BTYPE_ERROR))
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
