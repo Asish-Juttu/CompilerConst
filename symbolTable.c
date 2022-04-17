@@ -19,18 +19,71 @@ ID: 2019A7PS0065P
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include "semError.h"
 SymbolTable lexerSymbolTable;
 SymbolTable typeDefSymbolTable;
 SymbolTable typeRedefSymbolTable;
 SymbolTable globVarSymbolTable;
 SymbolTableList localSymbolTableList;
+
+// char* allTdefs[500];
+// int tIndex = 0;
 int init = 0;
+
 
 SymbolTable* curSymTable = NULL;
 
+int isVoid(TypeExpression t){
+    return t.basicType == BTYPE_VOID;
+}
+void computeType(char* name, SymbolVal* symVal){
+    SymbolTable* fTab = symVal->symbolTable;
+    LL* node = fTab->keys.head;
+    int k = 0;
+    for(int i = 0; i < symVal; i++){
+        if(node->kv.val.type == DT_NUM){
+            addToRecord(symVal->typeExpr, numTypeExpression());
+        }
+        else if(node->kv.val.type == DT_RNUM){
+            addToRecord(symVal->typeExpr, rnumTypeExpression());
+        }
+        else if(node->kv.val.type == DT_UNION){
+            SymbolVal* tgVal = find(fTab, "tagvalue");
+            if(k){
+                printf("Errror ! More than one union in variant record");
+                symVal->typeExpr.basicType = BTYPE_ERROR;
+            }
+            else if(tgVal == NULL || (tgVal->type != DT_NUM && tgVal->type != DT_RNUM)) {
+                printf("Error ! No tagvalue field for variant record %s", name);
+                symVal->typeExpr.basicType = BTYPE_ERROR;
+            }
+            else{
+                if(isVoid(node->kv.val.typeExpr)){
+                    computeType(node->kv.val.typeName, findTypeDefinition(node->kv.val.typeName));
+                }
+                addToRecord(symVal->typeExpr, findTypeDefinition(node->kv.val.typeName)->typeExpr);
+            }
+            k = 1;
+        }
+        else if(node->kv.val.type == DT_RECORD){
+                if(isVoid(node->kv.val.typeExpr)){
+                    computeType(node->kv.val.typeName, findTypeDefinition(node->kv.val.typeName));
+                }
+                addToRecord(symVal->typeExpr, findTypeDefinition(node->kv.val.typeName)->typeExpr);
+        }
+    }
+}
+
+void computeTypes(){
+    LL* node = typeDefSymbolTable.keys.head;
+    for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
+        if(isVoid(node->kv.val.typeExpr))
+            computeType(node->kv.name, &node->kv.val);
+        node = node->next;
+    }
+}
 KeyVal keyVal(char* name){
-    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL}};
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid}};
 }
 
 void loadSymbolTable(char* funId){
@@ -90,14 +143,14 @@ void initGlobalSymbolTables(){
     initGlobVarSymbolTable();
 }
 
-void growIfFull(SymbolTableList* list){
+void growSlistIfFull(SymbolTableList* list){
     if(list->size == list->cap){
         list->cap = (int)(list->cap * 1.4 + 1);
         list->symTables = realloc(list->symTables, list->cap * sizeof(SymbolTable*));
     }
 }
 void pushSymbolTable(char* fname){
-    growIfFull(&localSymbolTableList);
+    growSlistIfFull(&localSymbolTableList);
     SymbolTable* symTable = malloc(sizeof(SymbolTable));
     localSymbolTableList.symTables[localSymbolTableList.size] = symTable;
     localSymbolTableList.size++;
@@ -202,6 +255,8 @@ void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs
 
     kv.val.symbolTable = flistSymTab;
     insert(&typeDefSymbolTable, kv);
+    // allTdefs[tIndex] = name;
+    // tIndex++;
 }
 
 void insertTypeRedef(char* name, char* to){
@@ -258,6 +313,7 @@ void initLexerSymbolTable(){
     insertIntoLexSymbolTable("end", TK_END, DT_NONE);
 }
 
+
 int hash(char* name){
     unsigned long hash = 5381;
     int c;
@@ -277,11 +333,19 @@ void insert(SymbolTable* st, KeyVal kv){
         t->head = entry;
         t->tail = entry;
         t->sz=1;
+
+        st->keys.head = entry;
+        st->keys.tail = entry;
+        st->keys.sz = 1;
     }
     else{
         t->tail->next = entry;
         t->tail = entry;
         t->sz++;
+
+        st->keys.tail->next = entry;
+        st->keys.tail = entry;
+        st->keys.sz++;
     }
 }
 

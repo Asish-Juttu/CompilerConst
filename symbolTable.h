@@ -25,6 +25,7 @@ ID: 2019A7PS0065P
 
 struct _SymbolTable;
 
+
 typedef struct {
     char* name; // key (or alias of some record)
     char* to; // the actual reocrd referenced by alias
@@ -34,6 +35,7 @@ typedef struct {
     struct _SymbolTable* symbolTable;
     int offset;
     int width; // in bytes
+    TypeExpression typeExpr;
 } SymbolVal;
 
 typedef struct{
@@ -58,6 +60,7 @@ struct _SybolTableList;
 typedef struct _SymbolTable{
     TableEntry* tb;
     char* name;
+    TableEntry keys;
 } SymbolTable;
 
 
@@ -69,7 +72,7 @@ typedef struct _SymbolTableList{
 
 extern SymbolTableList localSymbolTableList;
 
-void growIfFull(SymbolTableList* list);
+void growSlistIfFull(SymbolTableList* list);
 void pushSymbolTable(char* fname);
 SymbolTable* topSymbolTable();
 SymbolTable* currentSymbolTable();
