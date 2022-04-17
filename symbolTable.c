@@ -305,7 +305,12 @@ SymbolVal* findType(Ast_SingleOrRecId* id){
         }
         fVal = findTypeDefinition(typeName);
         char* id = nodeToAst(list->nodes[i], id)->id;
+        char* fname = fVal->name;
         fVal = find(fVal->symbolTable, id);
+        if(fVal == NULL){
+            printf("Error ! No id %s in %s\n", id, fname);
+            return NULL;
+        }
         typeName = fVal->typeName;
     }
     
