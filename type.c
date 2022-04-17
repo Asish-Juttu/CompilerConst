@@ -45,7 +45,7 @@ int validate(TypeExpression t, BasicType basicType)
 {
     if (t.basicType != basicType)
     {
-        printf("Attempting to use type %s as type %s\n", basicTypeToString(t.basicType), basicTypeToString(basicType));
+        maybePrintf("Attempting to use type %s as type %s\n", basicTypeToString(t.basicType), basicTypeToString(basicType));
         return 0;
     }
 
@@ -182,10 +182,10 @@ void handleTypeExpressionMain(Ast_Main* astElement){
     handleTypeExpressionStmts(astElement->stmts);
     if(astElement->stmts->typeExpr.basicType == BTYPE_ERROR){
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }else{
         astElement->typeExpr.basicType = BTYPE_VOID;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
 }
 
@@ -203,7 +203,7 @@ void handleTypeExpressionFunction(Ast_Function *astElement)
     if ((astElement->input_par->typeExpr.basicType == BTYPE_ERROR) || (astElement->output_par->typeExpr.basicType == BTYPE_ERROR) || (astElement->stmts->typeExpr.basicType == BTYPE_ERROR))
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
@@ -232,7 +232,7 @@ void handleTypeExpressionOtherFunctions(Ast_OtherFunctions *astElement)
     if (isError == 0)
     {
         astElement->typeExpr.basicType = BTYPE_VOID;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
 }
 
@@ -252,7 +252,7 @@ void handleTypeExpressionParameterList(Ast_ParameterList *astElement)
     if (isError == 0)
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
@@ -280,12 +280,12 @@ void handleTypeExpressionStmts(Ast_Stmts *astElement)
     if ((astElement->declarations->typeExpr.basicType == BTYPE_ERROR) || (astElement->typeDefinitions->typeExpr.basicType == BTYPE_ERROR) || (astElement->otherStmts->typeExpr.basicType == BTYPE_ERROR) || (astElement->returnIds->typeExpr.basicType == BTYPE_ERROR))
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
         astElement->typeExpr.basicType = BTYPE_VOID;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
 }
 
@@ -296,7 +296,7 @@ void handleTypeExpressionParameterDeclaration(Ast_ParameterDeclaration *astEleme
     if (astElement->datatype->typeExpr.basicType == BTYPE_ERROR)
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
@@ -309,7 +309,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     if (astElement->datatype == DT_NUM)
     {
         astElement->typeExpr.basicType = BTYPE_NUM;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else if (astElement->datatype == DT_RECORD)
     {
@@ -319,7 +319,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     else if (astElement->datatype == DT_RNUM)
     {
         astElement->typeExpr.basicType = BTYPE_RNUM;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else if (astElement->datatype == DT_UNION)
     {
@@ -328,9 +328,9 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     }
     else
     {
-        printf("Error: Datatype does not exist(Line Number %d)\n", astElement->lineNo);
+        maybePrintf("Error: Datatype does not exist(Line Number %d)\n", astElement->lineNo);
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
         return;
     }
 }
@@ -350,12 +350,12 @@ void handleTypeExpressionTypeDefinitions(Ast_TypeDefinitions *astElement)
     if (isError)
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
         astElement->typeExpr.basicType = BTYPE_VOID;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
 }
 
@@ -374,12 +374,12 @@ void handleTypeExpressionDeclarations(Ast_Declarations *astElement)
     if (isError)
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
         astElement->typeExpr.basicType = BTYPE_VOID;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
 }
 
@@ -394,7 +394,7 @@ void handleTypeExpressionOtherStmts(Ast_OtherStmts *astElement)
         {
             if (statement->stmtUnion.assignStmt->typeExpr.basicType == BTYPE_ERROR)
             {
-                printf("Left side and right side of assignment are different(Line number %d)\n", statement->stmtUnion.assignStmt->lineNo);
+                maybePrintf("Left side and right side of assignment are different(Line number %d)\n", statement->stmtUnion.assignStmt->lineNo);
             }
         }
         else if (statement->type == STMT_COND)
@@ -429,12 +429,12 @@ void handleTypeExpressionOtherStmts(Ast_OtherStmts *astElement)
     if (isError)
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
     else
     {
         astElement->typeExpr.basicType = BTYPE_VOID;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr.expList = createExpressionList();
     }
 }
 
@@ -451,7 +451,7 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
         if (entry == NULL)
         {
             isError = 1;
-            printf("Variable %s is used without declaring(Line Number %d)\n", id->id, astElement->lineNo);
+            maybePrintf("Variable %s is used without declaring(Line Number %d)\n", id->id, astElement->lineNo);
         }
 
     }
@@ -488,9 +488,9 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
     // SymbolVal *dec = find(&globVarSymbolTable, astElement->id);
     // if (dec != NULL)
     // {
-    //     printf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
+    //     maybePrintf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
     //     astElement->typeExpr.basicType = BTYPE_ERROR;
-    //     astElement->typeExpr.expList = NULL;
+    //     astElement->typeExpr.expList = createExpressionList();
     // }
     // else
     // {
@@ -548,18 +548,18 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
             if (assignmentStatement->expression->typeExpr.basicType == BTYPE_ERROR)
             {
                 assignmentStatement->typeExpr.basicType = BTYPE_ERROR;
-                assignmentStatement->typeExpr.expList = NULL;
+                assignmentStatement->typeExpr.expList = createExpressionList();
             }
             else
             {
                 assignmentStatement->typeExpr.basicType = BTYPE_VOID;
-                assignmentStatement->typeExpr.expList = NULL;
+                assignmentStatement->typeExpr.expList = createExpressionList();
             }
         }
         else
         {
             assignmentStatement->typeExpr.basicType = BTYPE_ERROR;
-            assignmentStatement->typeExpr.expList = NULL;
+            assignmentStatement->typeExpr.expList = createExpressionList();
         }
     }
     else if (astElement->type == STMT_COND)
@@ -580,10 +580,10 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
 
         if((bodytype->basicType == BTYPE_ERROR) || (elseParttype->basicType == BTYPE_ERROR) || (conditiontype->basicType == BTYPE_ERROR)){
             conditionalStatement->typeExpr.basicType = BTYPE_ERROR;
-            conditionalStatement->typeExpr.expList = NULL;
+            conditionalStatement->typeExpr.expList = createExpressionList();
         }else{
             conditionalStatement->typeExpr.basicType = BTYPE_VOID;
-            conditionalStatement->typeExpr.expList = NULL;
+            conditionalStatement->typeExpr.expList = createExpressionList();
         }
 
     }
@@ -612,10 +612,10 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
 
         if(isError){
             iterativeStatement->typeExpr.basicType = BTYPE_ERROR;
-            iterativeStatement->typeExpr.expList = NULL;
+            iterativeStatement->typeExpr.expList = createExpressionList();
         }else{
             iterativeStatement->typeExpr.basicType = BTYPE_VOID;
-            iterativeStatement->typeExpr.expList = NULL;
+            iterativeStatement->typeExpr.expList = createExpressionList();
         }
 
 
@@ -631,12 +631,12 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         SymbolVal *variable = findFunc(functionCallStatement->funId);
         if(checkifEqual(variable->typeExpr.expList->typeExpressionList[0],functionCallStatement->inputIdList->typeExpr) && (checkifEqual(variable->typeExpr.expList->typeExpressionList[1],functionCallStatement->outputIdList->typeExpr))){
              functionCallStatement->typeExpr.basicType = BTYPE_VOID;
-             functionCallStatement->typeExpr.expList = NULL;
+             functionCallStatement->typeExpr.expList = createExpressionList();
 
         }else{
-             printf("function call data types not matched\n");
+             maybePrintf("function call data types not matched\n");
              functionCallStatement->typeExpr.basicType = BTYPE_ERROR;
-             functionCallStatement->typeExpr.expList = NULL; 
+             functionCallStatement->typeExpr.expList = createExpressionList(); 
         }
 
 
@@ -647,10 +647,10 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         handleExpressionVar(ioStatement->var);
         if(ioStatement->var->typeExpr.basicType == BTYPE_ERROR){
             ioStatement->typeExpr.basicType = BTYPE_ERROR;
-            ioStatement->typeExpr.expList = NULL;
+            ioStatement->typeExpr.expList = createExpressionList();
         }else{
             ioStatement->typeExpr.basicType = BTYPE_VOID;
-            ioStatement->typeExpr.expList = NULL;
+            ioStatement->typeExpr.expList = createExpressionList();
         }
     }
 }
@@ -671,7 +671,7 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
         leftTypex = &arithexp->left->typeExpr;
         if(leftTypex->basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
         }
         
         if(!handleTypeExpressionArithmeticExpression(arithexp->right))
@@ -679,27 +679,46 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
         rightTypex = &arithexp->right->typeExpr;
         if(rightTypex->basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
         }
 
         
 
-        if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD) && (leftTypex->basicType != BTYPE_ERROR))
+        if ((leftTypex->basicType != BTYPE_NUM) && 
+        (leftTypex->basicType != BTYPE_RNUM) && 
+        (leftTypex->basicType != BTYPE_RECORD) && 
+        (leftTypex->basicType != BTYPE_ERROR) &&
+        (leftTypex->basicType != BTYPE_TAGGED_UNION))
         {
-            printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
-            // printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
+            maybePrintf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
+            maybePrintf("Left :");
+            printArithmeticExpression(arithexp->left, 0);
+            maybePrintf("\tType :");
+            printTypeExpr(arithexp->left->typeExpr);
+            maybePrintf("\n");
+            maybePrintf("Right :");
+            printArithmeticExpression(arithexp->right, 0);
+            maybePrintf("\tType :");
+            printTypeExpr(arithexp->right->typeExpr);
+            maybePrintf("\n");
+
+
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
             return 0;
         }
 
-        if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD) && (leftTypex->basicType != BTYPE_ERROR))
+        if ((rightTypex->basicType != BTYPE_NUM) && 
+        (rightTypex->basicType != BTYPE_RNUM) && 
+        (rightTypex->basicType != BTYPE_RECORD) && 
+        (rightTypex->basicType != BTYPE_ERROR) &&
+        (rightTypex->basicType != BTYPE_TAGGED_UNION))
         {
-            printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
-            // printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
+            maybePrintf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
+            maybePrintf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
 
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
             return 0;
         }
 
@@ -714,15 +733,15 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
             }
             else
             {
-                printf("Right hand side and left hand side are of different types.(Line Number %d)", astElement->lineNo);
-                printf("\n\tLeft : ");
+                maybePrintf("Right hand side and left hand side are of different types.(Line Number %d)", astElement->lineNo);
+                maybePrintf("\n\tLeft : ");
                 printArithmeticExpression(expAexp(astElement)->left, 0);
-                printf("\n\tRight : ");
+                maybePrintf("\n\tRight : ");
                 printArithmeticExpression(expAexp(astElement)->right, 0);
-                printf("\n");
+                maybePrintf("\n");
 
                 astElement->typeExpr.basicType = BTYPE_ERROR;
-                astElement->typeExpr.expList = NULL;
+                astElement->typeExpr.expList = createExpressionList();
                 return 0;
             }
         }
@@ -737,14 +756,14 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
             }
             else
             {
-                printf("Right hand side and left hand side are of different types.(Line Number %d)", astElement->lineNo);
-                printf("\n\tLeft : ");
+                maybePrintf("Right hand side and left hand side are of different types.(Line Number %d)", astElement->lineNo);
+                maybePrintf("\n\tLeft : ");
                 printArithmeticExpression(expAexp(astElement)->left, 0);
-                printf("\n\tRight : ");
+                maybePrintf("\n\tRight : ");
                 printArithmeticExpression(expAexp(astElement)->right, 0);
-                printf("\n");
+                maybePrintf("\n");
                 astElement->typeExpr.basicType = BTYPE_ERROR;
-                astElement->typeExpr.expList = NULL;
+                astElement->typeExpr.expList = createExpressionList();
                 return 0;
             }
         }
@@ -769,8 +788,8 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
             else
             {
                 astElement->typeExpr.basicType = BTYPE_ERROR;
-                astElement->typeExpr.expList = NULL;
-                printf("Division of records / unions is not supported(Line Number %d)\n", astElement->lineNo);
+                astElement->typeExpr.expList = createExpressionList();
+                maybePrintf("Division of records / unions is not supported(Line Number %d)\n", astElement->lineNo);
                 return 0;
             }
         }
@@ -791,8 +810,8 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
             else
             {
                 astElement->typeExpr.basicType = BTYPE_ERROR;
-                astElement->typeExpr.expList = NULL;
-                printf("Multiplication of record or union with record or union is not supported(Line Number %d)\n", astElement->lineNo);
+                astElement->typeExpr.expList = createExpressionList();
+                maybePrintf("Multiplication of record or union with record or union is not supported(Line Number %d)\n", astElement->lineNo);
                 return 0;
             }
         }
@@ -802,10 +821,10 @@ int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElemen
         handleExpressionVar(astElement->aexpUnion.var);
         if(astElement->aexpUnion.var->typeExpr.basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
         }else{
             astElement->typeExpr = astElement->aexpUnion.var->typeExpr;
-            // printf("Assigning type\n", astElement->typeExpr.basicType);
+            // maybePrintf("Assigning type\n", astElement->typeExpr.basicType);
         }
     }
 
@@ -816,25 +835,36 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
 {
     if (astElement->fieldNameList->size == 0)
     {
-        SymbolVal *variable = findVar(astElement->id);
+        
+        SymbolVal *variable = find(&globVarSymbolTable, astElement->id);
         if (variable == NULL)
         {
-            // printf("YOOO THE ID %s is not present in sym table of %s\n", astElement->id, currentSymbolTable()->name);
-            variable = find(&globVarSymbolTable, astElement->id);
+            // maybePrintf("YOOO THE ID %s is not present in sym table of %s\n", astElement->id, currentSymbolTable()->name);
+            variable = findVar(astElement->id);
             if (variable == NULL)
             {
-                printf("Variable %s is not declared but used (Line Number %d)\n", astElement->id, astElement->lineNo);
+                maybePrintf("Variable %s is not declared but used (Line Number %d)\n", astElement->id, astElement->lineNo);
                 astElement->typeExpr.basicType = BTYPE_ERROR;
-                astElement->typeExpr.expList = NULL;
+                astElement->typeExpr.expList = createExpressionList();
                 return;
             }
             // extract type from symbol table and then equate it to typeexpr.
+            // if(astElement->typeExpr.basicType == BTYPE_VOID){
+            //     maybePrintf("HERER OFR %S\n",  astElement->id);
+            // }
+            
             astElement->typeExpr = variable->typeExpr;
+        
         }
         else
         {
+            
+            
             // extract type from symbol table and then equate it to typeexpr.
             astElement->typeExpr = variable->typeExpr;
+            maybePrintf("%s : ", astElement->id);
+            printTypeExpr(astElement->typeExpr);
+            maybePrintf("\n");
         }
     }
     else
@@ -846,9 +876,9 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
         // SymbolVal *variable = find(&typeDefSymbolTable, astElement->id);
         // if (variable == NULL)
         // {
-        //     printf("%s record is not declared but used\n", astElement->id);
+        //     maybePrintf("%s record is not declared but used\n", astElement->id);
         //     astElement->typeExpr.basicType = BTYPE_ERROR;
-        //     astElement->typeExpr.expList = NULL;
+        //     astElement->typeExpr.expList = createExpressionList();
         // }
         // else
         // {
@@ -858,7 +888,7 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
         SymbolVal *variable = findType(astElement);
         if(variable == NULL){
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
         }else{
             astElement->typeExpr =  variable->typeExpr;
         }
@@ -868,15 +898,13 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
 void handleExpressionVar(Ast_Var *astElement)
 {
     if(astElement->varType ==  VAR_ID){
-        // printf("<< %s >>", astElement->varUnion.singleOrRecId->id);
+        // maybePrintf("<< %s >>", astElement->varUnion.singleOrRecId->id);
         handleTypeExpressionSingleOrRecId(astElement->varUnion.singleOrRecId);
         if(astElement->varUnion.singleOrRecId->typeExpr.basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr.expList = createExpressionList();
         } else{
             astElement->typeExpr = astElement->varUnion.singleOrRecId->typeExpr;
-            // printTypeExpr(astElement->varUnion.singleOrRecId->typeExpr);
-            // printf("\n");
         }
     }
     else if(astElement->varType == VAR_NUM){
@@ -914,10 +942,10 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
 
           if((lefttypex->basicType == BTYPE_ERROR) || (righttypex->basicType == BTYPE_ERROR)){
               bool->typeExpr.basicType = BTYPE_ERROR;
-              bool->typeExpr.expList = NULL;
+              bool->typeExpr.expList = createExpressionList();
           }else{
               bool->typeExpr.basicType = BTYPE_VOID;
-              bool->typeExpr.expList = NULL;
+              bool->typeExpr.expList = createExpressionList();
           }
           
      }
@@ -927,35 +955,35 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
           handleExpressionVar(varcomp->right);
           if((varcomp->left->typeExpr.basicType != BTYPE_ERROR) || (varcomp->right->typeExpr.basicType != BTYPE_ERROR)){
                varcomp->typeExpr.basicType = BTYPE_ERROR;
-               varcomp->typeExpr.expList = NULL;
+               varcomp->typeExpr.expList = createExpressionList();
                return;     
           }
 
           if(((varcomp->left->typeExpr.basicType != BTYPE_NUM) && (varcomp->left->typeExpr.basicType != BTYPE_RNUM))  || ((varcomp->right->typeExpr.basicType != BTYPE_RNUM) && (varcomp->right->typeExpr.basicType != BTYPE_NUM))){
-              printf("Error : var comparison is not compatiable with this type(Line Number %d)\n", astElement->lineNo);
+              maybePrintf("Error : var comparison is not compatiable with this type(Line Number %d)\n", astElement->lineNo);
               varcomp->typeExpr.basicType = BTYPE_ERROR;
-              varcomp->typeExpr.expList = NULL;
+              varcomp->typeExpr.expList = createExpressionList();
               return;
           }
 
           if((varcomp->left->typeExpr.basicType != varcomp->right->typeExpr.basicType)){
-              printf("Error: data types should be same for the comparison(Line Number %d)\n", astElement->lineNo);
+              maybePrintf("Error: data types should be same for the comparison(Line Number %d)\n", astElement->lineNo);
               varcomp->typeExpr.basicType = BTYPE_ERROR;
-              varcomp->typeExpr.expList = NULL;
+              varcomp->typeExpr.expList = createExpressionList();
               return;
           }
 
           varcomp->typeExpr.basicType = BTYPE_VOID;
-          varcomp->typeExpr.expList = NULL;
+          varcomp->typeExpr.expList = createExpressionList();
 
      }
 }
 
 void printTypeExpr(TypeExpression t){
-    printf("%s<", basicTypeToString(t.basicType));
+    maybePrintf("%s<", basicTypeToString(t.basicType));
     for(int i = 0; i < t.expList->size; i++){
         printTypeExpr(t.expList->typeExpressionList[i]);
-        printf(", ");
+        maybePrintf(", ");
     }
-    printf(">");
+    maybePrintf(">");
 }

@@ -33,10 +33,11 @@ ID: 2019A7PS0065P
 #include "ast.h"
 #include "astList.h"
 #include "astPrint.h"
-
+#include "astPrint.h"
+#include "typeCheck.h"
 int main(int argc, char* argv[]){
 
-    if(argc!=3){
+    if(argc!=2){
         printf("%d",argc);
 		printf("Check command: $./stage1exe  testcase.txt  parsetreeOutFile.txt\n");
 		return 0;
@@ -56,9 +57,18 @@ int main(int argc, char* argv[]){
 
     /****************************************Implementation Starts*****************************************/
 
+    //msg = malloc(1000000 * sizeof(char));
 
 int ex=0;
 
+        clock_t start_time, end_time;
+        start_time = clock();
+        // ParseTree pt = parse("testcases/s2.txt");
+        // handleParseTreeElement(pt.head);
+        // computeTypes();
+        // computeAllLocalType();
+        // handleTypeExpressionProgram(nodeToAst(pt.head->node_syn, program));
+        // end_time = clock();
     while(1){
         printf("\nPlease enter the task you want to perform:\n\n");
 		printf("0: To exit\n");
@@ -82,23 +92,25 @@ int ex=0;
         TwinBuffer* tbuf = &tb;
         TokenInfo tinf;
 
-        Grammar grammar;
-        initGrammar(&grammar);
-        initGlobalSymbolTables(&lexerSymbolTable);
-        FirstAndFollow fnf;
-        initFirstAndFollow(&fnf, &grammar);
-        ParseTable ptable;
-        initParseTable(&grammar, &fnf, &ptable);
-
+        setbuf(stdout, NULL);
+        
+        
         clock_t start_time, end_time;
-        double total_CPU_time, total_CPU_time_in_seconds;
+        start_time = clock();
+        ParseTree pt = parse("testcases/s2.txt");
+        handleParseTreeElement(pt.head);
+        computeTypes();
+        computeAllLocalType();
+        handleTypeExpressionProgram(nodeToAst(pt.head->node_syn, program));
+        end_time = clock();
 
+        double total_CPU_time, total_CPU_time_in_seconds;
         switch(task){
             case 0:
                 ex = 1;
             break;
 
-            case 1:
+            case 1:{
                 initTwinBuffer(tbuf, argv[1]);
                 while((tinf = getNextToken(tbuf)).token != EOF_TOKEN){
                     if(tinf.token != ERROR_TOKEN){
@@ -125,89 +137,159 @@ int ex=0;
                     }
                 }
                 break;
-
-            case 2:
+            }
+            case 2:{
                 // CHECK PARSER CORRECTNESS
-                initTwinBuffer(tbuf, argv[1]);
-                ParseTree parse = initParseTree(&grammar, &ptable, tbuf);
-
-                FILE* fptr = fopen(argv[2], "w");
-                Inorder(parse.head);
-                fclose(fptr);
-            break;
-
-            case 3:
-                // start_time = clock();
-                // // invoke your lexer and parser here
                 // initTwinBuffer(tbuf, argv[1]);
-                // ParseTree parse1 = initParseTree(&grammar, &ptable, tbuf);
-                // end_time = clock();
-                // total_CPU_time = (double) (end_time - start_time);
-                // total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
-                // printf("Total CPU time is: %lf",total_CPU_time);
-                // printf("Total CPU time in seconds is: %lf",total_CPU_time_in_seconds);
-                setbuf(stdout, NULL);
-                initTwinBuffer(tbuf, argv[1]);
-                ParseTree pt = initParseTree(&grammar, &ptable, tbuf);
-                handleParseTreeElement(pt.head);
-                printProgram(nodeToAst(pt.head->node_syn, program), 0);
-                // All tpyes
-                printf("\nTYPEDEFF\n");
-                LL* node = typeDefSymbolTable.keys.head;
-                for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
-                    printf("%s\n", node->kv.name);
-                    node = node->next;
-                }
-                computeTypes();
+                
+                Inorder(pt.head);
+            }
             break;
+
+            case 3:{
+                // // start_time = clock();
+                // // // invoke your lexer and parser here
+                // // initTwinBuffer(tbuf, argv[1]);
+                // // ParseTree parse1 = initParseTree(&grammar, &ptable, tbuf);
+                // // end_time = clock();
+                // // total_CPU_time = (double) (end_time - start_time);
+                // // total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
+                // // printf("Total CPU time is: %lf",total_CPU_time);
+                // // printf("Total CPU time in seconds is: %lf",total_CPU_time_in_seconds);
+                // setbuf(stdout, NULL);
+                // initTwinBuffer(tbuf, argv[1]);
+                // ParseTree pt = initParseTree(&grammar, &ptable, tbuf);
+                // handleParseTreeElement(pt.head);
+                // printProgram(nodeToAst(pt.head->node_syn, program), 0);
+                // // All tpyes
+                // printf("\nTYPEDEFF\n");
+                // LL* node = typeDefSymbolTable.keys.head;
+                // for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
+                //     printf("%s\n", node->kv.name);
+                //     node = node->next;
+                // }
+                printProgram(nodeToAst(pt.head->node_syn, program), 0);
+                break;
+            }
 
             case 4:{
+                printf("Compression = %lf\n", (double)PARSER_SIZE / (double) AST_SIZE);
+                printf("\n");
+
                 //Compression percentage
                 break;
             }
 
             case 5:{
-                setbuf(stdout, NULL);
-                initTwinBuffer(tbuf, argv[1]);
-                ParseTree pt = initParseTree(&grammar, &ptable, tbuf);
-                handleParseTreeElement(pt.head);
+                
                 LL* node = funSymbolTable.keys.head;
                 for(int i=0;i<funSymbolTable.keys.sz;i++){
+                    SymbolVal* fVal = findFunc(node->kv.name);
+                    loadSymbolTable(node->kv.name);
+                    
                     LL* node2 = node->kv.val.symbolTable->keys.head;
                     for(int j=0;j<node->kv.val.symbolTable->keys.sz;j++){
-                        printf("Name: %s\n",node2->kv.val.name);
-                        printf("Scope: %s\n",node->kv.val.name);
-                        if(node2->kv.val.type == DT_RECORD) printf("Type Name: %s\n",node2->kv.val.typeName); // TYPE NAME
-                        printf("Type Expression: ");
-                        printTypeExpr(node2->kv.val.typeExpr);
-                        printf("\n");
-                        printf("Width: %d",node2->kv.val.width);
-                        if(findGlobalVar(node2->kv.val.typeName)!=NULL) printf("isGLobal: Global");
-                        else printf("isGlobal: ---");
-                        printf("Offset: %d",node2->kv.val.offset);
+                        SymbolVal* varVal = findVar(node2->kv.name);
+                        //print appropriately
+                        // printf("Name: %s\n",node2->kv.val.name);
+                        // printf("Scope: %s\n",node->kv.val.name);
+                        // if(node2->kv.val.type == DT_RECORD) printf("Type Name: %s\n",node2->kv.val.typeName); // TYPE NAME
+                        // printf("Type Expression: ");
+                        // printTypeExpr(node2->kv.val.typeExpr);
+                        // printf("\n");
+                        // printf("Width: %d",node2->kv.val.width);
+                        // if(findGlobalVar(node2->kv.val.typeName)!=NULL) printf("isGLobal: Global");
+                        // else printf("isGlobal: ---");
+                        // printf("Offset: %d",node2->kv.val.offset);
                         //VARIABLE USAGE
-                }
+
+                        printf("Name : %s\n", varVal->name);
+                        printf("Scope : %s\n", fVal->name);
+                        if(varVal->type == DT_REC_OR_UNION || 
+                        varVal->type == DT_RECORD ||
+                        varVal->type == DT_UNION ){
+                            printf("Type Name : %s\n", varVal->typeName);
+                        }
+                        printf("Type Name : ---\n");
+                        printf("Type Expression :");
+                        printTypeExpr(varVal->typeExpr);
+                        printf("\n");
+                        printf("Width : %d\n", varVal->width);
+                        if(varVal->isGlobal)
+                            printf("Is Global : Global\n");
+                        else
+                            printf("Is Global : ---\n");
+                        printf("Offset : %d\n", varVal->offset);
+                        
+                        if(varVal->parType == NOT_PAR)
+                            printf("Local Var \n");
+                        else if(varVal->parType == IN_PAR)
+                            printf("Input Par \n");
+                        else if(varVal->parType == OUT_PAR)
+                            printf("Output Par \n");
+                        node2 = node2->next;
+                      }
+                      node = node->next;
                 }
                 break;
             }
 
             case 6:{
-                setbuf(stdout, NULL);
-                initTwinBuffer(tbuf, argv[1]);
-                ParseTree pt = initParseTree(&grammar, &ptable, tbuf);
-                handleParseTreeElement(pt.head);
+                
                 LL* node = globVarSymbolTable.keys.head;
-                for(int i=0;i<globVarSymbolTable.keys.sz;i++){
-                    printf("Name : %s\n",node->kv.val.typeName);
-                    printf("Type Expression: ");
-                    printTypeExpr(node->kv.val.typeExpr);
-                    printf("Offset: %d",node->kv.val.offset);
+                for(int i = 0; i < globVarSymbolTable.keys.sz; i++){
+                    SymbolVal* varVal = findGlobalVar(node->kv.name);
+                    printf("Name : %s\n", varVal->name);
+                    printf("Type Expression : ");
+                    printTypeExpr(varVal->typeExpr);
+                    printf("\n");
+                    printf("Offset : %d\n", varVal->offset);
+                    printf("\n");
+
                 }
                 break;
             }
 
             case 7:{
-                
+                LL* node = funSymbolTable.keys.head;
+                for(int i=0;i<funSymbolTable.keys.sz;i++){
+                    SymbolVal* fVal = findFunc(node->kv.name);
+                    loadSymbolTable(node->kv.name);
+                    
+                    LL* node2 = node->kv.val.symbolTable->keys.head;
+
+                    int widths = 0;
+                    for(int j=0;j<node->kv.val.symbolTable->keys.sz;j++){
+                        SymbolVal* varVal = findVar(node2->kv.name);
+                        widths += varVal->width;
+                    }
+
+                    printf("%s : %d \n", fVal->name, widths);
+                    printf("\n");
+
+                    node = node->next;
+                }
+                break;
+            }
+
+            case 8:{
+                LL* node = typeDefSymbolTable.keys.head;
+                printf("\n");
+                for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
+                    SymbolVal* tVal = findTypeDefinition(node->kv.val.name);
+                    printf("%s ", tVal->name);
+                    printTypeExpr(tVal->typeExpr);
+                    printf(" %d\n", tVal->width);
+                    node = node->next;
+                }
+                break;
+            }
+
+            case 9:{
+                total_CPU_time = (double) (end_time - start_time);
+                total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
+                printf("Total CPU time is: %lf",total_CPU_time);
+                printf("Total CPU time in seconds is: %lf",total_CPU_time_in_seconds);
                 break;
             }
         }

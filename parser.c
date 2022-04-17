@@ -25,6 +25,8 @@ ID: 2019A7PS0065P
 #include "lexer.h"
 #include "symbolTable.h"
 
+int PARSER_SIZE = 0;
+
 TokenSet firstSetDp[NON_TERMINAL_SIZE];
 int tokRuleNum[NON_TERMINAL_SIZE][TOKEN_SIZE];
 LocationArray ntLocation[NON_TERMINAL_SIZE];
@@ -690,6 +692,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
         start.isTerminal = 0;
         start.symbol = PROGRAM;
         ParseTreeElement* p = (ParseTreeElement*)malloc(sizeof(ParseTreeElement));
+        PARSER_SIZE += sizeof(ParseTreeElement);
         initParseTreeElement(p, start);
         parseTree.head = p;
         store = stackPush(store,p);
@@ -731,6 +734,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     store = stackPop(store);
                     m->noOfChildren = ruleSize;
                     m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
+                    PARSER_SIZE += ruleSize*sizeof(ParseTreeElement);
                     m->ruleNo = rule.ruleNum;
                     m->lineNo = tinfo.lineNumber;
                     for(int j=ruleSize-1;j>=0;j--){

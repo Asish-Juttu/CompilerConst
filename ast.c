@@ -6,6 +6,9 @@
 #include "symbolTable.h"
 #include <stdio.h>
 
+int AST_SIZE = 0;
+int MAYBE = 0;
+char* msg = NULL;
 AstNode *makeEmptyAstNode()
 {
     AstNode *astNode = malloc(sizeof(AstNode));
@@ -31,10 +34,10 @@ void updateLine(ParseTreeElement* ptElement){
 void handleParseTreeElement(ParseTreeElement *ptElement)
 {
     // if(ptElement == NULL){
-    //     printf("PTELEMENT IS NULL!!");
+    //     maybePrintf("PTELEMENT IS NULL!!");
     //     return;
     // }
-    // printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
+    // maybePrintf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
         // ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
     if (!ptElement->elem.isTerminal)
     {
@@ -155,7 +158,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 for(int i = 0; i < list->size; i++){
                     Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
                     if(findVar(param->id) != NULL){
-                        printf("Redeclaration of var %s in function %s\n", param->id, currentSymbolTable()->name);
+                        maybePrintf("Redeclaration of var %s in function %s\n", param->id, currentSymbolTable()->name);
                     }
                     insertVar(param->id, IN_PAR, param->datatype->datatype, param->datatype->name);
                 }
@@ -371,7 +374,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     type_def->node_syn = type_def->node_inh;
                 }
                 else{
-                    printf("Error Rule doesnt match!!!\n");
+                    maybePrintf("Error Rule doesnt match!!!\n");
                 }
                 break;
             }
@@ -470,7 +473,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 declareAstNode(nodeFieldDefinition, AST_FIELDDEFINITION, Ast_FieldDefinition, fieldDefinition);
                 nodeToAst(nodeFieldDefinition, fieldDefinition)->fieldType = nodeToAst(field_type->node_syn, datatype);
-                printf("%s is of type %s\n", tkFieldid.lexeme, dtypeToStr(nodeToAst(field_type->node_syn, datatype)->datatype));
+                maybePrintf("%s is of type %s\n", tkFieldid.lexeme, dtypeToStr(nodeToAst(field_type->node_syn, datatype)->datatype));
                 nodeToAst(nodeFieldDefinition, fieldDefinition)->id = tkFieldid.lexeme;
             
                 insertTo(nodeToAst(field_def->node_inh, fieldDefinitions)->fieldDefinitionList, nodeFieldDefinition);
@@ -533,7 +536,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *datatype = &ptElement->children[1];
                 ParseTreeElement *global_or_not = &ptElement->children[4];
                 TokenInfo tkId = ptElement->children[3].tinfo;
-                //printf("Declaration id is %s \n", tkId.lexeme);
+                //maybePrintf("Declaration id is %s \n", tkId.lexeme);
                 handleParseTreeElement(datatype);
                 
                 handleParseTreeElement(global_or_not);
@@ -553,14 +556,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 if(isGlobal){
                     if(findGlobalVar(tkId.lexeme) != NULL){
-                        printf("Error! Redeclaration of global varaible %s\n", tkId.lexeme);
+                        maybePrintf("Error! Redeclaration of global varaible %s\n", tkId.lexeme);
                     }
                     else
                         insertGlobVar(tkId.lexeme, dtype->datatype, dtype->name);
                 }
                 else{
                     if(findVar(tkId.lexeme) != NULL){
-                        printf("Error! Redeclaration of local varaible %s in %s\n", tkId.lexeme, currentSymbolTable()->name);
+                        maybePrintf("Error! Redeclaration of local varaible %s in %s\n", tkId.lexeme, currentSymbolTable()->name);
                     }
                     insertVar(tkId.lexeme, NOT_PAR, dtype->datatype, dtype->name);
                 }
@@ -1000,7 +1003,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     var->node_syn = nodeVar;
                 }
                 else{
-                    printf("BLahh");
+                    maybePrintf("BLahh");
                     exit(0);
                 }
                // ptElement->lineNo = ptElement->children[0].lineNo;
@@ -1557,6 +1560,6 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
     else
     {
         Token t = ptElement->elem.symbol;
-        printf("Error !! Calling handleParseTreeELement on terminal symbol %s\n", tokToStr(t));
+        maybePrintf("Error !! Calling handleParseTreeELement on terminal symbol %s\n", tokToStr(t));
     }
 }

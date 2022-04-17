@@ -22,6 +22,7 @@ ID: 2019A7PS0065P
 #include "parserDef.h"
 #include "twinBuffer.h"
 
+extern int PARSER_SIZE;
 
 void initGrammar(Grammar* grammar);
 TokenSet first(Grammar* grammar, NonTerminal nt);

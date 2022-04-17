@@ -2,11 +2,18 @@
 #define _ast_def_
 
 #include "type.h"
+#include "semError.h"
+
+extern int AST_SIZE;
+extern int MAYBE;
+extern char* msg;
+#define maybePrintf(...) printf(__VA_ARGS__);
 
 #define declareAstNode(VARNAME, ENUM, STRUCT, FIELD) \
     AstNode *VARNAME = makeEmptyAstNode();           \
     VARNAME->type = ENUM;                            \
-    VARNAME->node.FIELD = malloc(sizeof(STRUCT)); 
+    VARNAME->node.FIELD = malloc(sizeof(STRUCT)); \
+    AST_SIZE += sizeof(STRUCT);
 
 #define nodeToAst(VAR, FIELD) (VAR == NULL ? (printf("%s is null.\n", #VAR) ? VAR->node.FIELD : VAR->node.FIELD) :\
     (toAstType(#FIELD) == VAR->type) ? VAR->node.FIELD : (printf("%s being accessed as %s\n [nodeToAst(%s, %s)]\n", astToStr(VAR->type), \

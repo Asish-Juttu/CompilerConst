@@ -7,7 +7,7 @@ typedef struct {
 } ErrorList;
 
 extern ErrorList errorList;
-void error(char* msg, int lineNo);
+void error(char* msg);
 void initErrorList();
 void reportErrors();
 

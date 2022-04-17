@@ -40,6 +40,7 @@ typedef struct {
     int width; // in bytes
     ParType parType;
     TypeExpression typeExpr;
+    int isGlobal;
 } SymbolVal;
 
 // SymbolVal* s = findFunc(name);

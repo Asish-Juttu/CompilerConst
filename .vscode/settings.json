@@ -8,6 +8,7 @@
         "ast.h": "c",
         "typedef.h": "c",
         "astprint.h": "c",
-        "parser.h": "c"
+        "parser.h": "c",
+        "astlist.h": "c"
     }
 }
