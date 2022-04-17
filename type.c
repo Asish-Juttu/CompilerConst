@@ -277,6 +277,13 @@ void handleTypeExpressionStmts(Ast_Stmts *astElement)
     handleTypeExpressionOtherStmts(astElement->otherStmts);
     handleTypeExpressionIdlist(astElement->returnIds);
     //should not we the return ids with output ids of the fucntion?
+    SymbolVal *variable = findFunc(currentSymbolTable()->name);
+    if(!checkifEqual(variable->typeExpr.expList->typeExpressionList[1],astElement->returnIds->typeExpr)){
+        printf("Return Ids of the function %s are not matching with output parameters\n",currentSymbolTable()->name);
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+        return;
+    }
     if ((astElement->declarations->typeExpr.basicType == BTYPE_ERROR) || (astElement->typeDefinitions->typeExpr.basicType == BTYPE_ERROR) || (astElement->otherStmts->typeExpr.basicType == BTYPE_ERROR) || (astElement->returnIds->typeExpr.basicType == BTYPE_ERROR))
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
@@ -629,6 +636,11 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         //extract function input and output par from symbol table and match them.
         
         SymbolVal *variable = findFunc(functionCallStatement->funId);
+        if(strcmp(functionCallStatement->funId,currentSymbolTable()->name) == 0){
+            printf("Recursion is not allowed\n");
+            functionCallStatement->typeExpr.basicType = BTYPE_ERROR;
+             functionCallStatement->typeExpr.expList = NULL; 
+        }
         if(checkifEqual(variable->typeExpr.expList->typeExpressionList[0],functionCallStatement->inputIdList->typeExpr) && (checkifEqual(variable->typeExpr.expList->typeExpressionList[1],functionCallStatement->outputIdList->typeExpr))){
              functionCallStatement->typeExpr.basicType = BTYPE_VOID;
              functionCallStatement->typeExpr.expList = createExpressionList();
