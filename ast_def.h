@@ -286,6 +286,7 @@ typedef struct{
     struct _Ast_ArithmeticExpression* left;
     struct _Ast_ArithmeticExpression* right;
     ArithmeticOperator op;
+    TypeExpression typeExpr;
 } ArithmeticExpression;
 
 typedef union {
@@ -325,6 +326,7 @@ typedef struct {
     Ast_Var* left;
     Ast_Var* right;
     RelationalOperator op;
+    TypeExpression typeExpr;
 } VarComparison;
 
 typedef struct {
