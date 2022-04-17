@@ -724,6 +724,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                 else if(rule.symbol[0].symbol == EPSILON){
                     store = stackPop(store);
                     m->ruleNo = rule.ruleNum;
+                    m->lineNo = tinfo.lineNumber;
                 }
                 
                 else{
@@ -731,7 +732,7 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
                     m->noOfChildren = ruleSize;
                     m->children = (ParseTreeElement*)malloc(ruleSize*sizeof(ParseTreeElement));
                     m->ruleNo = rule.ruleNum;
-
+                    m->lineNo = tinfo.lineNumber;
                     for(int j=ruleSize-1;j>=0;j--){
                         Symbol elem = parseTable->table[m->elem.symbol][tinfo.token].symbol[j];
                         initParseTreeElement(&m->children[j], elem);
