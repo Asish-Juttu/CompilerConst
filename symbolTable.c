@@ -136,6 +136,9 @@ void computeLocalType(char* id){
         // printf("Computing types for %s as", node->kv.name);
 
         SymbolVal* varVal = findVar(node->kv.name);
+        if(findGlobalVar(node->kv.name) != NULL){
+            printf("Error ! Redeclaration of global variable %s\n", node->kv.name);
+        }
         if(varVal->type == DT_NUM){
             varVal->typeExpr = numTypeExpression();
             // printf("DT NUM\n");

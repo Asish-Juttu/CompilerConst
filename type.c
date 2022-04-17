@@ -328,7 +328,7 @@ void handleTypeExpressionDatatype(Ast_Datatype *astElement)
     }
     else
     {
-        printf("Error: Datatype does not exist\n");
+        printf("Error: Datatype does not exist(Line Number %d)\n", astElement->lineNo);
         astElement->typeExpr.basicType = BTYPE_ERROR;
         astElement->typeExpr.expList = NULL;
         return;
@@ -451,7 +451,7 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
         if (entry == NULL)
         {
             isError = 1;
-            printf("Variable %s is used without declaring\n", id->id);
+            printf("Variable %s is used without declaring(Line Number %d)\n", id->id, astElement->lineNo);
         }
 
     }
@@ -684,7 +684,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
 
     if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD))
     {
-        printf("Arithmetic operations are only supported for record,integers and real numbers\n");
+        printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
         astElement->typeExpr.basicType = BTYPE_ERROR;
         astElement->typeExpr.expList = NULL;
         return;
@@ -692,7 +692,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
 
     if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD))
     {
-        printf("Arithmetic operations are only supported for record,integers and real numbers\n");
+        printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
         astElement->typeExpr.basicType = BTYPE_ERROR;
         astElement->typeExpr.expList = NULL;
         return;
@@ -709,7 +709,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
         }
         else
         {
-            printf("Right hand side and left hand side are of different types.\n");
+            printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         }
@@ -725,7 +725,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
         }
         else
         {
-            printf("Right hand side and left hand side are of different types.\n");
+            printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         }
@@ -752,7 +752,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
         {
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-            printf("This type of operation is not supported between these type of datatypes\n");
+            printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
             return;
         }
     }
@@ -774,7 +774,7 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
         {
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-            printf("This type of operation is not supported between these type of datatypes\n");
+            printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
             return;
         }
     }
@@ -803,7 +803,7 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
             variable = find(&globVarSymbolTable, astElement->id);
             if (variable == NULL)
             {
-                printf("Variable %s is not declared but used\n", astElement->id);
+                printf("Variable %s is not declared but used (Line Number %d)\n", astElement->id, astElement->lineNo);
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
                 return;
@@ -911,14 +911,14 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
           }
 
           if(((varcomp->left->typeExpr.basicType != BTYPE_NUM) && (varcomp->left->typeExpr.basicType != BTYPE_RNUM))  || ((varcomp->right->typeExpr.basicType != BTYPE_RNUM) && (varcomp->right->typeExpr.basicType != BTYPE_NUM))){
-              printf("Error : var comparison is not compatiable with this type\n");
+              printf("Error : var comparison is not compatiable with this type(Line Number %d)\n", astElement->lineNo);
               varcomp->typeExpr.basicType = BTYPE_ERROR;
               varcomp->typeExpr.expList = NULL;
               return;
           }
 
           if((varcomp->left->typeExpr.basicType != varcomp->right->typeExpr.basicType)){
-              printf("Error: data types should be same for the comparison\n");
+              printf("Error: data types should be same for the comparison(Line Number %d)\n", astElement->lineNo);
               varcomp->typeExpr.basicType = BTYPE_ERROR;
               varcomp->typeExpr.expList = NULL;
               return;
