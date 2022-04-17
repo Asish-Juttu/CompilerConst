@@ -23,10 +23,8 @@
 #define fCallStmt(VAR) VAR->stmtUnion.funCallStmt
 #define condStmt(VAR) VAR->stmtUnion.condStmt
 #define ipopStmt(VAR) VAR->stmtUnion.ioStmt
-#define aexp_expLeft(VAR) VAR->left.exp
-#define aexp_expRight(VAR) VAR->right.exp
-#define aexp_varLeft(VAR) VAR->left.var
-#define aexp_varRight(VAR) VAR->right.var
+#define expAexp(VAR) VAR->aexpUnion.exp
+#define varAexp(VAR) VAR->aexpUnion.var
 
 typedef enum {
     AST_PROGRAM, AST_OTHERFUNCTIONS, AST_MAIN, AST_FUNCTION, AST_PARAMETERLIST, AST_CONSTRUCTEDDATATYPE, AST_STMTS, AST_TYPEDEFINITION,
@@ -284,20 +282,22 @@ typedef enum {
     AEXP_EXP, AEXP_VAR
 } AexpType;
 
+typedef struct{
+    struct _Ast_ArithmeticExpression* left;
+    struct _Ast_ArithmeticExpression* right;
+    ArithmeticOperator op;
+} ArithmeticExpression;
+
 typedef union {
-    struct _Ast_ArithmeticExpression* exp;
+    ArithmeticExpression* exp;
     Ast_Var* var;
 } AexpUnion;
 
 typedef struct _Ast_ArithmeticExpression{
-    AexpUnion left;
-    AexpType lefType;
-
-    AexpUnion right;
-    AexpType rightType;
-
-    ArithmeticOperator op;
+    AexpUnion aexpUnion;
+    AexpType aexpType;
     TypeExpression typeExpr;
+    
     int lineNo;
 } Ast_ArithmeticExpression;
 

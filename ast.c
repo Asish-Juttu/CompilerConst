@@ -137,6 +137,9 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 AstList* list = nodeToAst(nodeParameterList, parameterList)->parameterList;
                 for(int i = 0; i < list->size; i++){
                     Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
+                    if(findVar(param->id) != NULL){
+                        printf("Redeclaration of var %s in function %s\n", param->id, currentSymbolTable()->name);
+                    }
                     insertVar(param->id, param->datatype->datatype, param->datatype->name);
                 }
                 parameter_list->node_inh = nodeParameterList;
@@ -425,6 +428,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 declareAstNode(nodeFieldDefinition, AST_FIELDDEFINITION, Ast_FieldDefinition, fieldDefinition);
                 nodeToAst(nodeFieldDefinition, fieldDefinition)->fieldType = nodeToAst(field_type->node_syn, datatype);
+                printf("%s is of type %s\n", tkFieldid.lexeme, dtypeToStr(nodeToAst(field_type->node_syn, datatype)->datatype));
                 nodeToAst(nodeFieldDefinition, fieldDefinition)->id = tkFieldid.lexeme;
             
                 insertTo(nodeToAst(field_def->node_inh, fieldDefinitions)->fieldDefinitionList, nodeFieldDefinition);
@@ -1182,34 +1186,19 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     declareAstNode(nodeArithExpr, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
                                 arithmeticExpression);
-                                
+                    nodeToAst(nodeArithExpr, arithmeticExpression)->aexpType = AEXP_EXP;
                     handleParseTreeElement(lowPrOp);
-                    nodeToAst(nodeArithExpr, arithmeticExpression)->op =
+                    expAexp(nodeToAst(nodeArithExpr, arithmeticExpression))->op =
                         nodeToAst(lowPrOp->node_syn, arithmeticOp)->op;
 
                     handleParseTreeElement(term);
 
-                    AstNode* left = expPrime->node_inh;
-                    AstNode* right = term->node_syn;
+                    AstNode* left = nodeToAst(expPrime->node_inh, arithmeticExpression);
+                    AstNode* right = nodeToAst(term->node_syn, arithmeticExpression);
                     Ast_ArithmeticExpression* aexp = nodeToAst(nodeArithExpr, arithmeticExpression);
 
-                    if(left->type == AST_VAR){
-                        aexp->lefType = AEXP_VAR;
-                        aexp->left.var = nodeToAst(left, var);
-                    }
-                    else if(left->type == AST_ARITHMETICEXPR){
-                        aexp->lefType = AEXP_EXP;
-                        aexp_expLeft(aexp) = nodeToAst(left, arithmeticExpression);
-                    }
-
-                    if(right->type == AST_VAR){
-                        aexp->rightType = AEXP_VAR;
-                        aexp_varRight(aexp) = nodeToAst(right, var);
-                    }
-                    else if(right->type == AST_ARITHMETICEXPR){
-                        aexp->rightType = AEXP_EXP;
-                        aexp_expRight(aexp) = nodeToAst(right, arithmeticExpression);
-                    }
+                    expAexp(aexp)->left = left;
+                    expAexp(aexp)->right = right;
 
                     expPrime1->node_inh = nodeArithExpr;
                     handleParseTreeElement(expPrime1);
@@ -1348,7 +1337,12 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     ParseTreeElement *var = &ptElement->children[0];
                     handleParseTreeElement(var);
-                    factor->node_syn = var->node_syn;
+                    declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression, arithmeticExpression);
+                    nodeToAst(nodeAexp, arithmeticExpression)->aexpType = AEXP_VAR;
+
+                    varAexp(nodeToAst(nodeAexp, arithmeticExpression)) = var->node_syn;
+                    
+                    factor->node_syn = nodeAexp;
                 }
                 break;
             } 
@@ -1367,32 +1361,17 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
                         arithmeticExpression);
                     
-                    nodeToAst(nodeAexp, arithmeticExpression)->op = 
+                    expAexp(nodeToAst(nodeAexp, arithmeticExpression))->op = 
                         nodeToAst(hpOp->node_syn, arithmeticOp)->op;
+                    nodeToAst(nodeAexp, arithmeticExpression)->aexpType = AEXP_EXP;
                     
-                    AstNode* left = term_prime->node_inh;
-                    AstNode* right = factor->node_syn;
+                    AstNode* left = nodeToAst(term_prime->node_inh, arithmeticExpression);
+                    AstNode* right = nodeToAst(factor->node_syn, arithmeticExpression);
                     Ast_ArithmeticExpression* aexp = nodeToAst(nodeAexp, arithmeticExpression);
 
-                    if(left->type == AST_VAR){
-                        aexp->lefType = AEXP_VAR;
-                        aexp->left.var = nodeToAst(left, var);
-                    }
-                    else if(left->type == AST_ARITHMETICEXPR){
-                        aexp->lefType = AEXP_EXP;
-                        aexp_expLeft(aexp) = nodeToAst(left, arithmeticExpression);
-                    }
-
-                    if(right->type == AST_VAR){
-                        aexp->rightType = AEXP_VAR;
-                        aexp_varRight(aexp) = nodeToAst(right, var);
-                    }
-
-                    else if(right->type == AST_ARITHMETICEXPR){
-                        aexp->rightType = AEXP_EXP;
-                        aexp_expRight(aexp) = nodeToAst(right, arithmeticExpression);
-                    }
-
+                    expAexp(aexp)->left = left;
+                    expAexp(aexp)->right = right;
+                    
                     term_prime1->node_inh = nodeAexp;
                     
                     handleParseTreeElement(term_prime1);

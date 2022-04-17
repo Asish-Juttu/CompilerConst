@@ -40,40 +40,54 @@ int isVoid(TypeExpression t){
     return t.basicType == BTYPE_VOID;
 }
 void computeType(char* name, SymbolVal* symVal){
+    if(symVal->type == DT_RECORD)
+        symVal->typeExpr = recordTypeExpression();
+    else if(symVal->type == DT_UNION)
+        symVal->typeExpr = unionTypeExpression();
+
+    int k = 0;
+
     SymbolTable* fTab = symVal->symbolTable;
     LL* node = fTab->keys.head;
-    int k = 0;
+
     for(int i = 0; i < fTab->keys.sz; i++){
+        //printf("got %s of type %s\n", node->kv.name,  dtypeToStr(node->kv.val.type));
         if(node->kv.val.type == DT_NUM){
             addToRecord(symVal->typeExpr, numTypeExpression());
         }
         else if(node->kv.val.type == DT_RNUM){
             addToRecord(symVal->typeExpr, rnumTypeExpression());
         }
-        else if(node->kv.val.type == DT_UNION){
-            SymbolVal* tgVal = find(fTab, "tagvalue");
-            if(k){
-                printf("Errror ! More than one union in variant record");
-                symVal->typeExpr.basicType = BTYPE_ERROR;
-            }
-            else if(tgVal == NULL || (tgVal->type != DT_NUM && tgVal->type != DT_RNUM)) {
-                printf("Error ! No tagvalue field for variant record %s", name);
-                symVal->typeExpr.basicType = BTYPE_ERROR;
-            }
-            else{
+
+        else if(node->kv.val.type == DT_REC_OR_UNION || node->kv.val.type == DT_RECORD || node->kv.val.type == DT_UNION){
+                SymbolVal* tVal = findTypeDefinition(node->kv.val.typeName);
                 if(isVoid(node->kv.val.typeExpr)){
-                    computeType(node->kv.val.typeName, findTypeDefinition(node->kv.val.typeName));
+                    computeType(node->kv.val.typeName, tVal);
                 }
-                addToRecord(symVal->typeExpr, findTypeDefinition(node->kv.val.typeName)->typeExpr);
-            }
-            k = 1;
-        }
-        else if(node->kv.val.type == DT_RECORD){
-                if(isVoid(node->kv.val.typeExpr)){
-                    computeType(node->kv.val.typeName, findTypeDefinition(node->kv.val.typeName));
+                if(tVal->typeExpr.basicType == BTYPE_UNION){
+
+                    SymbolVal* tagVal = find(fTab, "tagvalue");
+                    if(k == 1){
+                        printf("Error !! Two unions cant appear in variant record %s\n", symVal->name);
+                    }
+                    else if(tagVal == NULL){
+                        printf("Error !! No tag present for %s\n", symVal->name);
+                    }
+                    else if(tagVal->type != DT_NUM && tagVal->type != DT_RNUM){
+                        printf("Error !! No tag of type int/real present for %s\n", symVal->name);
+                    }
+                    k = 1;
                 }
-                addToRecord(symVal->typeExpr, findTypeDefinition(node->kv.val.typeName)->typeExpr);
+                insertToExpList(symVal->typeExpr.expList, tVal->typeExpr);
         }
+        else {
+            printf("Unexpected type %s encountered for %s\n", dtypeToStr(node->kv.val.type), node->kv.name);
+        }
+        node = node->next;
+    }
+
+    if(k == 1){
+        symVal->typeExpr.basicType = BTYPE_TAGGED_UNION;
     }
 }
 
@@ -82,11 +96,13 @@ void computeTypes(){
     for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
         if(isVoid(node->kv.val.typeExpr))
             computeType(node->kv.name, &node->kv.val);
+        printf("%s =>", node->kv.name);
         printTypeExpr(node->kv.val.typeExpr);
-
+        printf("\n");
         node = node->next;
     }
 }
+
 KeyVal keyVal(char* name){
     return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid()}};
 }
@@ -104,6 +120,9 @@ void initSymTable(SymbolTable* symTable){
         symTable->tb[i].tail = NULL;
     }
     symTable->name = NULL;
+    symTable->keys.head = NULL;
+    symTable->keys.tail = NULL;
+    symTable->keys.sz = 0;
 }
 
 void initTypeDefSymbolTable(){
@@ -266,6 +285,7 @@ void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs
 
         KeyVal kv = keyVal(fdef->id);
         kv.val.type = fdef->fieldType->datatype;
+        printf("adding field %s of type %s\n", fdef->id, dtypeToStr(fdef->fieldType->datatype));
         kv.val.typeName = fdef->fieldType->name;
 
         insert(flistSymTab, kv);
@@ -354,24 +374,32 @@ void insert(SymbolTable* st, KeyVal kv){
         return;
     }
     LL* entry = (LL*) malloc(sizeof(LL));
+    LL* kentry = (LL*)malloc(sizeof(LL));
+
     entry->kv = kv;
     entry->next = NULL;
+
+    kentry->kv = kv;
+    kentry->next = NULL;
     if(t->sz==0){
         t->head = entry;
         t->tail = entry;
         t->sz=1;
-
-        st->keys.head = entry;
-        st->keys.tail = entry;
-        st->keys.sz = 1;
     }
     else{
         t->tail->next = entry;
         t->tail = entry;
         t->sz++;
+    }
 
-        st->keys.tail->next = entry;
-        st->keys.tail = entry;
+    if(st->keys.sz == 0){
+        st->keys.head = kentry;
+        st->keys.tail = kentry;
+        st->keys.sz++;
+    }
+    else{
+        st->keys.tail->next = kentry;
+        st->keys.tail = kentry;
         st->keys.sz++;
     }
 }
