@@ -243,6 +243,7 @@ typedef struct {
 
 typedef struct{
     int isGlobal;
+    int lineNo;
 } Ast_IsGlobalOrNot;
 
 typedef struct {
@@ -345,6 +346,7 @@ typedef union {
 struct _astBexp{
     Bexp bexp;
     BoolExpType bexpType;
+    int lineNo;
 };
 
 ///////////////////////////////////////////////////////
@@ -373,10 +375,12 @@ typedef struct {
 
 typedef struct {
     LogicalOperator op;
+    int lineNo;
 } Ast_LogicalOperator;
 
 typedef struct {
     RelationalOperator op;
+    int lineNo;
 } Ast_RelationalOperator;
 
 typedef enum {
@@ -394,6 +398,7 @@ typedef union {
 typedef struct {
     StmtUnion stmtUnion;
     StmtType type;
+    int lineNo;
 } Ast_Stmt;
 
 typedef struct {
@@ -413,6 +418,7 @@ typedef struct {
 
 typedef struct {
     char* id;
+    int lineNo;
 } Ast_Id;
 
 typedef union { 
