@@ -636,6 +636,11 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
         //extract function input and output par from symbol table and match them.
         
         SymbolVal *variable = findFunc(functionCallStatement->funId);
+        if(strcmp(functionCallStatement->funId,currentSymbolTable()->name) == 0){
+            printf("Recursion is not allowed\n");
+            functionCallStatement->typeExpr.basicType = BTYPE_ERROR;
+             functionCallStatement->typeExpr.expList = NULL; 
+        }
         if(checkifEqual(variable->typeExpr.expList->typeExpressionList[0],functionCallStatement->inputIdList->typeExpr) && (checkifEqual(variable->typeExpr.expList->typeExpressionList[1],functionCallStatement->outputIdList->typeExpr))){
              functionCallStatement->typeExpr.basicType = BTYPE_VOID;
              functionCallStatement->typeExpr.expList = NULL;
