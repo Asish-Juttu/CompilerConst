@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "semError.h"
-
+#include "astPrint.h"
 const TypeExpression typeError = (TypeExpression){BTYPE_ERROR, NULL, NULL};
 TypeExpression typeVoid(){
     TypeExpression tvoid = (TypeExpression){BTYPE_VOID, NULL, NULL};
@@ -655,7 +655,7 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
     }
 }
 
-void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElement)
+int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElement)
 {   
 
     
@@ -666,14 +666,16 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
         ArithmeticExpression *arithexp = astElement->aexpUnion.exp;
 
 
-        handleTypeExpressionArithmeticExpression(arithexp->left);
+        if(!handleTypeExpressionArithmeticExpression(arithexp->left))
+            return 0;
         leftTypex = &arithexp->left->typeExpr;
         if(leftTypex->basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         }
         
-        handleTypeExpressionArithmeticExpression(arithexp->right);
+        if(!handleTypeExpressionArithmeticExpression(arithexp->right))
+            return 0;
         rightTypex = &arithexp->right->typeExpr;
         if(rightTypex->basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
@@ -685,20 +687,20 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
         if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD) && (leftTypex->basicType != BTYPE_ERROR))
         {
             printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
-            printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
+            // printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-            return;
+            return 0;
         }
 
         if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD) && (leftTypex->basicType != BTYPE_ERROR))
         {
             printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
-            printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
+            // printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
 
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-            return;
+            return 0;
         }
 
         if (arithexp->op == AOP_PLUS)
@@ -712,9 +714,14 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
             }
             else
             {
-                printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
+                printf("Right hand side and left hand side are of different types.(Line Number %d)", astElement->lineNo);
+                printf("\n\tLeft : ");
+                printArithmeticExpression(expAexp(astElement)->left, 0);
+                printf("\n\tRight : ");
+                printArithmeticExpression(expAexp(astElement)->right, 0);
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
+                return 0;
             }
         }
         else if (arithexp->op == AOP_MINUS)
@@ -728,9 +735,14 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
             }
             else
             {
-                printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
+                printf("Right hand side and left hand side are of different types.(Line Number %d)", astElement->lineNo);
+                printf("\n\tLeft : ");
+                printArithmeticExpression(expAexp(astElement)->left, 0);
+                printf("\n\tRight : ");
+                printArithmeticExpression(expAexp(astElement)->right, 0);
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
+                return 0;
             }
         }
         else if (arithexp->op == AOP_DIV)
@@ -755,8 +767,8 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
             {
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
-                printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
-                return;
+                printf("Division of records / unions is not supported(Line Number %d)\n", astElement->lineNo);
+                return 0;
             }
         }
         else if (arithexp->op == AOP_MUL)
@@ -777,8 +789,8 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
             {
                 astElement->typeExpr.basicType = BTYPE_ERROR;
                 astElement->typeExpr.expList = NULL;
-                printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
-                return;
+                printf("Multiplication of record or union with record or union is not supported(Line Number %d)\n", astElement->lineNo);
+                return 0;
             }
         }
     
@@ -793,6 +805,8 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
             // printf("Assigning type\n", astElement->typeExpr.basicType);
         }
     }
+
+    return 1;
 }
 
 void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)

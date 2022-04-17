@@ -17,7 +17,7 @@ void handleTypeExpressionTypeDefinition(Ast_TypeDefinition *astElement);
 void handleTypeExpressionDeclaration(Ast_Declaration *astElement);
 int checkifEqual(TypeExpression exp1, TypeExpression exp2);
 void handleTypeExpressionStmt(Ast_Stmt *astElement);
-void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElement);
+int handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElement);
 void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement);
 void handleExpressionVar(Ast_Var *astElement);
 void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement);
