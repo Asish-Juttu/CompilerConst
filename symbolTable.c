@@ -251,6 +251,8 @@ void pushSymbolTable(char* fname){
     growSlistIfFull(&localSymbolTableList);
     SymbolTable* symTable = malloc(sizeof(SymbolTable));
     initSymTable(symTable);
+    symTable->name = fname;
+
     localSymbolTableList.symTables[localSymbolTableList.size] = symTable;
     localSymbolTableList.size++;
     insertFunc(fname, symTable);
@@ -322,7 +324,7 @@ void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName){
     kv.val.type = datatype;
     kv.val.typeName = typeName;
     kv.val.parType = ptype;
-    printf("Inserting var %s of type %s", name, dtypeToStr(datatype));
+    // printf("Inserting var %s of type %s\n", name, dtypeToStr(datatype));
     insert(currentSymbolTable(), kv);
 }
 

@@ -799,7 +799,8 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
         SymbolVal *variable = findVar(astElement->id);
         if (variable == NULL)
         {
-            variable = findVar(astElement->id);
+            printf("YOOO THE ID %s is not present in sym table of %s\n", astElement->id, currentSymbolTable()->name);
+            variable = find(&globVarSymbolTable, astElement->id);
             if (variable == NULL)
             {
                 printf("Variable %s is not declared but used\n", astElement->id);
