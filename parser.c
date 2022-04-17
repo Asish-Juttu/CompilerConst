@@ -759,17 +759,19 @@ ParseTree initParseTree(Grammar* grammar,ParseTable* parseTable, TwinBuffer* tbu
         return parseTree;
 }
 
-void Inorder(ParseTreeElement* head, FILE* fptr){
+void Inorder(ParseTreeElement* head){
     if(head == NULL){
         return;
     }
     if(head->elem.isTerminal){
-        fprintf(fptr, "%s\n",tokToStr(head->elem.symbol));
+        //fprintf(fptr, "%s\n",tokToStr(head->elem.symbol));
+        printf("%s\n",tokToStr(head->elem.symbol));
     }else{
         for(int i=0;i<head->noOfChildren;i++){
-            Inorder(&(head->children[i]), fptr);
+            Inorder(&(head->children[i]));
             if(i == 0)
-                fprintf(fptr, "%s\n",nonTermToStr(head->elem.symbol));
+                //fprintf(fptr, "%s\n",nonTermToStr(head->elem.symbol));
+                printf("%s\n",nonTermToStr(head->elem.symbol));
         }
     }
     return;
