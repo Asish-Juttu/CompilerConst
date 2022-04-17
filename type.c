@@ -274,6 +274,7 @@ void handleTypeExpressionStmts(Ast_Stmts *astElement)
     handleTypeExpressionDeclarations(astElement->declarations);
     handleTypeExpressionOtherStmts(astElement->otherStmts);
     handleTypeExpressionIdlist(astElement->returnIds);
+    //should not we the return ids with output ids of the fucntion?
     if ((astElement->declarations->typeExpr.basicType == BTYPE_ERROR) || (astElement->typeDefinitions->typeExpr.basicType == BTYPE_ERROR) || (astElement->otherStmts->typeExpr.basicType == BTYPE_ERROR) || (astElement->returnIds->typeExpr.basicType == BTYPE_ERROR))
     {
         astElement->typeExpr.basicType = BTYPE_ERROR;
@@ -485,7 +486,7 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
     SymbolVal *dec = find(&globVarSymbolTable, astElement->id);
     if (dec != NULL)
     {
-        printf("%s is a global variable and it is declared more than once\n", astElement->id);
+        printf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
         astElement->typeExpr.basicType = BTYPE_ERROR;
         astElement->typeExpr.expList = NULL;
     }
@@ -586,161 +587,197 @@ void handleTypeExpressionStmt(Ast_Stmt *astElement)
     }
     else if (astElement->type == STMT_ITER)
     {
+        int isError = 0;
         Ast_IterativeStmt *iterativeStatement = astElement->stmtUnion.iterStmt;
+        handleTypeExpressionBooleanExpression(iterativeStatement->condition);
+        handleTypeExpressionOtherStmts(iterativeStatement->body);
+
+        if(iterativeStatement->condition->bexpType == BEXP_BOOL_OP){
+              if(iterativeStatement->condition->bexp.boolOp->typeExpr.basicType == BTYPE_ERROR){
+                        isError = 1; 
+              }     
+        }
+        else if(iterativeStatement->condition->bexpType == BEXP_VAR_COMP){
+            if(iterativeStatement->condition->bexp.varComp->typeExpr.basicType == BTYPE_ERROR){
+                isError = 1;
+            }
+
+        }
+
+        if(iterativeStatement->body->typeExpr.basicType == BTYPE_ERROR){
+            isError = 1;
+        }
+
+        if(isError){
+            iterativeStatement->typeExpr.basicType = BTYPE_ERROR;
+            iterativeStatement->typeExpr.expList = NULL;
+        }else{
+            iterativeStatement->typeExpr.basicType = BTYPE_VOID;
+            iterativeStatement->typeExpr.expList = NULL;
+        }
+
+
+
     }
     else if (astElement->type == STMT_FUN_CALL)
     {
         Ast_FunCallStmt *functionCallStatement = astElement->stmtUnion.funCallStmt;
+        handleTypeExpressionIdlist(functionCallStatement->inputIdList);
+        handleTypeExpressionIdlist(functionCallStatement->outputIdList);
+        //extract function input and output par from symbol table and match them.
+        
+
+
     }
     else if (astElement->type == STMT_IO)
     {
         Ast_IoStmt *ioStatement = astElement->stmtUnion.ioStmt;
+        handleExpressionVar(ioStatement->var);
+        if(ioStatement->var->typeExpr.basicType == BTYPE_ERROR){
+            ioStatement->typeExpr.basicType = BTYPE_ERROR;
+            ioStatement->typeExpr.expList = NULL;
+        }else{
+            ioStatement->typeExpr.basicType = BTYPE_VOID;
+            ioStatement->typeExpr.expList = NULL;
+        }
     }
 }
 
 void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astElement)
-{
+{   
+
+    
+    if(astElement->aexpType == AEXP_EXP){
+    
     TypeExpression *leftTypex;
     TypeExpression *rightTypex;
+    ArithmeticExpression *arithexp = astElement->aexpUnion.exp;
 
-    // if (astElement->lefType == AEXP_EXP)
-    // {
-    //     handleTypeExpressionArithmeticExpression(astElement->left.exp);
-    //     leftTypex = &astElement->left.exp->typeExpr;
-    //     if (astElement->left.exp->typeExpr.basicType == BTYPE_ERROR)
-    //     {
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //     }
-    // }
-    // else
-    // {
-    //     handleExpressionVar(astElement->left.var);
-    //     leftTypex = &astElement->left.var->typeExpr;
-    //     if (astElement->left.var->typeExpr.basicType == BTYPE_ERROR)
-    //     {
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //     }
-    // }
 
-    // if (astElement->rightType == AEXP_EXP)
-    // {
-    //     handleTypeExpressionArithmeticExpression(astElement->right.exp);
-    //     rightTypex = &astElement->right.exp->typeExpr;
-    //     if (astElement->right.exp->typeExpr.basicType == BTYPE_ERROR)
-    //     {
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //     }
-    // }
-    // else
-    // {
-    //     handleExpressionVar(astElement->right.var);
-    //     rightTypex = &astElement->right.var->typeExpr;
-    //     if (astElement->right.var->typeExpr.basicType == BTYPE_ERROR)
-    //     {
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //     }
-    // }
+    handleTypeExpressionArithmeticExpression(arithexp->left);
+    leftTypex = &arithexp->left->typeExpr;
+    if(leftTypex->basicType == BTYPE_ERROR){
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
+    
+    handleTypeExpressionArithmeticExpression(arithexp->right);
+    rightTypex = &arithexp->right->typeExpr;
+    if(rightTypex->basicType == BTYPE_ERROR){
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+    }
 
-    // if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD))
-    // {
-    //     printf("Arithmetic operations are only supported for record,integers and real numbers\n");
-    //     astElement->typeExpr.basicType = BTYPE_ERROR;
-    //     astElement->typeExpr.expList = NULL;
-    //     return;
-    // }
+    
 
-    // if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD))
-    // {
-    //     printf("Arithmetic operations are only supported for record,integers and real numbers\n");
-    //     astElement->typeExpr.basicType = BTYPE_ERROR;
-    //     astElement->typeExpr.expList = NULL;
-    //     return;
-    // }
+    if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD))
+    {
+        printf("Arithmetic operations are only supported for record,integers and real numbers\n");
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+        return;
+    }
 
-    // if (astElement->op == AOP_PLUS)
-    // {
+    if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD))
+    {
+        printf("Arithmetic operations are only supported for record,integers and real numbers\n");
+        astElement->typeExpr.basicType = BTYPE_ERROR;
+        astElement->typeExpr.expList = NULL;
+        return;
+    }
 
-    //     // both left and right types must be equal
-    //     // otherwise throw error.
-    //     if (checkifEqual(*leftTypex, *rightTypex))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else
-    //     {
-    //         printf("Right hand side and left hand side are of different types.\n");
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //     }
-    // }
-    // else if (astElement->op == AOP_MINUS)
-    // {
+    if (arithexp->op == AOP_PLUS)
+    {
 
-    //     // both left and right types must be equal
-    //     // otherwise throw error.
-    //     if (checkifEqual(*leftTypex, *rightTypex))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else
-    //     {
-    //         printf("Right hand side and left hand side are of different types.\n");
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //     }
-    // }
-    // else if (astElement->op == AOP_DIV)
-    // {
+        // both left and right types must be equal
+        // otherwise throw error.
+        if (checkifEqual(*leftTypex, *rightTypex))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else
+        {
+            printf("Right hand side and left hand side are of different types.\n");
+            astElement->typeExpr.basicType = BTYPE_ERROR;
+            astElement->typeExpr.expList = NULL;
+        }
+    }
+    else if (arithexp->op == AOP_MINUS)
+    {
 
-    //     // right must be of the type num or rnum.
-    //     // left can be num or rnum or record type.
+        // both left and right types must be equal
+        // otherwise throw error.
+        if (checkifEqual(*leftTypex, *rightTypex))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else
+        {
+            printf("Right hand side and left hand side are of different types.\n");
+            astElement->typeExpr.basicType = BTYPE_ERROR;
+            astElement->typeExpr.expList = NULL;
+        }
+    }
+    else if (arithexp->op == AOP_DIV)
+    {
 
-    //     if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else
-    //     {
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //         printf("This type of operation is not supported between these type of datatypes\n");
-    //         return;
-    //     }
-    // }
-    // else if (astElement->op == AOP_MUL)
-    // {
-    //     if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
-    //     {
-    //         astElement->typeExpr = *leftTypex;
-    //     }
-    //     else
-    //     {
-    //         astElement->typeExpr.basicType = BTYPE_ERROR;
-    //         astElement->typeExpr.expList = NULL;
-    //         printf("This type of operation is not supported between these type of datatypes\n");
-    //         return;
-    //     }
-    // }
+        // right must be of the type num or rnum.
+        // left can be num or rnum or record type.
+
+        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        // else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+        // {
+        //     astElement->typeExpr = *leftTypex;
+        // }
+        else
+        {
+            astElement->typeExpr.basicType = BTYPE_ERROR;
+            astElement->typeExpr.expList = NULL;
+            printf("This type of operation is not supported between these type of datatypes\n");
+            return;
+        }
+    }
+    else if (arithexp->op == AOP_MUL)
+    {
+        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+        {
+            astElement->typeExpr = *leftTypex;
+        }
+        else
+        {
+            astElement->typeExpr.basicType = BTYPE_ERROR;
+            astElement->typeExpr.expList = NULL;
+            printf("This type of operation is not supported between these type of datatypes\n");
+            return;
+        }
+    }
+    
+    }
+    else if(astElement->aexpType == AEXP_VAR){
+        handleExpressionVar(astElement->aexpUnion.var);
+        if(astElement->aexpUnion.var->typeExpr.basicType == BTYPE_ERROR){
+            astElement->typeExpr.basicType = BTYPE_ERROR;
+            astElement->typeExpr.expList = NULL;
+        }else{
+            astElement->typeExpr.basicType = BTYPE_VOID;
+            astElement->typeExpr.expList = NULL;
+        }
+    }
 }
 
 void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
@@ -811,9 +848,61 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
      
      //what will be the type of boolean expression?
      if(astElement->bexpType == BEXP_BOOL_OP){
-       //   BoolOperation *bool =  
+
+          BoolOperation *bool =  astElement->bexp.boolOp;
+          handleTypeExpressionBooleanExpression(bool->left);
+          handleTypeExpressionBooleanExpression(bool->right);
+
+          TypeExpression *lefttypex;
+          TypeExpression *righttypex;
+
+          if(bool->left->bexpType == BEXP_BOOL_OP){
+              lefttypex = &bool->left->bexp.boolOp; 
+          }else{
+              lefttypex = &bool->left->bexp.varComp;
+          }
+          if(bool->right->bexpType == BEXP_BOOL_OP){
+               righttypex = &bool->right->bexp.boolOp;  
+          }else{
+               righttypex = &bool->right->bexp.varComp;
+          }
+
+
+          if((lefttypex->basicType == BTYPE_ERROR) || (righttypex->basicType == BTYPE_ERROR)){
+              bool->typeExpr.basicType = BTYPE_ERROR;
+              bool->typeExpr.expList = NULL;
+          }else{
+              bool->typeExpr.basicType = BTYPE_VOID;
+              bool->typeExpr.expList = NULL;
+          }
+          
      }
      else if(astElement->bexpType == BEXP_VAR_COMP){
+          VarComparison *varcomp = astElement->bexp.varComp;
+          handleExpressionVar(varcomp->left);
+          handleExpressionVar(varcomp->right);
+          if((varcomp->left->typeExpr.basicType != BTYPE_ERROR) || (varcomp->right->typeExpr.basicType != BTYPE_ERROR)){
+               varcomp->typeExpr.basicType = BTYPE_ERROR;
+               varcomp->typeExpr.expList = NULL;
+               return;     
+          }
+
+          if(((varcomp->left->typeExpr.basicType != BTYPE_NUM) && (varcomp->left->typeExpr.basicType != BTYPE_RNUM))  || ((varcomp->right->typeExpr.basicType != BTYPE_RNUM) && (varcomp->right->typeExpr.basicType != BTYPE_NUM))){
+              printf("Error : var comparison is not compatiable with this type\n");
+              varcomp->typeExpr.basicType = BTYPE_ERROR;
+              varcomp->typeExpr.expList = NULL;
+              return;
+          }
+
+          if((varcomp->left->typeExpr.basicType != varcomp->right->typeExpr.basicType)){
+              printf("Error: data types should be same for the comparison\n");
+              varcomp->typeExpr.basicType = BTYPE_ERROR;
+              varcomp->typeExpr.expList = NULL;
+              return;
+          }
+
+          varcomp->typeExpr.basicType = BTYPE_VOID;
+          varcomp->typeExpr.expList = NULL;
 
      }
 }
