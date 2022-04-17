@@ -1,11 +1,17 @@
 #include "type.h"
 #include "ast_def.h"
 #include "symbolTable.h"
+#include "typeCheck.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "semError.h"
 
-const TypeExpression typeError = (TypeExpression){BTYPE_ERROR, NULL};
-const TypeExpression typeVoid = (TypeExpression){BTYPE_VOID, NULL};
+const TypeExpression typeError = (TypeExpression){BTYPE_ERROR, NULL, NULL};
+TypeExpression typeVoid(){
+    TypeExpression tvoid = (TypeExpression){BTYPE_VOID, NULL, NULL};
+    tvoid.expList = malloc(sizeof(ExpressionList));
+    return tvoid;
+}
 
 const int INPUT_LIST = 0;
 const int OUTPUT_LIST = 1;
@@ -35,7 +41,7 @@ int validate(TypeExpression t, BasicType basicType)
 {
     if (t.basicType != basicType)
     {
-        printf("Attempting to use type %s as type %s", basicTypeToString(t.basicType), basicTypeToString(basicType));
+        printf("Attempting to use type %s as type %s\n", basicTypeToString(t.basicType), basicTypeToString(basicType));
         return 0;
     }
 
@@ -117,7 +123,7 @@ TypeExpression unionTypeExpression()
 TypeExpression rnumTypeExpression()
 {
     TypeExpression rnumTE = typeExpression(BTYPE_RNUM);
-    rnumTE.expList = NULL;
+    rnumTE.expList = createExpressionList();
 
     return rnumTE;
 }
@@ -125,7 +131,7 @@ TypeExpression rnumTypeExpression()
 TypeExpression numTypeExpression()
 {
     TypeExpression numTE = typeExpression(BTYPE_NUM);
-    numTE.expList = NULL;
+    numTE.expList = createExpressionList();
 
     return numTE;
 }
@@ -149,12 +155,15 @@ TypeExpression paramListTypeExpression()
 
 // I am basically writing function for each and every ast element separately.
 
+void handleTypeExpressionMain(Ast_Main* main){
+
+}
 void handleTypeExpressionProgram(Ast_Program *astElement)
 {
     // changing the current symbol table.
-    localSymbolTableList.current = localSymbolTableList.size - 1;
-    handleTypeExpressionFunction(astElement->mainFunction);
+    //localSymbolTableList.current = localSymbolTableList.size - 1;
     handleTypeExpressionOtherFunctions(astElement->otherFunctions);
+    handleTypeExpressionMain(astElement->mainFunction);
     if ((astElement->mainFunction->typeExpr.basicType == BTYPE_ERROR) || (astElement->otherFunctions->typeExpr.basicType == BTYPE_ERROR))
     {
         astElement->typeExpr = typeExpression(BTYPE_ERROR);
@@ -167,6 +176,12 @@ void handleTypeExpressionProgram(Ast_Program *astElement)
 
 void handleTypeExpressionFunction(Ast_Function *astElement)
 {
+    // if(findFunc(astElement->funId) != NULL)
+    //     error("Redefinition of function");
+    //pushSymbolTable(astElement->funId);
+    // insertFunc(astElement->funId, topSymbolTable());
+    loadSymbolTable(astElement->funId);
+    
     handleTypeExpressionParameterList(astElement->input_par);
     handleTypeExpressionParameterList(astElement->output_par);
     handleTypeExpressionStmts(astElement->stmts);
@@ -189,7 +204,7 @@ void handleTypeExpressionOtherFunctions(Ast_OtherFunctions *astElement)
     for (int i = 0; i < astElement->functionList->size; i++)
     {
         Ast_Function *f = astElement->functionList->nodes[i]->node.function;
-        localSymbolTableList.current = i;
+        //localSymbolTableList.current = i;
         handleTypeExpressionFunction(f);
         if (f->typeExpr.basicType == BTYPE_ERROR)
         {
@@ -425,13 +440,12 @@ void handleTypeExpressionIdlist(Ast_IdList *astElement)
     }
     if (isError)
     {
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr = typeError;
     }
     else
     {
-        astElement->typeExpr.basicType = BTYPE_PARAM_LIST;
-        astElement->typeExpr.expList = createAstList();
+        astElement->typeExpr = paramListTypeExpression();
+
         for (int i = 0; i < astElement->idList->size; i++)
         {
             Ast_Id *id = astElement->idList->nodes[i]->node.id;
@@ -463,7 +477,7 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
     else
     {
         // Inserting into the symbol table.
-        insertVar(astElement->id, astElement->datatype->datatype, );
+        insertVar(astElement->id, astElement->datatype->datatype, astElement->datatype->name);
         // what the hell is typename??
     }
 }
@@ -480,7 +494,7 @@ int checkifEqual(TypeExpression exp1, TypeExpression exp2)
         {
             if (exp1.expList->size == exp2.expList->size)
             {
-                for (int i = 0; i < exp1.expList.size(); i++)
+                for (int i = 0; i < exp1.expList->size; i++)
                 {
                     // but what if there are in different order.
                     if (!checkifEqual(exp1.expList->typeExpressionList[i], exp2.expList->typeExpressionList[i]))

@@ -30,8 +30,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
     //     printf("PTELEMENT IS NULL!!");
     //     return;
     // }
-    // printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
-        // ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
+    printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
+        ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
     if (!ptElement->elem.isTerminal)
     {
         switch (ptElement->elem.symbol)
@@ -67,6 +67,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 handleParseTreeElement(statements);
                 pushSymbolTable("main");
+                loadSymbolTable("main");
                 
                 declareAstNode(nodeMainFunction, AST_MAIN, Ast_Main, mainFunction);
                 nodeToAst(nodeMainFunction, mainFunction)->stmts =
@@ -109,7 +110,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *statements = &ptElement->children[4];
                
                 pushSymbolTable(tkFunId.lexeme);
-                loadNextSymbolTable();
+                loadSymbolTable(tkFunId.lexeme);
 
                 handleParseTreeElement(input_par);
                 handleParseTreeElement(output_par);
@@ -361,7 +362,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     type_def->node_syn = nodeTypeDefinition;
 
-                    insertTypeDef(tkRuid.lexeme, DT_RECORD, nodeToAst(nodeTypeDefinition, typeDefinition));
+                    insertTypeDef(tkRuid.lexeme, DT_RECORD, nodeToAst(field_def->node_syn, fieldDefinitions));
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -382,7 +383,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     //         nodeTypeDefinition);
 
                     type_def->node_syn = nodeTypeDefinition;
-                    insertTypeDef(tkRuid.lexeme, DT_UNION, nodeToAst(nodeTypeDefinition, typeDefinition));
+                    insertTypeDef(tkRuid.lexeme, DT_UNION, nodeToAst(field_def->node_syn, fieldDefinitions));
                 }
                 break;
             }

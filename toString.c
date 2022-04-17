@@ -155,6 +155,7 @@ char* basicTypeToString(BasicType bt){
         case BTYPE_FIELD : return "FIELD";
         case BTYPE_FUNCTION : return "FUNCTION";
         case BTYPE_ERROR : return "TYPE ERROR";
+        case BTYPE_VOID : return "VOID";
     }
 
     return "INVALID TYPE";
