@@ -25,6 +25,9 @@ ID: 2019A7PS0065P
 
 struct _SymbolTable;
 
+typedef enum{
+    NOT_PAR, IN_PAR, OUT_PAR
+} ParType;
 
 typedef struct {
     char* name; // key (or alias of some record)
@@ -35,9 +38,19 @@ typedef struct {
     struct _SymbolTable* symbolTable;
     int offset;
     int width; // in bytes
+    ParType parType;
     TypeExpression typeExpr;
 } SymbolVal;
 
+// SymbolVal* s = findFunc(name);
+// if(s == NULL) no such function
+// else 
+//  s->typeExpr = type;
+
+// SymbolVal* tDef = findTypeDefinioto(nameoftype);
+// SymbolVal* fTab = tDef->symbolTable;
+// SymbolVal* vVal = find(fTab, fieldName);
+// TypeExpression t = vVal->typeExpr;
 typedef struct{
     char* name;
     SymbolVal val;
@@ -118,7 +131,7 @@ void initGlobalSymbolTables();
 void initFuncSybolTable(); // required to be implemented
 
 
-void insertVar(char* name, Datatype datatype, char* typeName);
+void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName);
 void insertFunc(char* name, SymbolTable* symbolTable);
 
 SymbolVal* findFunc(char* name);
@@ -128,6 +141,7 @@ void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t);
 void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs);
 void insertTypeRedef(char* name, char* to);
 void insertGlobVar(char* name, Datatype t, char* typeName);
+SymbolVal* findGlobalVar(char* var);
 void insert(SymbolTable* symTable, KeyVal kv);
 
 

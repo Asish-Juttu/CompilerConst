@@ -30,8 +30,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
     //     printf("PTELEMENT IS NULL!!");
     //     return;
     // }
-    printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
-        ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
+    // printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
+        // ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
     if (!ptElement->elem.isTerminal)
     {
         switch (ptElement->elem.symbol)
@@ -57,6 +57,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(othFun->node_syn, otherFunctions);
 
                 ptElement->node_syn = nodeProgram;
+                ptElement->lineNo = ptElement->children[0].lineNo;
                 break;
             }
 
@@ -74,6 +75,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(statements->node_syn, stmts);
 
                 mainFunc->node_syn = nodeMainFunction;
+                ptElement->lineNo = ptElement->children[0].lineNo;
                 break;
             }
 
@@ -98,6 +100,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 {
                     otherFunc->node_syn = ptElement->node_inh;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -124,6 +128,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
     
                 insertTo(nodeToAst(func->node_inh, otherFunctions)->functionList, nodeFunction);
                 func->node_syn = func->node_inh;
+                ptElement->lineNo = ptElement->children[0].lineNo;
 
                 break;
             }
@@ -140,11 +145,13 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     if(findVar(param->id) != NULL){
                         printf("Redeclaration of var %s in function %s\n", param->id, currentSymbolTable()->name);
                     }
-                    insertVar(param->id, param->datatype->datatype, param->datatype->name);
+                    insertVar(param->id, IN_PAR, param->datatype->datatype, param->datatype->name);
                 }
                 parameter_list->node_inh = nodeParameterList;
                 handleParseTreeElement(parameter_list);
                 input_par->node_syn = parameter_list->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -161,13 +168,17 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     AstList* list = nodeToAst(nodeParameterList, parameterList)->parameterList;
                     for(int i = 0; i < list->size; i++){
                         Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
-                        insertVar(param->id, param->datatype->datatype, param->datatype->name);
+                        insertVar(param->id, OUT_PAR, param->datatype->datatype, param->datatype->name);
                     }
                     output_par->node_syn = parameter_list->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
-                    output_par->node_syn = NULL;
+                    declareAstNode(nodeParameterList, AST_PARAMETERLIST, Ast_ParameterList, parameterList);
+                    nodeToAst(nodeParameterList, parameterList)->parameterList = createAstList();
+                    output_par->node_syn = nodeParameterList;
                 }
                 break;
             }
@@ -192,6 +203,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 remaining_list->node_inh = parameter_list->node_inh;
                 handleParseTreeElement(remaining_list);
                 parameter_list->node_syn = remaining_list->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -210,6 +223,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(constructed_datatype);
                     datatype->node_syn = constructed_datatype->node_syn;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -233,6 +248,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeDatatype, datatype)->name = NULL;
                     primitive_datatype->node_syn = nodeDatatype;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -263,6 +280,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                 nodeToAst(nodeDatatype, datatype)->name = tkRuid.lexeme;
                 constructed_datatype->node_syn = nodeDatatype;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -275,6 +294,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     parameter_list->node_inh = remaining_list->node_inh;
                     handleParseTreeElement(parameter_list);
                     remaining_list->node_syn = parameter_list->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -314,6 +335,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeStmts, stmts)->otherStmts = nodeToAst(other_stmts->node_syn, otherStmts);
                 nodeToAst(nodeStmts, stmts)->returnIds = nodeToAst(return_stmt->node_syn, idList); 
                 stmts->node_syn = nodeStmts;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -329,6 +352,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     type_def1->node_inh = actual_or_redef->node_syn;
                     handleParseTreeElement(type_def1);
                     type_def->node_syn = type_def1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -366,6 +391,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     type_def->node_syn = nodeTypeDefinition;
 
                     insertTypeDef(tkRuid.lexeme, DT_RECORD, nodeToAst(field_def->node_syn, fieldDefinitions));
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -387,6 +414,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     type_def->node_syn = nodeTypeDefinition;
                     insertTypeDef(tkRuid.lexeme, DT_UNION, nodeToAst(field_def->node_syn, fieldDefinitions));
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 break;
             }
@@ -415,6 +444,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 more_fields->node_inh = field_def2->node_syn;
                 handleParseTreeElement(more_fields);
                 field_defs->node_syn = more_fields->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
 
                 break;
             }
@@ -433,6 +463,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
             
                 insertTo(nodeToAst(field_def->node_inh, fieldDefinitions)->fieldDefinitionList, nodeFieldDefinition);
                 field_def->node_syn = field_def->node_inh;
+                ptElement->lineNo = ptElement->children[0].lineNo;
 
                 break;
             }
@@ -451,6 +482,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(more_fields1);
 
                     more_fields->node_syn = more_fields1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -473,6 +506,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(declarations1);
 
                     declarations->node_syn = declarations1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -505,11 +540,20 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 declaration->node_syn = declaration->node_inh;
 
                 if(isGlobal){
-                    insertGlobVar(tkId.lexeme, dtype->datatype, dtype->name);
+                    if(findGlobalVar(tkId.lexeme) != NULL){
+                        printf("Error! Redeclaration of global varaible %s\n", tkId.lexeme);
+                    }
+                    else
+                        insertGlobVar(tkId.lexeme, dtype->datatype, dtype->name);
                 }
                 else{
-                    insertVar(tkId.lexeme, dtype->datatype, dtype->name);
+                    if(findVar(tkId.lexeme) != NULL){
+                        printf("Error! Redeclaration of local varaible %s in %s\n", tkId.lexeme, currentSymbolTable()->name);
+                    }
+                    insertVar(tkId.lexeme, NOT_PAR, dtype->datatype, dtype->name);
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case GLOBAL_OR_NOT:
@@ -523,6 +567,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeIsG, isGlobalOrNot)->isGlobal = 1;
 
                     global_or_not->node_syn = nodeIsG;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -549,6 +595,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(other_stmts1);
 
                     other_stmts->node_syn = other_stmts1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -617,6 +665,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     insertTo(nodeToAst(stmt->node_inh, otherStmts)->otherStmtList, nodeStmt);
                     stmt->node_syn = stmt->node_inh;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case ASSIGNMENT_STMT:
@@ -634,6 +684,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(arithmetic_expression->node_syn, arithmeticExpression);
 
                 assignment_stmt->node_syn = nodeAssignmentStmt;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case SINGLE_OR_REC_ID:
@@ -650,6 +702,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     moreExp)->oneExpansionList;
 
                 single_or_rec_id->node_syn = nodeSingleOrRecId;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case FUN_CALL_STMT:
@@ -666,6 +720,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeFunCallStmt, funCallStmt)->inputIdList = nodeToAst(input_parameters->node_syn, idList);
                 nodeToAst(nodeFunCallStmt, funCallStmt)->funId = tkFunid.lexeme;
                 fun_call_stmt->node_syn = nodeFunCallStmt;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case OUTPUT_PARAMETERS:
@@ -683,10 +739,15 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     id_list->node_inh = nodeIdList;
                     output_parameters->node_syn = id_list->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+                    
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
-                    output_parameters->node_syn = NULL;
+                    declareAstNode(nodeIdList, AST_IDLIST, Ast_IdList, idList);
+                    nodeToAst(nodeIdList, idList)->idList = createAstList();
+                    output_parameters->node_syn = nodeIdList;
                 }
                 break;
             }
@@ -701,6 +762,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 id_list->node_inh = nodeIdList;
                 handleParseTreeElement(id_list);
                 input_parameters->node_syn = id_list->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+                
                 break;
             }
             case ITERATIVE_STMT:
@@ -725,6 +788,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeIterativeStmt, iterativeStmt)->body = nodeToAst(nodeOtherStmts, otherStmts);
 
                 iterative_stmt->node_syn = nodeIterativeStmt;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -752,6 +817,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeConditionalStmt, conditionalStmt)->elsePart = nodeToAst(else_part->node_syn, elsePart)->otherStmts;
 
                 condStmt->node_syn = nodeConditionalStmt;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             
@@ -777,6 +844,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeIo, ioStmt)->var = nodeToAst(var->node_syn, var);
                     ioStmt->node_syn = nodeIo;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case BOOLEAN_EXPRESSION:
@@ -863,6 +932,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     ptElement->node_syn = nodeBooleanExpression;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
 
                 break;
             }
@@ -912,6 +982,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     printf("BLahh");
                     exit(0);
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -936,6 +1008,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     localOp->node_syn = nodeLogOp;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -984,6 +1058,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeROp, relationalOp)->op = ROP_Ne;
                     relationalOP->node_syn = nodeROp;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -993,6 +1069,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 ParseTreeElement *optioanlReturn = &ptElement->children[1];
                 handleParseTreeElement(optioanlReturn);
                 returnStmt->node_syn = optioanlReturn->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1007,6 +1085,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     idList->node_inh = nodeidList;
                     handleParseTreeElement(idList);
                     optionalReturn->node_syn = idList->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -1035,6 +1115,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 dtypeStmt->node_syn = nodeTrdef;
                 
                 insertTypeRedef(tkruid1.lexeme, tkruid.lexeme);
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case ID_LIST:
@@ -1049,6 +1131,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 moreIds->node_inh = idList->node_inh;
                 handleParseTreeElement(moreIds);
                 idList->node_syn = moreIds->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1062,6 +1146,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     idList->node_inh = moreIds->node_inh;
                     handleParseTreeElement(idList);
                     moreIds->node_syn = idList->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
 
                 else if (ptElement->ruleNo == 1)
@@ -1091,6 +1177,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     insertTo(nodeToAst(actualOrredefined->node_inh, typeDefinitions)->typeDefintionList, defineTypeStatement->node_syn);
                     ptElement->node_syn = ptElement->node_inh;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1111,6 +1199,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeRuid, datatype)->name = tkRuId.lexeme;
                     fieldType->node_syn = nodeRuid;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1132,6 +1222,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(moreExp);
 
                     optionSingleConstructed->node_syn = moreExp->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if(optionSingleConstructed->ruleNo == 1){
                     declareAstNode(nodeMoreExp, AST_MOREEXPANSION, Ast_MoreExpansion,
@@ -1151,6 +1243,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 nodeToAst(nodeId, id)->id = tkFieldId.lexeme;
                 insertTo(nodeToAst(oneExpansion->node_inh, moreExp)->oneExpansionList, nodeId);
                 oneExpansion->node_syn = oneExpansion->node_inh;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1167,6 +1261,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     moreExpansion1->node_inh = oneExpansion->node_syn;
                     handleParseTreeElement(moreExpansion1);
                     moreExpansions->node_syn = moreExpansion1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
 
                 else if (moreExpansions->ruleNo == 1)
@@ -1188,13 +1284,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                                 arithmeticExpression);
                     nodeToAst(nodeArithExpr, arithmeticExpression)->aexpType = AEXP_EXP;
                     handleParseTreeElement(lowPrOp);
+                    expAexp(nodeToAst(nodeArithExpr, arithmeticExpression)) = malloc(sizeof(ArithmeticExpression));
                     expAexp(nodeToAst(nodeArithExpr, arithmeticExpression))->op =
                         nodeToAst(lowPrOp->node_syn, arithmeticOp)->op;
 
                     handleParseTreeElement(term);
 
-                    AstNode* left = nodeToAst(expPrime->node_inh, arithmeticExpression);
-                    AstNode* right = nodeToAst(term->node_syn, arithmeticExpression);
+                    Ast_ArithmeticExpression* left = nodeToAst(expPrime->node_inh, arithmeticExpression);
+                    Ast_ArithmeticExpression* right = nodeToAst(term->node_syn, arithmeticExpression);
                     Ast_ArithmeticExpression* aexp = nodeToAst(nodeArithExpr, arithmeticExpression);
 
                     expAexp(aexp)->left = left;
@@ -1208,6 +1305,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 else if(expPrime->ruleNo == 1){
                     expPrime->node_syn = expPrime->node_inh;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1229,6 +1328,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeDatatype, datatype)->name = NULL;
                     a->node_syn = nodeDatatype;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1256,6 +1357,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeElsePart, elsePart)->otherStmts = nodeToAst(othStmt->node_syn, otherStmts);
 
                     else_part->node_syn = nodeElsePart;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -1272,6 +1375,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     else_part->node_syn = nodeElsePart;
                 }
+
                 break;
             }
 
@@ -1286,6 +1390,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(expPrime);
 
                 aExp->node_syn = expPrime->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
             case TERM:
@@ -1299,6 +1405,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 handleParseTreeElement(tPrime);
 
                 term->node_syn = tPrime->node_syn;
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }
 
@@ -1321,6 +1429,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeAop, arithmeticOp)->op = AOP_MINUS;
                     low_precedence_operators->node_syn = nodeAop;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }  
 
@@ -1340,10 +1450,12 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression, arithmeticExpression);
                     nodeToAst(nodeAexp, arithmeticExpression)->aexpType = AEXP_VAR;
 
-                    varAexp(nodeToAst(nodeAexp, arithmeticExpression)) = var->node_syn;
-                    
+                    varAexp(nodeToAst(nodeAexp, arithmeticExpression)) = nodeToAst(var->node_syn, var);
+
                     factor->node_syn = nodeAexp;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             } 
 
@@ -1360,13 +1472,13 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
                         arithmeticExpression);
-                    
+                    expAexp(nodeToAst(nodeAexp, arithmeticExpression)) = malloc(sizeof(ArithmeticExpression));
                     expAexp(nodeToAst(nodeAexp, arithmeticExpression))->op = 
                         nodeToAst(hpOp->node_syn, arithmeticOp)->op;
                     nodeToAst(nodeAexp, arithmeticExpression)->aexpType = AEXP_EXP;
                     
-                    AstNode* left = nodeToAst(term_prime->node_inh, arithmeticExpression);
-                    AstNode* right = nodeToAst(factor->node_syn, arithmeticExpression);
+                    Ast_ArithmeticExpression* left = nodeToAst(term_prime->node_inh, arithmeticExpression);
+                    Ast_ArithmeticExpression* right = nodeToAst(factor->node_syn, arithmeticExpression);
                     Ast_ArithmeticExpression* aexp = nodeToAst(nodeAexp, arithmeticExpression);
 
                     expAexp(aexp)->left = left;
@@ -1377,6 +1489,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     handleParseTreeElement(term_prime1);
 
                     term_prime->node_syn = term_prime1->node_syn;
+                    ptElement->lineNo = ptElement->children[0].lineNo;
+
                 }
                 else if (ptElement->ruleNo == 1)
                 {
@@ -1404,6 +1518,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     high_precedence_operators->node_syn = nodeAop;
                 }
+                ptElement->lineNo = ptElement->children[0].lineNo;
+
                 break;
             }  
         }

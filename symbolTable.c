@@ -40,6 +40,7 @@ int isVoid(TypeExpression t){
     return t.basicType == BTYPE_VOID;
 }
 void computeType(char* name, SymbolVal* symVal){
+    
     if(symVal->type == DT_RECORD)
         symVal->typeExpr = recordTypeExpression();
     else if(symVal->type == DT_UNION)
@@ -50,13 +51,19 @@ void computeType(char* name, SymbolVal* symVal){
     SymbolTable* fTab = symVal->symbolTable;
     LL* node = fTab->keys.head;
 
+    int offset = 0;
+    int maxw = 0;
     for(int i = 0; i < fTab->keys.sz; i++){
         //printf("got %s of type %s\n", node->kv.name,  dtypeToStr(node->kv.val.type));
+
+        int width = 0;
         if(node->kv.val.type == DT_NUM){
-            addToRecord(symVal->typeExpr, numTypeExpression());
+            insertToExpList(symVal->typeExpr.expList, numTypeExpression());
+            width = 4;
         }
         else if(node->kv.val.type == DT_RNUM){
-            addToRecord(symVal->typeExpr, rnumTypeExpression());
+            insertToExpList(symVal->typeExpr.expList, rnumTypeExpression());
+            width = 8;
         }
 
         else if(node->kv.val.type == DT_REC_OR_UNION || node->kv.val.type == DT_RECORD || node->kv.val.type == DT_UNION){
@@ -78,19 +85,35 @@ void computeType(char* name, SymbolVal* symVal){
                     }
                     k = 1;
                 }
+                width = tVal->width;
                 insertToExpList(symVal->typeExpr.expList, tVal->typeExpr);
         }
         else {
             printf("Unexpected type %s encountered for %s\n", dtypeToStr(node->kv.val.type), node->kv.name);
         }
+        node->kv.val.width = width;
+        node->kv.val.offset = offset;
+        if(symVal->type == DT_RECORD) offset += width;
+        maxw = width > maxw ? width : maxw;
         node = node->next;
     }
+
+    symVal->width = (symVal->type == DT_RECORD) ? offset : maxw;
 
     if(k == 1){
         symVal->typeExpr.basicType = BTYPE_TAGGED_UNION;
     }
+
 }
 
+void printWidth(char* name){
+    SymbolTable* fTab = findTypeDefinition(name)->symbolTable;
+    LL* node = fTab->keys.head;
+    for(int i = 0; i < fTab->keys.sz; i++){
+        printf("%s : <%d, %d>\n", name, node->kv.val.offset, node->kv.val.width);
+        node = node->next;
+    }
+}
 void computeTypes(){
     LL* node = typeDefSymbolTable.keys.head;
     for(int i = 0; i < typeDefSymbolTable.keys.sz; i++){
@@ -98,13 +121,47 @@ void computeTypes(){
             computeType(node->kv.name, &node->kv.val);
         printf("%s =>", node->kv.name);
         printTypeExpr(node->kv.val.typeExpr);
+        printWidth(node->kv.name);
         printf("\n");
         node = node->next;
     }
 }
 
+void computeLocalType(char* id){
+    SymbolTable* fSym = findFunc(id);
+    LL* node = fSym->keys.head;
+    for(int i = 0; i < fSym->keys.sz; i++){
+        SymbolVal* varVal = findVar(node->kv.name);
+        if(varVal->type == DT_NUM){
+            varVal->typeExpr = numTypeExpression();
+        }
+        else if(varVal->type == DT_RNUM){
+            varVal->typeExpr = rnumTypeExpression();
+        }
+        else {
+            SymbolVal* tdefVal = findTypeDefinition(varVal->typeName);
+            if(tdefVal == NULL){
+                printf("Error ! Unknown type %s for var %s\n", varVal->typeName, node->kv.name);
+            }
+            else{
+                varVal->typeExpr = tdefVal->typeExpr;
+            }
+        }
+
+        node = node->next;
+    }
+}
+
+void computeAllLocalType(){
+    LL* node = funSymbolTable.keys.head;
+    for(int i = 0; i < funSymbolTable.keys.sz; i++){
+        loadSymbolTable(node->kv.name);
+        computeLocalType(node->kv.name);
+        node = node->next;
+    }
+}
 KeyVal keyVal(char* name){
-    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid()}};
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, NOT_PAR,typeVoid()}};
 }
 
 void loadSymbolTable(char* funId){
@@ -248,11 +305,11 @@ SymbolVal* findType(Ast_SingleOrRecId* id){
     return fVal;
 }
 
-void insertVar(char* name, Datatype datatype, char* typeName){
+void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName){
     KeyVal kv = keyVal(name);
     kv.val.type = datatype;
     kv.val.typeName = typeName;
-
+    kv.val.parType = ptype;
     insert(currentSymbolTable(), kv);
 }
 
@@ -287,7 +344,16 @@ void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs
         kv.val.type = fdef->fieldType->datatype;
         printf("adding field %s of type %s\n", fdef->id, dtypeToStr(fdef->fieldType->datatype));
         kv.val.typeName = fdef->fieldType->name;
+        SymbolVal* rep = find(flistSymTab, fdef->id);
+        SymbolVal* repGlob = findGlobalVar(fdef->id);
 
+        if(rep != NULL){
+            printf("Error ! Redeclaration of field %s in %s", fdef->id, name);
+        }
+        else if(repGlob != NULL){
+            printf("Error ! Redeclaration of global var %s as field in %s", fdef->id, name);
+        }
+        
         insert(flistSymTab, kv);
     }
 
@@ -297,6 +363,9 @@ void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs
     // tIndex++;
 }
 
+SymbolVal* findGlobalVar(char* var){
+    return find(&globVarSymbolTable, var);
+}
 void insertTypeRedef(char* name, char* to){
     printf("insertTypeRedef %s %s\n", name, to);
     KeyVal kv = keyVal(name);
