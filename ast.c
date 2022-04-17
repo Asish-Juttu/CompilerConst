@@ -586,7 +586,6 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     nodeToAst(nodeIsG, isGlobalOrNot)->isGlobal = 0;
 
                     global_or_not->node_syn = nodeIsG;
-                    ptElement->lineNo = ptElement->children[0].lineNo;
                     nodeToAst(nodeIsG,isGlobalOrNot)->lineNo = global_or_not->lineNo;
                 }
                 break;

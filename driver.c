@@ -175,17 +175,17 @@ int ex=0;
                 for(int i=0;i<funSymbolTable.keys.sz;i++){
                     LL* node2 = node->kv.val.symbolTable->keys.head;
                     for(int j=0;j<node->kv.val.symbolTable->keys.sz;j++){
-                    printf("Name: %s\n",node2->kv.val.name);
-                    printf("Scope: %s\n",node->kv.val.name);
-                    if(node2->kv.val.type == DT_RECORD) printf("Type Name: %s\n",node2->kv.val.typeName); // TYPE NAME
-                    printf("Type Expression: ");
-                    printTypeExpr(node2->kv.val.typeExpr);
-                    printf("\n");
-                    printf("Width: %d",node2->kv.val.width);
-                    if(findGlobalVar(node2->kv.val.typeName)!=NULL) printf("isGLobal: Global");
-                    else printf("isGlobal: ---");
-                    printf("Offset: %d",node2->kv.val.offset);
-                    //VARIABLE USAGE
+                        printf("Name: %s\n",node2->kv.val.name);
+                        printf("Scope: %s\n",node->kv.val.name);
+                        if(node2->kv.val.type == DT_RECORD) printf("Type Name: %s\n",node2->kv.val.typeName); // TYPE NAME
+                        printf("Type Expression: ");
+                        printTypeExpr(node2->kv.val.typeExpr);
+                        printf("\n");
+                        printf("Width: %d",node2->kv.val.width);
+                        if(findGlobalVar(node2->kv.val.typeName)!=NULL) printf("isGLobal: Global");
+                        else printf("isGlobal: ---");
+                        printf("Offset: %d",node2->kv.val.offset);
+                        //VARIABLE USAGE
                 }
                 }
                 break;
