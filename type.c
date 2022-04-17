@@ -603,144 +603,144 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
     TypeExpression *leftTypex;
     TypeExpression *rightTypex;
 
-    if (astElement->lefType == AEXP_EXP)
-    {
-        handleTypeExpressionArithmeticExpression(astElement->left.exp);
-        leftTypex = &astElement->left.exp->typeExpr;
-        if (astElement->left.exp->typeExpr.basicType == BTYPE_ERROR)
-        {
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-        }
-    }
-    else
-    {
-        handleExpressionVar(astElement->left.var);
-        leftTypex = &astElement->left.var->typeExpr;
-        if (astElement->left.var->typeExpr.basicType == BTYPE_ERROR)
-        {
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-        }
-    }
+    // if (astElement->lefType == AEXP_EXP)
+    // {
+    //     handleTypeExpressionArithmeticExpression(astElement->left.exp);
+    //     leftTypex = &astElement->left.exp->typeExpr;
+    //     if (astElement->left.exp->typeExpr.basicType == BTYPE_ERROR)
+    //     {
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //     }
+    // }
+    // else
+    // {
+    //     handleExpressionVar(astElement->left.var);
+    //     leftTypex = &astElement->left.var->typeExpr;
+    //     if (astElement->left.var->typeExpr.basicType == BTYPE_ERROR)
+    //     {
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //     }
+    // }
 
-    if (astElement->rightType == AEXP_EXP)
-    {
-        handleTypeExpressionArithmeticExpression(astElement->right.exp);
-        rightTypex = &astElement->right.exp->typeExpr;
-        if (astElement->right.exp->typeExpr.basicType == BTYPE_ERROR)
-        {
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-        }
-    }
-    else
-    {
-        handleExpressionVar(astElement->right.var);
-        rightTypex = &astElement->right.var->typeExpr;
-        if (astElement->right.var->typeExpr.basicType == BTYPE_ERROR)
-        {
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-        }
-    }
+    // if (astElement->rightType == AEXP_EXP)
+    // {
+    //     handleTypeExpressionArithmeticExpression(astElement->right.exp);
+    //     rightTypex = &astElement->right.exp->typeExpr;
+    //     if (astElement->right.exp->typeExpr.basicType == BTYPE_ERROR)
+    //     {
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //     }
+    // }
+    // else
+    // {
+    //     handleExpressionVar(astElement->right.var);
+    //     rightTypex = &astElement->right.var->typeExpr;
+    //     if (astElement->right.var->typeExpr.basicType == BTYPE_ERROR)
+    //     {
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //     }
+    // }
 
-    if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD))
-    {
-        printf("Arithmetic operations are only supported for record,integers and real numbers\n");
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-        return;
-    }
+    // if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD))
+    // {
+    //     printf("Arithmetic operations are only supported for record,integers and real numbers\n");
+    //     astElement->typeExpr.basicType = BTYPE_ERROR;
+    //     astElement->typeExpr.expList = NULL;
+    //     return;
+    // }
 
-    if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD))
-    {
-        printf("Arithmetic operations are only supported for record,integers and real numbers\n");
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-        return;
-    }
+    // if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD))
+    // {
+    //     printf("Arithmetic operations are only supported for record,integers and real numbers\n");
+    //     astElement->typeExpr.basicType = BTYPE_ERROR;
+    //     astElement->typeExpr.expList = NULL;
+    //     return;
+    // }
 
-    if (astElement->op == AOP_PLUS)
-    {
+    // if (astElement->op == AOP_PLUS)
+    // {
 
-        // both left and right types must be equal
-        // otherwise throw error.
-        if (checkifEqual(*leftTypex, *rightTypex))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
-            printf("Right hand side and left hand side are of different types.\n");
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-        }
-    }
-    else if (astElement->op == AOP_MINUS)
-    {
+    //     // both left and right types must be equal
+    //     // otherwise throw error.
+    //     if (checkifEqual(*leftTypex, *rightTypex))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else
+    //     {
+    //         printf("Right hand side and left hand side are of different types.\n");
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //     }
+    // }
+    // else if (astElement->op == AOP_MINUS)
+    // {
 
-        // both left and right types must be equal
-        // otherwise throw error.
-        if (checkifEqual(*leftTypex, *rightTypex))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
-            printf("Right hand side and left hand side are of different types.\n");
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-        }
-    }
-    else if (astElement->op == AOP_DIV)
-    {
+    //     // both left and right types must be equal
+    //     // otherwise throw error.
+    //     if (checkifEqual(*leftTypex, *rightTypex))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else
+    //     {
+    //         printf("Right hand side and left hand side are of different types.\n");
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //     }
+    // }
+    // else if (astElement->op == AOP_DIV)
+    // {
 
-        // right must be of the type num or rnum.
-        // left can be num or rnum or record type.
+    //     // right must be of the type num or rnum.
+    //     // left can be num or rnum or record type.
 
-        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-            printf("This type of operation is not supported between these type of datatypes\n");
-            return;
-        }
-    }
-    else if (astElement->op == AOP_MUL)
-    {
-        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
-            astElement->typeExpr.basicType = BTYPE_ERROR;
-            astElement->typeExpr.expList = NULL;
-            printf("This type of operation is not supported between these type of datatypes\n");
-            return;
-        }
-    }
+    //     if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else
+    //     {
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //         printf("This type of operation is not supported between these type of datatypes\n");
+    //         return;
+    //     }
+    // }
+    // else if (astElement->op == AOP_MUL)
+    // {
+    //     if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+    //     {
+    //         astElement->typeExpr = *leftTypex;
+    //     }
+    //     else
+    //     {
+    //         astElement->typeExpr.basicType = BTYPE_ERROR;
+    //         astElement->typeExpr.expList = NULL;
+    //         printf("This type of operation is not supported between these type of datatypes\n");
+    //         return;
+    //     }
+    // }
 }
 
 void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)

@@ -128,6 +128,7 @@ void insertIntoLexSymbolTable(char* lexeme, Token tk, Datatype t);
 void insertTypeDef(char* name, Datatype recOrUn, Ast_FieldDefinitions* fieldDefs);
 void insertTypeRedef(char* name, char* to);
 void insertGlobVar(char* name, Datatype t, char* typeName);
+SymbolVal* findGlobalVar(char* var);
 void insert(SymbolTable* symTable, KeyVal kv);
 
 

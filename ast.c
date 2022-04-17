@@ -30,8 +30,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
     //     printf("PTELEMENT IS NULL!!");
     //     return;
     // }
-    printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
-        ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
+    // printf("Handling ParseTreeElement of type %s - %s (Rule no = %d)\n", 
+        // ptElement->elem.isTerminal ? "TERM" : "NON TERM", nonTermToStr(ptElement->elem.symbol), ptElement->ruleNo);
     if (!ptElement->elem.isTerminal)
     {
         switch (ptElement->elem.symbol)
@@ -505,9 +505,16 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                 declaration->node_syn = declaration->node_inh;
 
                 if(isGlobal){
-                    insertGlobVar(tkId.lexeme, dtype->datatype, dtype->name);
+                    if(findGlobalVar(tkId.lexeme) != NULL){
+                        printf("Error! Redeclaration of global varaible %s\n", tkId.lexeme);
+                    }
+                    else
+                        insertGlobVar(tkId.lexeme, dtype->datatype, dtype->name);
                 }
                 else{
+                    if(findVar(tkId.lexeme) != NULL){
+                        printf("Error! Redeclaration of local varaible %s in %s\n", tkId.lexeme, currentSymbolTable()->name);
+                    }
                     insertVar(tkId.lexeme, dtype->datatype, dtype->name);
                 }
                 break;
@@ -1188,13 +1195,14 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                                 arithmeticExpression);
                     nodeToAst(nodeArithExpr, arithmeticExpression)->aexpType = AEXP_EXP;
                     handleParseTreeElement(lowPrOp);
+                    expAexp(nodeToAst(nodeArithExpr, arithmeticExpression)) = malloc(sizeof(ArithmeticExpression));
                     expAexp(nodeToAst(nodeArithExpr, arithmeticExpression))->op =
                         nodeToAst(lowPrOp->node_syn, arithmeticOp)->op;
 
                     handleParseTreeElement(term);
 
-                    AstNode* left = nodeToAst(expPrime->node_inh, arithmeticExpression);
-                    AstNode* right = nodeToAst(term->node_syn, arithmeticExpression);
+                    Ast_ArithmeticExpression* left = nodeToAst(expPrime->node_inh, arithmeticExpression);
+                    Ast_ArithmeticExpression* right = nodeToAst(term->node_syn, arithmeticExpression);
                     Ast_ArithmeticExpression* aexp = nodeToAst(nodeArithExpr, arithmeticExpression);
 
                     expAexp(aexp)->left = left;
@@ -1340,8 +1348,8 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression, arithmeticExpression);
                     nodeToAst(nodeAexp, arithmeticExpression)->aexpType = AEXP_VAR;
 
-                    varAexp(nodeToAst(nodeAexp, arithmeticExpression)) = var->node_syn;
-                    
+                    varAexp(nodeToAst(nodeAexp, arithmeticExpression)) = nodeToAst(var->node_syn, var);
+
                     factor->node_syn = nodeAexp;
                 }
                 break;
@@ -1360,13 +1368,13 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
 
                     declareAstNode(nodeAexp, AST_ARITHMETICEXPR, Ast_ArithmeticExpression,
                         arithmeticExpression);
-                    
+                    expAexp(nodeToAst(nodeAexp, arithmeticExpression)) = malloc(sizeof(ArithmeticExpression));
                     expAexp(nodeToAst(nodeAexp, arithmeticExpression))->op = 
                         nodeToAst(hpOp->node_syn, arithmeticOp)->op;
                     nodeToAst(nodeAexp, arithmeticExpression)->aexpType = AEXP_EXP;
                     
-                    AstNode* left = nodeToAst(term_prime->node_inh, arithmeticExpression);
-                    AstNode* right = nodeToAst(factor->node_syn, arithmeticExpression);
+                    Ast_ArithmeticExpression* left = nodeToAst(term_prime->node_inh, arithmeticExpression);
+                    Ast_ArithmeticExpression* right = nodeToAst(factor->node_syn, arithmeticExpression);
                     Ast_ArithmeticExpression* aexp = nodeToAst(nodeAexp, arithmeticExpression);
 
                     expAexp(aexp)->left = left;

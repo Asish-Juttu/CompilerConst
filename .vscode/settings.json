@@ -6,6 +6,7 @@
         "token.h": "c",
         "symboltable.h": "c",
         "ast.h": "c",
-        "typedef.h": "c"
+        "typedef.h": "c",
+        "astprint.h": "c"
     }
 }

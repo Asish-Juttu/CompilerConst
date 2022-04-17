@@ -263,30 +263,30 @@ void printTypeDefinitions(Ast_TypeDefinitions* t, int n){
 
 }
 
+void printAexp(ArithmeticExpression* aexp, int n){
+    print("(", 0);
+    printArithmeticExpression(aexp->left, 0);
+    print(")", 0);
+
+    printAop(aexp->op, 0);
+
+    print("(", 0);
+    printArithmeticExpression(aexp->right, 0);
+    print(")", 0);
+
+}
 void printArithmeticExpression(Ast_ArithmeticExpression* t, int n){
     print("Ast_ArithmeticExpression:", n);
     
-    print("(", 0);
-    if(t->lefType == AEXP_EXP)
-        printArithmeticExpression(aexp_expLeft(t),0);
-
-    else if(t->lefType == AEXP_VAR)
-        printVar(aexp_varLeft(t), 0);
-
-    print(")", 0);
-
-    printAop(t->op,0);
-    
-    print("(", 0);
-    if(t->rightType == AEXP_EXP)
-        printArithmeticExpression(aexp_expRight(t), 0);
-    else if(t->rightType == AEXP_VAR)
-        printVar(aexp_varRight(t), 0);
-    else {
-        printf("<######>%d", t->rightType);
+    if(t->aexpType == AEXP_EXP){
+        printAexp(expAexp(t), n);
     }
-    print(")", 0);
-
+    else if(t->aexpType == AEXP_VAR){
+        printVar(varAexp(t), n);
+    }
+    else{
+        print("\nAexp type not init\n", 0);
+    }
 }
 
 void printRelop(RelationalOperator op, int n){
