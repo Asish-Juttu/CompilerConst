@@ -95,7 +95,6 @@ void printOtherFunctions(Ast_OtherFunctions* t, int n){
     print("Ast_OtherFunctions\n",n);
     n=n+1;
     AstList* list = t->functionList;
-    n = n + 1;
     for(int i = 0; i < list->size; i++){
         printFunction(nodeToAst(list->nodes[i], function), n);
     }
@@ -114,7 +113,6 @@ void printFieldDefinitions(Ast_FieldDefinitions* t, int n){
     print("Ast_FieldDefinitions",n);
     n=n+1;
     AstList* list = t->fieldDefinitionList;
-    n = n + 1;
     for(int i = 0; i < list->size; i++){
         printFieldDefinition(nodeToAst(list->nodes[i], fieldDefinition), n);
     }

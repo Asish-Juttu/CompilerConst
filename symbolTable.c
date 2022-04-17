@@ -126,6 +126,39 @@ void computeTypes(){
     }
 }
 
+void computeLocalType(char* id){
+    SymbolTable* fSym = findFunc(id);
+    LL* node = fSym->keys.head;
+    for(int i = 0; i < fSym->keys.sz; i++){
+        SymbolVal* varVal = findVar(node->kv.name);
+        if(varVal->type == DT_NUM){
+            varVal->typeExpr = numTypeExpression();
+        }
+        else if(varVal->type == DT_RNUM){
+            varVal->typeExpr = rnumTypeExpression();
+        }
+        else {
+            SymbolVal* tdefVal = findTypeDefinition(varVal->typeName);
+            if(tdefVal == NULL){
+                printf("Error ! Unknown type %s for var %s\n", varVal->typeName, node->kv.name);
+            }
+            else{
+                varVal->typeExpr = tdefVal->typeExpr;
+            }
+        }
+
+        node = node->next;
+    }
+}
+
+void computeAllLocalType(){
+    LL* node = funSymbolTable.keys.head;
+    for(int i = 0; i < funSymbolTable.keys.sz; i++){
+        loadSymbolTable(node->kv.name);
+        computeLocalType(node->kv.name);
+        node = node->next;
+    }
+}
 KeyVal keyVal(char* name){
     return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid()}};
 }

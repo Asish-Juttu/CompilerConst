@@ -38,6 +38,15 @@ typedef struct {
     TypeExpression typeExpr;
 } SymbolVal;
 
+// SymbolVal* s = findFunc(name);
+// if(s == NULL) no such function
+// else 
+//  s->typeExpr = type;
+
+// SymbolVal* tDef = findTypeDefinioto(nameoftype);
+// SymbolVal* fTab = tDef->symbolTable;
+// SymbolVal* vVal = find(fTab, fieldName);
+// TypeExpression t = vVal->typeExpr;
 typedef struct{
     char* name;
     SymbolVal val;

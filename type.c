@@ -811,7 +811,7 @@ void handleTypeExpressionBooleanExpression(Ast_BooleanExpression *astElement){
      
      //what will be the type of boolean expression?
      if(astElement->bexpType == BEXP_BOOL_OP){
-          BoolOperation *bool =  
+          //BoolOperation *bool =  
      }
      else if(astElement->bexpType == BEXP_VAR_COMP){
 
