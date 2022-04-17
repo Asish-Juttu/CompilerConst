@@ -7,6 +7,7 @@
         "symboltable.h": "c",
         "ast.h": "c",
         "typedef.h": "c",
-        "astprint.h": "c"
+        "astprint.h": "c",
+        "parser.h": "c"
     }
 }

@@ -40,6 +40,7 @@ int isVoid(TypeExpression t){
     return t.basicType == BTYPE_VOID;
 }
 void computeType(char* name, SymbolVal* symVal){
+    
     if(symVal->type == DT_RECORD)
         symVal->typeExpr = recordTypeExpression();
     else if(symVal->type == DT_UNION)
@@ -126,8 +127,48 @@ void computeTypes(){
     }
 }
 
+void computeLocalType(char* id){
+    SymbolTable* fSym = findFunc(id)->symbolTable;
+    LL* node = fSym->keys.head;
+    printf("Computing local types for %s\n", id);
+
+    for(int i = 0; i < fSym->keys.sz; i++){
+        printf("Computing types for %s as", node->kv.name);
+
+        SymbolVal* varVal = findVar(node->kv.name);
+        if(varVal->type == DT_NUM){
+            varVal->typeExpr = numTypeExpression();
+            // printf("DT NUM\n");
+        }
+        else if(varVal->type == DT_RNUM){
+            varVal->typeExpr = rnumTypeExpression();
+            // printf("DT RNUM\n");
+
+        }
+        else {
+            SymbolVal* tdefVal = findTypeDefinition(varVal->typeName);
+            if(tdefVal == NULL){
+                printf("Error ! Unknown type %s for var %s\n", varVal->typeName, node->kv.name);
+            }
+            else{
+                varVal->typeExpr = tdefVal->typeExpr;
+            }
+        }
+
+        node = node->next;
+    }
+}
+
+void computeAllLocalType(){
+    LL* node = funSymbolTable.keys.head;
+    for(int i = 0; i < funSymbolTable.keys.sz; i++){
+        loadSymbolTable(node->kv.name);
+        computeLocalType(node->kv.name);
+        node = node->next;
+    }
+}
 KeyVal keyVal(char* name){
-    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid()}};
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, NOT_PAR,typeVoid()}};
 }
 
 void loadSymbolTable(char* funId){
@@ -271,11 +312,12 @@ SymbolVal* findType(Ast_SingleOrRecId* id){
     return fVal;
 }
 
-void insertVar(char* name, Datatype datatype, char* typeName){
+void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName){
     KeyVal kv = keyVal(name);
     kv.val.type = datatype;
     kv.val.typeName = typeName;
-
+    kv.val.parType = ptype;
+    printf("Inserting var %s of type %s", name, dtypeToStr(datatype));
     insert(currentSymbolTable(), kv);
 }
 
