@@ -40,6 +40,7 @@ int isVoid(TypeExpression t){
     return t.basicType == BTYPE_VOID;
 }
 void computeType(char* name, SymbolVal* symVal){
+    
     if(symVal->type == DT_RECORD)
         symVal->typeExpr = recordTypeExpression();
     else if(symVal->type == DT_UNION)
@@ -160,7 +161,7 @@ void computeAllLocalType(){
     }
 }
 KeyVal keyVal(char* name){
-    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, typeVoid()}};
+    return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, NOT_PAR,typeVoid()}};
 }
 
 void loadSymbolTable(char* funId){
@@ -304,11 +305,11 @@ SymbolVal* findType(Ast_SingleOrRecId* id){
     return fVal;
 }
 
-void insertVar(char* name, Datatype datatype, char* typeName){
+void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName){
     KeyVal kv = keyVal(name);
     kv.val.type = datatype;
     kv.val.typeName = typeName;
-
+    kv.val.parType = ptype;
     insert(currentSymbolTable(), kv);
 }
 

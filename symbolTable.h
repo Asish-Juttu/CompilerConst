@@ -25,6 +25,9 @@ ID: 2019A7PS0065P
 
 struct _SymbolTable;
 
+typedef enum{
+    NOT_PAR, IN_PAR, OUT_PAR
+} ParType;
 
 typedef struct {
     char* name; // key (or alias of some record)
@@ -35,6 +38,7 @@ typedef struct {
     struct _SymbolTable* symbolTable;
     int offset;
     int width; // in bytes
+    ParType parType;
     TypeExpression typeExpr;
 } SymbolVal;
 
@@ -127,7 +131,7 @@ void initGlobalSymbolTables();
 void initFuncSybolTable(); // required to be implemented
 
 
-void insertVar(char* name, Datatype datatype, char* typeName);
+void insertVar(char* name, ParType ptype, Datatype datatype, char* typeName);
 void insertFunc(char* name, SymbolTable* symbolTable);
 
 SymbolVal* findFunc(char* name);

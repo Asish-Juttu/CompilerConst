@@ -145,7 +145,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     if(findVar(param->id) != NULL){
                         printf("Redeclaration of var %s in function %s\n", param->id, currentSymbolTable()->name);
                     }
-                    insertVar(param->id, param->datatype->datatype, param->datatype->name);
+                    insertVar(param->id, IN_PAR, param->datatype->datatype, param->datatype->name);
                 }
                 parameter_list->node_inh = nodeParameterList;
                 handleParseTreeElement(parameter_list);
@@ -168,7 +168,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     AstList* list = nodeToAst(nodeParameterList, parameterList)->parameterList;
                     for(int i = 0; i < list->size; i++){
                         Ast_ParameterDeclaration* param = nodeToAst(list->nodes[i], parameterDeclaration);
-                        insertVar(param->id, param->datatype->datatype, param->datatype->name);
+                        insertVar(param->id, OUT_PAR, param->datatype->datatype, param->datatype->name);
                     }
                     output_par->node_syn = parameter_list->node_syn;
                     ptElement->lineNo = ptElement->children[0].lineNo;
@@ -550,7 +550,7 @@ void handleParseTreeElement(ParseTreeElement *ptElement)
                     if(findVar(tkId.lexeme) != NULL){
                         printf("Error! Redeclaration of local varaible %s in %s\n", tkId.lexeme, currentSymbolTable()->name);
                     }
-                    insertVar(tkId.lexeme, dtype->datatype, dtype->name);
+                    insertVar(tkId.lexeme, NOT_PAR, dtype->datatype, dtype->name);
                 }
                 ptElement->lineNo = ptElement->children[0].lineNo;
 
