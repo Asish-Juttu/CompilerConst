@@ -485,13 +485,13 @@ void handleTypeExpressionDeclaration(Ast_Declaration *astElement)
 {
     // push the corresponding thing into symbol table.
     // check if the id is alredy present in global symbol table.
-    SymbolVal *dec = find(&globVarSymbolTable, astElement->id);
-    if (dec != NULL)
-    {
-        printf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-    }
+    // SymbolVal *dec = find(&globVarSymbolTable, astElement->id);
+    // if (dec != NULL)
+    // {
+    //     printf("%s is a global variable and it is declared as a local variabe also.\n", astElement->id);
+    //     astElement->typeExpr.basicType = BTYPE_ERROR;
+    //     astElement->typeExpr.expList = NULL;
+    // }
     // else
     // {
     //     // Inserting into the symbol table.
@@ -799,6 +799,7 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
         SymbolVal *variable = findVar(astElement->id);
         if (variable == NULL)
         {
+            printf("YOOO THE ID %s is not present in sym table of %s\n", astElement->id, currentSymbolTable()->name);
             variable = find(&globVarSymbolTable, astElement->id);
             if (variable == NULL)
             {
