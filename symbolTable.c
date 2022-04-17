@@ -169,6 +169,25 @@ void computeAllLocalType(){
         computeLocalType(node->kv.name);
         node = node->next;
     }
+
+    node = globVarSymbolTable.keys.head;
+    for(int i = 0; i < globVarSymbolTable.keys.sz; i++){
+        if(node->kv.val.type == DT_NUM){
+            findGlobalVar(node->kv.name)->typeExpr = numTypeExpression();
+        }
+        else if(node->kv.val.type == DT_RNUM){
+            findGlobalVar(node->kv.name)->typeExpr = rnumTypeExpression();
+        }
+        else{
+            SymbolVal* tVal = findTypeDefinition(node->kv.val.typeName);
+            if(tVal == NULL){
+                printf("Error ! Cannot find type %s while declaring %s\n", node->kv.val.typeName, node->kv.name);
+            }
+            else
+                findGlobalVar(node->kv.name)->typeExpr = tVal->typeExpr;
+        }
+        node = node->next;
+    }
 }
 KeyVal keyVal(char* name){
     return (KeyVal){name, {name, NULL, 0, 0, NULL, NULL, 0, 0, NOT_PAR,typeVoid()}};
@@ -296,7 +315,11 @@ SymbolVal* findTypeDefinition(char* name){
 // if returns null => no such variable
 SymbolVal* findType(Ast_SingleOrRecId* id){
     SymbolVal* firstId = findVar(id->id);
-    if(firstId == NULL) return NULL;
+    if(firstId == NULL) 
+        firstId = findGlobalVar(id->id);
+    if(firstId == NULL){
+        return NULL;
+    }
 
     AstList* list = id->fieldNameList;
     if(list->size == 0)

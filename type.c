@@ -661,123 +661,126 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
     
     if(astElement->aexpType == AEXP_EXP){
     
-    TypeExpression *leftTypex;
-    TypeExpression *rightTypex;
-    ArithmeticExpression *arithexp = astElement->aexpUnion.exp;
+        TypeExpression *leftTypex;
+        TypeExpression *rightTypex;
+        ArithmeticExpression *arithexp = astElement->aexpUnion.exp;
 
 
-    handleTypeExpressionArithmeticExpression(arithexp->left);
-    leftTypex = &arithexp->left->typeExpr;
-    if(leftTypex->basicType == BTYPE_ERROR){
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-    }
-    
-    handleTypeExpressionArithmeticExpression(arithexp->right);
-    rightTypex = &arithexp->right->typeExpr;
-    if(rightTypex->basicType == BTYPE_ERROR){
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-    }
-
-    
-
-    if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD))
-    {
-        printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-        return;
-    }
-
-    if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD))
-    {
-        printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
-        astElement->typeExpr.basicType = BTYPE_ERROR;
-        astElement->typeExpr.expList = NULL;
-        return;
-    }
-
-    if (arithexp->op == AOP_PLUS)
-    {
-
-        // both left and right types must be equal
-        // otherwise throw error.
-        if (checkifEqual(*leftTypex, *rightTypex))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
-            printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
+        handleTypeExpressionArithmeticExpression(arithexp->left);
+        leftTypex = &arithexp->left->typeExpr;
+        if(leftTypex->basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         }
-    }
-    else if (arithexp->op == AOP_MINUS)
-    {
-
-        // both left and right types must be equal
-        // otherwise throw error.
-        if (checkifEqual(*leftTypex, *rightTypex))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
-            printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
+        
+        handleTypeExpressionArithmeticExpression(arithexp->right);
+        rightTypex = &arithexp->right->typeExpr;
+        if(rightTypex->basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         }
-    }
-    else if (arithexp->op == AOP_DIV)
-    {
 
-        // right must be of the type num or rnum.
-        // left can be num or rnum or record type.
+        
 
-        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+        if ((leftTypex->basicType != BTYPE_NUM) && (leftTypex->basicType != BTYPE_RNUM) && (leftTypex->basicType != BTYPE_RECORD) && (leftTypex->basicType != BTYPE_ERROR))
         {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        // else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
-        // {
-        //     astElement->typeExpr = *leftTypex;
-        // }
-        else
-        {
+            printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
+            printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-            printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
             return;
         }
-    }
-    else if (arithexp->op == AOP_MUL)
-    {
-        if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+
+        if ((rightTypex->basicType != BTYPE_NUM) && (rightTypex->basicType != BTYPE_RNUM) && (rightTypex->basicType != BTYPE_RECORD) && (leftTypex->basicType != BTYPE_ERROR))
         {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
-        {
-            astElement->typeExpr = *leftTypex;
-        }
-        else
-        {
+            printf("Arithmetic operations are only supported for record,integers and real numbers(Line Number %d)\n", astElement->lineNo);
+            printf("Left : %s, Right : %s\n", basicTypeToString(leftTypex->basicType), basicTypeToString(leftTypex->basicType));
+
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
-            printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
             return;
         }
-    }
+
+        if (arithexp->op == AOP_PLUS)
+        {
+
+            // both left and right types must be equal
+            // otherwise throw error.
+            if (checkifEqual(*leftTypex, *rightTypex))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            else
+            {
+                printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
+                astElement->typeExpr.basicType = BTYPE_ERROR;
+                astElement->typeExpr.expList = NULL;
+            }
+        }
+        else if (arithexp->op == AOP_MINUS)
+        {
+
+            // both left and right types must be equal
+            // otherwise throw error.
+            if (checkifEqual(*leftTypex, *rightTypex))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            else
+            {
+                printf("Right hand side and left hand side are of different types.(Line Number %d)\n", astElement->lineNo);
+                astElement->typeExpr.basicType = BTYPE_ERROR;
+                astElement->typeExpr.expList = NULL;
+            }
+        }
+        else if (arithexp->op == AOP_DIV)
+        {
+
+            // right must be of the type num or rnum.
+            // left can be num or rnum or record type.
+
+            if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            // else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+            // {
+            //     astElement->typeExpr = *leftTypex;
+            // }
+            else
+            {
+                astElement->typeExpr.basicType = BTYPE_ERROR;
+                astElement->typeExpr.expList = NULL;
+                printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
+                return;
+            }
+        }
+        else if (arithexp->op == AOP_MUL)
+        {
+            if ((leftTypex->basicType == BTYPE_NUM) && (rightTypex->basicType == BTYPE_NUM))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            else if ((leftTypex->basicType == BTYPE_RNUM) && (rightTypex->basicType == BTYPE_RNUM))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            else if ((leftTypex->basicType == BTYPE_RECORD) && ((rightTypex->basicType == BTYPE_NUM) || (rightTypex->basicType == BTYPE_RNUM)))
+            {
+                astElement->typeExpr = *leftTypex;
+            }
+            else
+            {
+                astElement->typeExpr.basicType = BTYPE_ERROR;
+                astElement->typeExpr.expList = NULL;
+                printf("This type of operation is not supported between these type of datatypes(Line Number %d)\n", astElement->lineNo);
+                return;
+            }
+        }
     
     }
     else if(astElement->aexpType == AEXP_VAR){
@@ -786,8 +789,8 @@ void handleTypeExpressionArithmeticExpression(Ast_ArithmeticExpression *astEleme
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         }else{
-            astElement->typeExpr.basicType = BTYPE_VOID;
-            astElement->typeExpr.expList = NULL;
+            astElement->typeExpr = astElement->aexpUnion.var->typeExpr;
+            // printf("Assigning type\n", astElement->typeExpr.basicType);
         }
     }
 }
@@ -848,21 +851,22 @@ void handleTypeExpressionSingleOrRecId(Ast_SingleOrRecId *astElement)
 void handleExpressionVar(Ast_Var *astElement)
 {
     if(astElement->varType ==  VAR_ID){
+        // printf("<< %s >>", astElement->varUnion.singleOrRecId->id);
         handleTypeExpressionSingleOrRecId(astElement->varUnion.singleOrRecId);
         if(astElement->varUnion.singleOrRecId->typeExpr.basicType == BTYPE_ERROR){
             astElement->typeExpr.basicType = BTYPE_ERROR;
             astElement->typeExpr.expList = NULL;
         } else{
             astElement->typeExpr = astElement->varUnion.singleOrRecId->typeExpr;
+            // printTypeExpr(astElement->varUnion.singleOrRecId->typeExpr);
+            // printf("\n");
         }
     }
     else if(astElement->varType == VAR_NUM){
-        astElement->typeExpr.basicType = VAR_NUM;
-        astElement->typeExpr.expList = NULL;   
+        astElement->typeExpr = numTypeExpression();
     }
     else if(astElement->varType == VAR_RNUM){
-        astElement->typeExpr.basicType = BTYPE_RNUM;
-        astElement->typeExpr.expList = NULL;
+        astElement->typeExpr = rnumTypeExpression();
     }
 
 }
