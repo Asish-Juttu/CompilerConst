@@ -394,7 +394,7 @@ void handleTypeExpressionOtherStmts(Ast_OtherStmts *astElement)
         {
             if (statement->stmtUnion.assignStmt->typeExpr.basicType == BTYPE_ERROR)
             {
-                isError = 1;
+                printf("Left side and right side of assignment are different(Line number %d)\n", statement->stmtUnion.assignStmt->lineNo);
             }
         }
         else if (statement->type == STMT_COND)
